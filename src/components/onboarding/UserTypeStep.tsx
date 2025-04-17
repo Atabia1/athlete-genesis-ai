@@ -9,19 +9,19 @@ const userTypes = [
   {
     id: 'athlete',
     title: 'Athlete',
-    description: 'I actively participate in a specific sport and want to enhance my performance.',
+    description: "I actively participate in a specific sport and want to enhance my performance.",
     icon: Dumbbell,
   },
   {
     id: 'individual',
     title: 'Fitness Enthusiast',
-    description: 'I'm seeking general fitness, weight management, or improved health.',
+    description: "I'm seeking general fitness, weight management, or improved health.",
     icon: UserCircle,
   },
   {
     id: 'coach',
     title: 'Coach',
-    description: 'I manage a team or individual athletes and need tools to monitor progress.',
+    description: "I manage a team or individual athletes and need tools to monitor progress.",
     icon: Users,
   },
 ];
