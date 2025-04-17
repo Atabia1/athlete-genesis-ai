@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Search } from 'lucide-react';
 import OnboardingLayout from './OnboardingLayout';
+import { usePlan } from '@/context/PlanContext';
 
 const popularSports = [
   'Running', 'Weightlifting', 'CrossFit', 'Basketball', 
@@ -14,8 +15,9 @@ const popularSports = [
 ];
 
 const SportActivityStep = () => {
+  const { sportActivity, setSportActivity } = usePlan();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSport, setSelectedSport] = useState<string | null>(null);
+  const [selectedSport, setSelectedSport] = useState<string | null>(sportActivity);
   const navigate = useNavigate();
 
   const filteredSports = searchTerm 
@@ -29,14 +31,14 @@ const SportActivityStep = () => {
   };
 
   const handleContinue = () => {
-    // In a real app, you would save this data to state or context
     if (selectedSport) {
+      setSportActivity(selectedSport);
       navigate('/onboarding/experience-level');
     }
   };
 
   return (
-    <OnboardingLayout step={3} totalSteps={4} title="What sport or activity do you practice?">
+    <OnboardingLayout step={2} totalSteps={5} title="What sport or activity do you practice?">
       <div className="space-y-4 mb-8">
         <p className="text-gray-600">
           Select your primary sport or physical activity. This helps us tailor workouts specific to your needs.

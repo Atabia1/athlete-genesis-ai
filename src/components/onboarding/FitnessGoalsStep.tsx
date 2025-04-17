@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Trophy, TrendingUp, Weight, Heart, Timer, Brain } from 'lucide-react';
 import OnboardingLayout from './OnboardingLayout';
+import { usePlan, FitnessGoal } from '@/context/PlanContext';
 
 const fitnessGoals = [
   {
@@ -45,10 +46,11 @@ const fitnessGoals = [
 ];
 
 const FitnessGoalsStep = () => {
-  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const { fitnessGoals: savedGoals, setFitnessGoals } = usePlan();
+  const [selectedGoals, setSelectedGoals] = useState<FitnessGoal[]>(savedGoals);
   const navigate = useNavigate();
 
-  const toggleGoal = (goalId: string) => {
+  const toggleGoal = (goalId: FitnessGoal) => {
     if (selectedGoals.includes(goalId)) {
       setSelectedGoals(selectedGoals.filter(id => id !== goalId));
     } else {
@@ -61,14 +63,14 @@ const FitnessGoalsStep = () => {
   };
 
   const handleContinue = () => {
-    // In a real app, you would save this data to state or context
     if (selectedGoals.length > 0) {
+      setFitnessGoals(selectedGoals);
       navigate('/onboarding/sport-activity');
     }
   };
 
   return (
-    <OnboardingLayout step={2} totalSteps={4} title="What are your primary fitness goals?">
+    <OnboardingLayout step={1} totalSteps={5} title="What are your primary fitness goals?">
       <div className="space-y-4 mb-8">
         <p className="text-gray-600">
           Select one or more goals that align with what you want to achieve. This helps us customize your plan.
@@ -79,15 +81,15 @@ const FitnessGoalsStep = () => {
             <div
               key={goal.id}
               className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                selectedGoals.includes(goal.id)
+                selectedGoals.includes(goal.id as FitnessGoal)
                   ? 'border-athleteBlue-600 bg-athleteBlue-50'
                   : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
               }`}
-              onClick={() => toggleGoal(goal.id)}
+              onClick={() => toggleGoal(goal.id as FitnessGoal)}
             >
               <div className="flex items-start">
                 <div className={`p-2 rounded-full mr-4 ${
-                  selectedGoals.includes(goal.id)
+                  selectedGoals.includes(goal.id as FitnessGoal)
                     ? 'bg-athleteBlue-100 text-athleteBlue-600' 
                     : 'bg-gray-100 text-gray-500'
                 }`}>

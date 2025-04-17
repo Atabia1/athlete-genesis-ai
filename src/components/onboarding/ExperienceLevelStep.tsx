@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import OnboardingLayout from './OnboardingLayout';
+import { usePlan, ExperienceLevel } from '@/context/PlanContext';
 
 const experienceLevels = [
   {
@@ -29,7 +30,8 @@ const experienceLevels = [
 ];
 
 const ExperienceLevelStep = () => {
-  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const { experienceLevel, setExperienceLevel } = usePlan();
+  const [selectedLevel, setSelectedLevel] = useState<ExperienceLevel | null>(experienceLevel);
   const navigate = useNavigate();
   
   const handleBack = () => {
@@ -37,14 +39,14 @@ const ExperienceLevelStep = () => {
   };
 
   const handleContinue = () => {
-    // Instead of going directly to dashboard, navigate to the next step
     if (selectedLevel) {
+      setExperienceLevel(selectedLevel);
       navigate('/onboarding/time-and-equipment');
     }
   };
 
   return (
-    <OnboardingLayout step={4} totalSteps={7} title="What's your experience level?">
+    <OnboardingLayout step={3} totalSteps={5} title="What's your experience level?">
       <div className="space-y-4 mb-8">
         <p className="text-gray-600">
           Select your current experience level in your primary sport or activity.
@@ -59,7 +61,7 @@ const ExperienceLevelStep = () => {
                   ? 'border-athleteBlue-600 bg-athleteBlue-50'
                   : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
               }`}
-              onClick={() => setSelectedLevel(level.id)}
+              onClick={() => setSelectedLevel(level.id as ExperienceLevel)}
             >
               <div>
                 <h3 className="font-medium">{level.title}</h3>

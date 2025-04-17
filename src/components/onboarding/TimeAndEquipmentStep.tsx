@@ -2,162 +2,218 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, Clock, Dumbbell } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Clock, Calendar, Sun, Moon, Dumbbell } from 'lucide-react';
 import OnboardingLayout from './OnboardingLayout';
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { usePlan } from '@/context/PlanContext';
 
-// Equipment options
+type FrequencyOption = '1-2' | '3-4' | '5-6' | '7+';
+type DurationOption = '<30' | '30-45' | '45-60' | '60-90' | '90+';
+type TimeOfDayOption = 'morning' | 'afternoon' | 'evening' | 'variable';
+type EquipmentOption = 'bodyweight' | 'basic-home' | 'full-home' | 'commercial-gym' | 'other';
+
+const frequencyOptions = [
+  { id: '1-2', label: '1-2 days per week' },
+  { id: '3-4', label: '3-4 days per week' },
+  { id: '5-6', label: '5-6 days per week' },
+  { id: '7+', label: '7+ days per week' }
+];
+
+const durationOptions = [
+  { id: '<30', label: 'Less than 30 minutes' },
+  { id: '30-45', label: '30-45 minutes' },
+  { id: '45-60', label: '45-60 minutes' },
+  { id: '60-90', label: '60-90 minutes' },
+  { id: '90+', label: '90+ minutes' }
+];
+
+const timeOfDayOptions = [
+  { id: 'morning', label: 'Morning', icon: Sun },
+  { id: 'afternoon', label: 'Afternoon', icon: Sun },
+  { id: 'evening', label: 'Evening', icon: Moon },
+  { id: 'variable', label: 'Variable/No preference', icon: Clock }
+];
+
 const equipmentOptions = [
-  { id: 'none', label: 'None (Bodyweight only)' },
-  { id: 'basic_home', label: 'Basic Home (Bands, Dumbbells)' },
-  { id: 'full_home', label: 'Full Home Gym' },
-  { id: 'commercial_gym', label: 'Commercial Gym Access' },
-  { id: 'barbell', label: 'Barbells' },
-  { id: 'kettlebell', label: 'Kettlebells' },
-  { id: 'pool', label: 'Swimming Pool' },
-  { id: 'track', label: 'Running Track' },
-  { id: 'court', label: 'Court (Basketball, Tennis, etc.)' },
-  { id: 'field', label: 'Sports Field' },
-  { id: 'bike', label: 'Bicycle' },
-  { id: 'rower', label: 'Rowing Machine' },
+  { id: 'bodyweight', label: 'None (Bodyweight only)' },
+  { id: 'basic-home', label: 'Basic Home (Bands, Dumbbells)' },
+  { id: 'full-home', label: 'Full Home Gym' },
+  { id: 'commercial-gym', label: 'Commercial Gym Access' },
+  { id: 'other', label: 'Other (Please specify)' }
 ];
 
 const TimeAndEquipmentStep = () => {
-  const [daysPerWeek, setDaysPerWeek] = useState<string>('3');
-  const [timePerSession, setTimePerSession] = useState<string>('60');
-  const [preferredTime, setPreferredTime] = useState<string>('');
-  const [equipment, setEquipment] = useState<string[]>([]);
-  const [otherEquipment, setOtherEquipment] = useState<string>('');
   const navigate = useNavigate();
+  const { 
+    frequency, setFrequency, 
+    duration, setDuration, 
+    timeOfDay, setTimeOfDay, 
+    equipment, setEquipment,
+    otherEquipment, setOtherEquipment
+  } = usePlan();
   
-  const toggleEquipment = (value: string) => {
-    setEquipment(prev => 
-      prev.includes(value)
-        ? prev.filter(item => item !== value)
-        : [...prev, value]
-    );
-  };
-
+  const [localFrequency, setLocalFrequency] = useState<FrequencyOption | null>(frequency);
+  const [localDuration, setLocalDuration] = useState<DurationOption | null>(duration);
+  const [localTimeOfDay, setLocalTimeOfDay] = useState<TimeOfDayOption | null>(timeOfDay);
+  const [localEquipment, setLocalEquipment] = useState<EquipmentOption[]>(equipment);
+  const [localOtherEquipment, setLocalOtherEquipment] = useState(otherEquipment);
+  
   const handleBack = () => {
     navigate('/onboarding/experience-level');
   };
 
   const handleContinue = () => {
-    // In a real app, you would save this data to state or context
-    // and then navigate to the next page in the onboarding flow
-    // For now, we'll just navigate to the dashboard
-    navigate('/dashboard');
+    // Save to context
+    setFrequency(localFrequency);
+    setDuration(localDuration);
+    setTimeOfDay(localTimeOfDay);
+    setEquipment(localEquipment);
+    setOtherEquipment(localOtherEquipment);
+    
+    // Navigate to plan generation
+    navigate('/onboarding/plan-generation');
   };
 
+  const toggleEquipment = (equipId: EquipmentOption) => {
+    if (localEquipment.includes(equipId)) {
+      setLocalEquipment(localEquipment.filter(id => id !== equipId));
+    } else {
+      setLocalEquipment([...localEquipment, equipId]);
+    }
+  };
+
+  const isOtherSelected = localEquipment.includes('other');
+
   return (
-    <OnboardingLayout step={5} totalSteps={7} title="Time Commitment & Equipment">
-      <div className="space-y-8 mb-8">
-        {/* Time Commitment Section */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold flex items-center">
-            <Clock className="mr-2 h-5 w-5 text-athleteBlue-600" />
-            Time Commitment
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="daysPerWeek">Days per week</Label>
-              <Select value={daysPerWeek} onValueChange={setDaysPerWeek}>
-                <SelectTrigger id="daysPerWeek">
-                  <SelectValue placeholder="Select days" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                    <SelectItem key={day} value={day.toString()}>
-                      {day} {day === 1 ? 'day' : 'days'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="timePerSession">Minutes per session</Label>
-              <Select value={timePerSession} onValueChange={setTimePerSession}>
-                <SelectTrigger id="timePerSession">
-                  <SelectValue placeholder="Select minutes" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[15, 30, 45, 60, 90, 120].map((min) => (
-                    <SelectItem key={min} value={min.toString()}>
-                      {min} minutes
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <OnboardingLayout step={4} totalSteps={5} title="Time Commitment & Equipment Access">
+      <div className="space-y-6 mb-8">
+        <section className="space-y-4">
+          <h3 className="font-medium text-lg flex items-center">
+            <Calendar className="mr-2 h-5 w-5 text-athleteBlue-500" />
+            Training Frequency
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {frequencyOptions.map((option) => (
+              <div
+                key={option.id}
+                className={`border rounded-md p-3 cursor-pointer transition-all ${
+                  localFrequency === option.id
+                    ? 'border-athleteBlue-600 bg-athleteBlue-50'
+                    : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
+                }`}
+                onClick={() => setLocalFrequency(option.id as FrequencyOption)}
+              >
+                <div className="text-center">
+                  <span className="font-medium">{option.label}</span>
+                </div>
+              </div>
+            ))}
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="preferredTime">Preferred time of day</Label>
-            <Select value={preferredTime} onValueChange={setPreferredTime}>
-              <SelectTrigger id="preferredTime">
-                <SelectValue placeholder="Select preferred time" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="morning">Morning (5am-11am)</SelectItem>
-                <SelectItem value="midday">Midday (11am-2pm)</SelectItem>
-                <SelectItem value="afternoon">Afternoon (2pm-5pm)</SelectItem>
-                <SelectItem value="evening">Evening (5pm-9pm)</SelectItem>
-                <SelectItem value="night">Night (9pm-5am)</SelectItem>
-                <SelectItem value="varies">Varies/No preference</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        </section>
         
-        {/* Equipment Access Section */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold flex items-center">
-            <Dumbbell className="mr-2 h-5 w-5 text-athleteBlue-600" />
+        <section className="space-y-4">
+          <h3 className="font-medium text-lg flex items-center">
+            <Clock className="mr-2 h-5 w-5 text-athleteBlue-500" />
+            Session Duration
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {durationOptions.map((option) => (
+              <div
+                key={option.id}
+                className={`border rounded-md p-3 cursor-pointer transition-all ${
+                  localDuration === option.id
+                    ? 'border-athleteBlue-600 bg-athleteBlue-50'
+                    : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
+                }`}
+                onClick={() => setLocalDuration(option.id as DurationOption)}
+              >
+                <div className="text-center">
+                  <span className="font-medium">{option.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        
+        <section className="space-y-4">
+          <h3 className="font-medium text-lg flex items-center">
+            <Clock className="mr-2 h-5 w-5 text-athleteBlue-500" />
+            Preferred Time of Day
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {timeOfDayOptions.map((option) => (
+              <div
+                key={option.id}
+                className={`border rounded-md p-3 cursor-pointer transition-all ${
+                  localTimeOfDay === option.id
+                    ? 'border-athleteBlue-600 bg-athleteBlue-50'
+                    : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
+                }`}
+                onClick={() => setLocalTimeOfDay(option.id as TimeOfDayOption)}
+              >
+                <div className="flex flex-col items-center">
+                  <option.icon className={`h-6 w-6 mb-2 ${
+                    localTimeOfDay === option.id 
+                      ? 'text-athleteBlue-500' 
+                      : 'text-gray-400'
+                  }`} />
+                  <span className="font-medium text-sm">{option.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        
+        <section className="space-y-4">
+          <h3 className="font-medium text-lg flex items-center">
+            <Dumbbell className="mr-2 h-5 w-5 text-athleteBlue-500" />
             Equipment Access
-          </h2>
-          <p className="text-gray-600 text-sm">
-            Select all equipment you have regular access to. This helps us customize your workout plan.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {equipmentOptions.map((item) => (
-              <div key={item.id} className="flex items-center space-x-2">
-                <Checkbox 
-                  id={item.id} 
-                  checked={equipment.includes(item.id)}
-                  onCheckedChange={() => toggleEquipment(item.id)}
-                />
-                <Label 
-                  htmlFor={item.id}
-                  className="text-sm font-normal cursor-pointer"
-                >
-                  {item.label}
-                </Label>
+          </h3>
+          <p className="text-sm text-gray-600">Select all that apply to you.</p>
+          <div className="space-y-3">
+            {equipmentOptions.map((option) => (
+              <div
+                key={option.id}
+                className={`border rounded-md p-3 cursor-pointer transition-all ${
+                  localEquipment.includes(option.id as EquipmentOption)
+                    ? 'border-athleteBlue-600 bg-athleteBlue-50'
+                    : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
+                }`}
+                onClick={() => toggleEquipment(option.id as EquipmentOption)}
+              >
+                <div className="flex items-center">
+                  <div className={`w-5 h-5 rounded border flex items-center justify-center mr-3 ${
+                    localEquipment.includes(option.id as EquipmentOption) 
+                      ? 'bg-athleteBlue-600 border-athleteBlue-600' 
+                      : 'border-gray-300'
+                  }`}>
+                    {localEquipment.includes(option.id as EquipmentOption) && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="font-medium">{option.label}</span>
+                </div>
               </div>
             ))}
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="otherEquipment">Other equipment (optional)</Label>
-            <Input
-              id="otherEquipment"
-              placeholder="Specify any other equipment you have access to"
-              value={otherEquipment}
-              onChange={(e) => setOtherEquipment(e.target.value)}
-            />
-          </div>
-        </div>
+          {isOtherSelected && (
+            <div className="mt-3">
+              <label htmlFor="otherEquipment" className="block text-sm font-medium text-gray-700 mb-1">
+                Please specify other equipment:
+              </label>
+              <textarea
+                id="otherEquipment"
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-athleteBlue-500 focus:border-athleteBlue-500"
+                placeholder="List any other equipment you have access to"
+                value={localOtherEquipment}
+                onChange={(e) => setLocalOtherEquipment(e.target.value)}
+              />
+            </div>
+          )}
+        </section>
       </div>
       
       <div className="flex justify-between">
@@ -170,6 +226,7 @@ const TimeAndEquipmentStep = () => {
         </Button>
         <Button 
           onClick={handleContinue} 
+          disabled={!localFrequency || !localDuration || !localTimeOfDay || localEquipment.length === 0 || (isOtherSelected && !localOtherEquipment)}
           className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
         >
           Continue

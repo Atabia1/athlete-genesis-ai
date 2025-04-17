@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, UserCircle, Dumbbell, Users } from 'lucide-react';
 import OnboardingLayout from './OnboardingLayout';
+import { usePlan, UserType } from '@/context/PlanContext';
 
 const userTypes = [
   {
@@ -27,18 +28,19 @@ const userTypes = [
 ];
 
 const UserTypeStep = () => {
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const { userType, setUserType } = usePlan();
+  const [selectedType, setSelectedType] = useState<UserType>(userType);
   const navigate = useNavigate();
 
   const handleContinue = () => {
-    // In a real app, you would save this data to state or context
     if (selectedType) {
+      setUserType(selectedType);
       navigate('/onboarding/fitness-goals');
     }
   };
 
   return (
-    <OnboardingLayout step={1} totalSteps={4} title="Tell us about yourself">
+    <OnboardingLayout step={0} totalSteps={5} title="Tell us about yourself">
       <div className="space-y-4 mb-8">
         <p className="text-gray-600">
           Select the option that best describes you. This helps us personalize your experience.
@@ -53,7 +55,7 @@ const UserTypeStep = () => {
                   ? 'border-athleteBlue-600 bg-athleteBlue-50'
                   : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
               }`}
-              onClick={() => setSelectedType(type.id)}
+              onClick={() => setSelectedType(type.id as UserType)}
             >
               <div className="flex items-start">
                 <div className={`p-2 rounded-full mr-4 ${
