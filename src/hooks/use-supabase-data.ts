@@ -169,32 +169,3 @@ export function useNutritionLogs(userId?: string) {
 
   return { nutritionLogs, loading, error };
 }
-
-// Simple auth hook (temporary)
-export function useAuth() {
-  const [user, setUser] = useState<{ id: string } | null>(null);
-  
-  useEffect(() => {
-    // Check if user is authenticated
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        setUser({ id: session.user.id });
-      } else {
-        setUser(null);
-      }
-    });
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setUser({ id: session.user.id });
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  return { user, isLoading: false };
-}
