@@ -23,7 +23,7 @@ export const getProfile = async (userId: string) => {
   return data;
 };
 
-// Add helper functions for our new tables
+// Helper functions for the sports table
 export const getSports = async () => {
   const { data, error } = await supabase
     .from('sports')
@@ -33,10 +33,44 @@ export const getSports = async () => {
   return data;
 };
 
+// Helper functions for the exercises table
 export const getExercises = async () => {
   const { data, error } = await supabase
     .from('exercises')
     .select('*');
+  
+  if (error) throw error;
+  return data;
+};
+
+// Helper function for workout plans
+export const getWorkoutPlans = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('workout_plans')
+    .select('*')
+    .eq('user_id', userId);
+  
+  if (error) throw error;
+  return data;
+};
+
+// Helper function for workout sessions
+export const getWorkoutSessions = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .select('*')
+    .eq('user_id', userId);
+  
+  if (error) throw error;
+  return data;
+};
+
+// Helper function for nutrition logs
+export const getNutritionLogs = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('nutrition_logs')
+    .select('*')
+    .eq('user_id', userId);
   
   if (error) throw error;
   return data;
