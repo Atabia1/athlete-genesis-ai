@@ -49,7 +49,7 @@ const ProgressWidget = () => {
               />
               <defs>
                 <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3a56ff" stopColor="#24ba7b" />
+                  <stop offset="0%" stopColor="#3a56ff" />
                   <stop offset="100%" stopColor="#86e9bc" />
                 </linearGradient>
               </defs>
