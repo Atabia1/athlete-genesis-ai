@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,37 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom colors for Athlete GPT
+				athleteBlue: {
+					50: '#f0f4ff',
+					100: '#d9e2ff',
+					200: '#b9cbff',
+					300: '#8da8ff',
+					400: '#6080ff',
+					500: '#3a56ff',
+					600: '#2a3af7',
+					700: '#1c26e8',
+					800: '#1c20d4',
+					900: '#1e22ab',
+					950: '#161871',
+				},
+				athleteGreen: {
+					50: '#f0fdf6',
+					100: '#dcfceb',
+					200: '#bbf5d7',
+					300: '#86e9bc',
+					400: '#4ad69a',
+					500: '#24ba7b',
+					600: '#189765',
+					700: '#167854',
+					800: '#165f46',
+					900: '#144e3b',
+					950: '#082b20',
+				},
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +115,33 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'fade-out': {
+					'0%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					},
+					'100%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					}
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'fade-out': 'fade-out 0.3s ease-out',
 			}
 		}
 	},
