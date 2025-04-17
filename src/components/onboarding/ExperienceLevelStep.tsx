@@ -36,15 +36,15 @@ const ExperienceLevelStep = () => {
     navigate('/onboarding/sport-activity');
   };
 
-  const handleComplete = () => {
-    // In a real app, you would save this data and complete the onboarding
+  const handleContinue = () => {
+    // Instead of going directly to dashboard, navigate to the next step
     if (selectedLevel) {
-      navigate('/dashboard');
+      navigate('/onboarding/time-and-equipment');
     }
   };
 
   return (
-    <OnboardingLayout step={4} totalSteps={4} title="What's your experience level?">
+    <OnboardingLayout step={4} totalSteps={7} title="What's your experience level?">
       <div className="space-y-4 mb-8">
         <p className="text-gray-600">
           Select your current experience level in your primary sport or activity.
@@ -79,11 +79,11 @@ const ExperienceLevelStep = () => {
           Back
         </Button>
         <Button 
-          onClick={handleComplete} 
+          onClick={handleContinue} 
           disabled={!selectedLevel}
           className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
         >
-          Complete Setup
+          Continue
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

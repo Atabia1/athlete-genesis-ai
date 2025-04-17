@@ -9,6 +9,7 @@ import Onboarding from "./pages/Onboarding";
 import FitnessGoals from "./pages/onboarding/FitnessGoals";
 import SportActivity from "./pages/onboarding/SportActivity";
 import ExperienceLevel from "./pages/onboarding/ExperienceLevel";
+import TimeAndEquipment from "./pages/onboarding/TimeAndEquipment";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/onboarding/fitness-goals" element={<FitnessGoals />} />
           <Route path="/onboarding/sport-activity" element={<SportActivity />} />
           <Route path="/onboarding/experience-level" element={<ExperienceLevel />} />
+          <Route path="/onboarding/time-and-equipment" element={<TimeAndEquipment />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
