@@ -22,7 +22,7 @@ const Dashboard = () => {
   }, [workoutPlan, mealPlan, navigate]);
 
   return (
-    <DashboardLayout>
+    <DashboardLayout title="Dashboard">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <WelcomeWidget />
         <WorkoutWidget />
