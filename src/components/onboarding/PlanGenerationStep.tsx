@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Dumbbell, Utensils, Loader2 } from 'lucide-react';
+import { ArrowLeft, Dumbbell, Utensils, Loader2, BrainCircuit, RefreshCw, AlertTriangle } from 'lucide-react';
 import OnboardingLayout from './OnboardingLayout';
 import { usePlan } from '@/context/PlanContext';
 import { toast } from '@/components/ui/use-toast';
@@ -160,6 +160,42 @@ const PlanGenerationStep = () => {
         
         {!isGenerated ? (
           <div className="flex flex-col items-center space-y-6 py-8">
+            <div className="space-y-6 w-full max-w-md px-4 py-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h3 className="font-medium text-center text-gray-700">How Our AI Creates Your Plan</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="bg-athleteBlue-100 p-2 rounded-full mr-3 flex-shrink-0">
+                    <BrainCircuit className="h-4 w-4 text-athleteBlue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Advanced Analysis</p>
+                    <p className="text-xs text-gray-500">Our AI analyzes your sport, goals, and constraints to create sport-specific training plans.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-athleteBlue-100 p-2 rounded-full mr-3 flex-shrink-0">
+                    <RefreshCw className="h-4 w-4 text-athleteBlue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Continuous Adaptation</p>
+                    <p className="text-xs text-gray-500">As you log workouts and meals, the system adapts your program based on your progress.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-athleteBlue-100 p-2 rounded-full mr-3 flex-shrink-0">
+                    <AlertTriangle className="h-4 w-4 text-athleteBlue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Intelligent Monitoring</p>
+                    <p className="text-xs text-gray-500">The AI helps identify potential issues like overtraining or nutrition gaps based on your data.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <Button 
               onClick={generatePlans}
               disabled={isLoading}

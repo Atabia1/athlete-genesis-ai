@@ -52,10 +52,13 @@ serve(async (req) => {
           }
         ],
         "periodization": "Brief explanation of how the plan progresses over time",
-        "progressionStrategy": "How to progress when exercises become too easy"
+        "progressionStrategy": "How to progress when exercises become too easy",
+        "adaptationGuidelines": "How the plan should adapt based on user feedback (e.g., if they report excessive soreness or plateaus)"
       }
 
       Make the plan extremely detailed and specific to the user's sport, goals, and equipment availability. Include appropriate intensity levels (RPE or %1RM if applicable). Design the workout schedule to match their available frequency.
+      
+      Focus on exercises that transfer well to their specific sport or activity. For example, if they're a basketball player, emphasize exercises that improve vertical jump, lateral movement, and upper body control.
     `;
 
     // Create a detailed prompt for the meal plan
@@ -94,10 +97,12 @@ serve(async (req) => {
           }
         ],
         "hydrationGuidelines": "Hydration recommendations",
-        "supplementRecommendations": "Any supplement suggestions"
+        "supplementRecommendations": "Any supplement suggestions",
+        "nutrientTimingStrategies": "Recommendations for nutrient timing around workouts",
+        "adaptationGuidelines": "How nutrition should be adjusted based on training load, recovery needs, and progress"
       }
 
-      Make the meal plan extremely detailed and tailored to support the user's training regimen and fitness goals.
+      Make the meal plan extremely detailed and tailored to support the user's training regimen and specific sport requirements. For example, if they're an endurance athlete, emphasize carbohydrate timing strategies.
     `;
 
     // First, get the workout plan
@@ -112,7 +117,7 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional fitness coach and sports scientist specialized in creating personalized workout plans. Provide detailed, evidence-based workout plans tailored to the individual\'s specific needs, goals, and constraints.' 
+            content: 'You are a professional fitness coach and sports scientist specialized in creating personalized workout plans. Provide detailed, evidence-based workout plans tailored to the individual\'s specific needs, goals, and constraints. Your plans should be specific to their sport or activity and focused on optimal performance and safety.' 
           },
           { role: 'user', content: workoutPrompt }
         ],
@@ -135,7 +140,7 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional nutritionist specialized in sports nutrition and fitness. Provide detailed, evidence-based meal plans tailored to support athletic performance and fitness goals.' 
+            content: 'You are a professional nutritionist specialized in sports nutrition and fitness. Provide detailed, evidence-based meal plans tailored to support athletic performance and fitness goals. Your nutrition advice should be specific to their sport\'s energy demands and recovery needs.' 
           },
           { role: 'user', content: mealPrompt }
         ],
@@ -145,6 +150,9 @@ serve(async (req) => {
 
     const mealData = await mealResponse.json();
     const mealPlan = JSON.parse(extractJSON(mealData.choices[0].message.content));
+
+    // Log success for debugging purposes
+    console.log("Successfully generated workout and meal plans");
 
     return new Response(JSON.stringify({ 
       workoutPlan, 
