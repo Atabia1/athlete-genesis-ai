@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,10 @@ import AthleteRoster from "./pages/coach/AthleteRoster";
 import AthleteDetails from "./pages/coach/AthleteDetails";
 import TeamCalendar from "./pages/coach/TeamCalendar";
 import NotFound from "./pages/NotFound";
+import WellbeingDashboard from "./pages/dashboard/WellbeingDashboard";
+import CoachChat from "./pages/dashboard/CoachChat";
+import TeamAnalytics from "./pages/dashboard/TeamAnalytics";
+import TrainingPlans from "./pages/dashboard/TrainingPlans";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,10 @@ const App = () => (
           <Route path="/coach/roster" element={<AthleteRoster />} />
           <Route path="/coach/athlete/:athleteId" element={<AthleteDetails />} />
           <Route path="/coach/calendar" element={<TeamCalendar />} />
+          <Route path="/dashboard/well-being" element={<WellbeingDashboard />} />
+          <Route path="/dashboard/coach-chat" element={<CoachChat />} />
+          <Route path="/coach/analytics" element={<TeamAnalytics />} />
+          <Route path="/coach/plans" element={<TrainingPlans />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
