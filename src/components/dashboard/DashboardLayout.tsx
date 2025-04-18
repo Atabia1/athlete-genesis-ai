@@ -11,10 +11,13 @@ import {
   Menu, 
   X, 
   LogOut,
-  Clock
+  Clock,
+  Users,
+  ClipboardList
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { usePlan } from "@/context/PlanContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -25,6 +28,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { userType } = usePlan();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -35,7 +39,8 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
     navigate('/');
   };
 
-  const navItems = [
+  // Define navigation items based on user type
+  const athleteNavItems = [
     { icon: Clock, label: "Today's Activities", path: '/today' },
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: Calendar, label: 'Workouts', path: '/dashboard/workouts' },
@@ -43,6 +48,15 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
     { icon: BarChart2, label: 'Progress', path: '/dashboard/progress' },
     { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
   ];
+
+  const coachNavItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/coach' },
+    { icon: Users, label: 'Athlete Roster', path: '/coach/roster' },
+    { icon: Calendar, label: 'Team Calendar', path: '/coach/calendar' },
+    { icon: Settings, label: 'Settings', path: '/coach/settings' },
+  ];
+
+  const navItems = userType === 'coach' ? coachNavItems : athleteNavItems;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -61,7 +75,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
         } md:static`}
       >
         <div className="p-4 border-b">
-          <Link to="/dashboard" className="flex items-center space-x-2">
+          <Link to={userType === 'coach' ? "/coach" : "/dashboard"} className="flex items-center space-x-2">
             <span className="text-xl font-bold bg-gradient-to-r from-athleteBlue-600 to-athleteGreen-600 bg-clip-text text-transparent">
               Athlete GPT
             </span>

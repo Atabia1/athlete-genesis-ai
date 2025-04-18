@@ -13,6 +13,10 @@ import TimeAndEquipment from "./pages/onboarding/TimeAndEquipment";
 import PlanGeneration from "./pages/onboarding/PlanGeneration";
 import Dashboard from "./pages/Dashboard";
 import TodayView from "./pages/TodayView";
+import CoachDashboard from "./pages/coach/CoachDashboard";
+import AthleteRoster from "./pages/coach/AthleteRoster";
+import AthleteDetails from "./pages/coach/AthleteDetails";
+import TeamCalendar from "./pages/coach/TeamCalendar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +37,10 @@ const App = () => (
           <Route path="/onboarding/plan-generation" element={<PlanGeneration />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/today" element={<TodayView />} />
+          <Route path="/coach" element={<CoachDashboard />} />
+          <Route path="/coach/roster" element={<AthleteRoster />} />
+          <Route path="/coach/athlete/:athleteId" element={<AthleteDetails />} />
+          <Route path="/coach/calendar" element={<TeamCalendar />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
