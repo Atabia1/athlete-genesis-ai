@@ -1,6 +1,6 @@
 
 import { ReactNode, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -10,7 +10,8 @@ import {
   User, 
   Menu, 
   X, 
-  LogOut 
+  LogOut,
+  Clock
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -23,6 +24,7 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -34,6 +36,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   };
 
   const navItems = [
+    { icon: Clock, label: "Today's Activities", path: '/today' },
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: Calendar, label: 'Workouts', path: '/dashboard/workouts' },
     { icon: Utensils, label: 'Nutrition', path: '/dashboard/nutrition' },
@@ -71,10 +74,18 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
               <li key={index}>
                 <Link 
                   to={item.path} 
-                  className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100 transition-colors"
+                  className={`flex items-center space-x-3 p-2 rounded-md transition-colors ${
+                    location.pathname === item.path 
+                      ? 'bg-gray-100 text-athleteBlue-600 font-medium'
+                      : 'hover:bg-gray-100'
+                  }`}
                   onClick={() => setIsSidebarOpen(false)}
                 >
-                  <item.icon className="h-5 w-5 text-gray-500" />
+                  <item.icon className={`h-5 w-5 ${
+                    location.pathname === item.path 
+                      ? 'text-athleteBlue-600'
+                      : 'text-gray-500'
+                  }`} />
                   <span>{item.label}</span>
                 </Link>
               </li>

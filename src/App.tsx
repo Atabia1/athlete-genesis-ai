@@ -12,6 +12,7 @@ import ExperienceLevel from "./pages/onboarding/ExperienceLevel";
 import TimeAndEquipment from "./pages/onboarding/TimeAndEquipment";
 import PlanGeneration from "./pages/onboarding/PlanGeneration";
 import Dashboard from "./pages/Dashboard";
+import TodayView from "./pages/TodayView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/onboarding/time-and-equipment" element={<TimeAndEquipment />} />
           <Route path="/onboarding/plan-generation" element={<PlanGeneration />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/today" element={<TodayView />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
