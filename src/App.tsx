@@ -22,6 +22,7 @@ import WellbeingDashboard from "./pages/dashboard/WellbeingDashboard";
 import CoachChat from "./pages/dashboard/CoachChat";
 import TeamAnalytics from "./pages/dashboard/TeamAnalytics";
 import TrainingPlans from "./pages/dashboard/TrainingPlans";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/onboarding/fitness-goals" element={<FitnessGoals />} />
           <Route path="/onboarding/sport-activity" element={<SportActivity />} />
