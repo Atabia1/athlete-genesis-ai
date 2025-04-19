@@ -1,84 +1,8 @@
-import { useState } from 'react';
-import { Check, ChevronDown, Search } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-interface Sport {
-  name: string;
-  category: string;
-}
-
-// Comprehensive list of sports organized by category
-const sportsData: Sport[] = [
-  // Team Sports
-  { name: 'Basketball', category: 'Team Sports' },
-  { name: 'Soccer', category: 'Team Sports' },
-  { name: 'Volleyball', category: 'Team Sports' },
-  { name: 'Baseball', category: 'Team Sports' },
-  { name: 'Hockey', category: 'Team Sports' },
-  { name: 'Rugby', category: 'Team Sports' },
-  { name: 'Cricket', category: 'Team Sports' },
-  { name: 'Field Hockey', category: 'Team Sports' },
-  { name: 'Lacrosse', category: 'Team Sports' },
-  
-  // Individual Sports
-  { name: 'Running', category: 'Individual Sports' },
-  { name: 'Triathlon', category: 'Individual Sports' },
-  { name: 'Track and Field', category: 'Individual Sports' },
-  { name: 'Cycling', category: 'Individual Sports' },
-  { name: 'Golf', category: 'Individual Sports' },
-  { name: 'Gymnastics', category: 'Individual Sports' },
-  { name: 'Figure Skating', category: 'Individual Sports' },
-  
-  // Strength Sports
-  { name: 'Weightlifting', category: 'Strength Sports' },
-  { name: 'Powerlifting', category: 'Strength Sports' },
-  { name: 'CrossFit', category: 'Strength Sports' },
-  { name: 'Bodybuilding', category: 'Strength Sports' },
-  { name: 'Strongman', category: 'Strength Sports' },
-  
-  // Combat Sports
-  { name: 'Boxing', category: 'Combat Sports' },
-  { name: 'MMA', category: 'Combat Sports' },
-  { name: 'Wrestling', category: 'Combat Sports' },
-  { name: 'Judo', category: 'Combat Sports' },
-  { name: 'Karate', category: 'Combat Sports' },
-  { name: 'Brazilian Jiu-Jitsu', category: 'Combat Sports' },
-  { name: 'Taekwondo', category: 'Combat Sports' },
-  
-  // Water Sports
-  { name: 'Swimming', category: 'Water Sports' },
-  { name: 'Water Polo', category: 'Water Sports' },
-  { name: 'Surfing', category: 'Water Sports' },
-  { name: 'Diving', category: 'Water Sports' },
-  { name: 'Rowing', category: 'Water Sports' },
-  { name: 'Kayaking', category: 'Water Sports' },
-  
-  // Racquet Sports
-  { name: 'Tennis', category: 'Racquet Sports' },
-  { name: 'Badminton', category: 'Racquet Sports' },
-  { name: 'Table Tennis', category: 'Racquet Sports' },
-  { name: 'Squash', category: 'Racquet Sports' },
-  { name: 'Pickleball', category: 'Racquet Sports' },
-  
-  // Winter Sports
-  { name: 'Skiing', category: 'Winter Sports' },
-  { name: 'Snowboarding', category: 'Winter Sports' },
-  { name: 'Ice Hockey', category: 'Winter Sports' },
-  { name: 'Speed Skating', category: 'Winter Sports' },
-  
-  // Other Activities
-  { name: 'Rock Climbing', category: 'Other Activities' },
-  { name: 'Dance', category: 'Other Activities' },
-  { name: 'Yoga', category: 'Other Activities' },
-  { name: 'HIIT', category: 'Other Activities' },
-  { name: 'Pilates', category: 'Other Activities' },
-];
+import { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { sportsList, sportsCategories, searchSports } from '@/data/sportsDatabase';
 
 interface SportsSelectorProps {
   selectedSport: string | null;
@@ -86,71 +10,96 @@ interface SportsSelectorProps {
 }
 
 const SportsSelector = ({ selectedSport, onSelectSport }: SportsSelectorProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const categories = Array.from(new Set(sportsData.map(sport => sport.category)));
-  
-  const filteredSports = searchTerm
-    ? sportsData.filter(sport => 
-        sport.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sport.category.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : sportsData;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredSports, setFilteredSports] = useState(sportsList);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchQuery) {
+      setFilteredSports(searchSports(searchQuery));
+      setActiveCategory(null);
+    } else if (activeCategory) {
+      setFilteredSports(sportsList.filter(sport => sport.category === activeCategory));
+    } else {
+      setFilteredSports(sportsList);
+    }
+  }, [searchQuery, activeCategory]);
+
+  const handleCategoryClick = (category: string) => {
+    if (activeCategory === category) {
+      setActiveCategory(null);
+    } else {
+      setActiveCategory(category);
+      setSearchQuery('');
+    }
+  };
 
   return (
     <div className="space-y-4">
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
-        </div>
-        <input
-          type="text"
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-athleteBlue-500 focus:border-athleteBlue-500 sm:text-sm"
-          placeholder="Search for a sport or category"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Input
+          className="pl-10"
+          placeholder="Search for a sport or activity..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      {searchTerm ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {filteredSports.map((sport) => (
-            <div
-              key={sport.name}
-              className={`px-3 py-2 rounded-md cursor-pointer text-center transition-colors ${
-                selectedSport === sport.name
-                  ? 'bg-athleteBlue-600 text-white'
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+      {!searchQuery && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {sportsCategories.map((category) => (
+            <button
+              key={category}
+              onClick={() => handleCategoryClick(category)}
+              className={`text-xs px-3 py-1 rounded-full transition-colors ${
+                activeCategory === category
+                  ? 'bg-athleteBlue-100 text-athleteBlue-800 font-medium'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
-              onClick={() => onSelectSport(sport.name)}
             >
-              {sport.name}
-            </div>
+              {category}
+            </button>
           ))}
         </div>
-      ) : (
-        <div className="space-y-4">
-          {categories.map((category) => (
-            <div key={category} className="space-y-2">
-              <h3 className="font-semibold text-gray-700">{category}</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {sportsData
-                  .filter((sport) => sport.category === category)
-                  .map((sport) => (
-                    <div
-                      key={sport.name}
-                      className={`px-3 py-2 rounded-md cursor-pointer text-center transition-colors ${
-                        selectedSport === sport.name
-                          ? 'bg-athleteBlue-600 text-white'
-                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                      }`}
-                      onClick={() => onSelectSport(sport.name)}
-                    >
-                      {sport.name}
-                    </div>
-                  ))}
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+        {filteredSports.map((sport) => (
+          <div
+            key={sport.id}
+            className={`border rounded-md p-3 cursor-pointer transition-all ${
+              selectedSport === sport.name
+                ? 'border-athleteBlue-600 bg-athleteBlue-50'
+                : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
+            }`}
+            onClick={() => onSelectSport(sport.name)}
+          >
+            <div className="flex items-center">
+              <div className={`w-5 h-5 rounded-full mr-3 ${
+                selectedSport === sport.name 
+                  ? 'bg-athleteBlue-600' 
+                  : 'bg-gray-200'
+              }`}>
+                {selectedSport === sport.name && (
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className="font-medium">{sport.name}</p>
+                <p className="text-xs text-gray-500">{sport.category}</p>
               </div>
             </div>
-          ))}
+          </div>
+        ))}
+      </div>
+
+      {filteredSports.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <p>No sports found matching your search.</p>
+          <p className="text-sm mt-2">Try a different search term or category.</p>
         </div>
       )}
     </div>

@@ -1,208 +1,220 @@
 
-import React from "react";
+import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { AlertTriangle, ArrowUp, ArrowDown, Users, TrendingUp, Activity } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TrendingDown, TrendingUp, AlertTriangle, Users, Activity, Clock, CheckCircle2, UserX2, UserRoundCheck, Heart } from "lucide-react";
 
-// Sample performance data
+// Mock data for team analytics
 const performanceData = [
-  { name: 'Sprint', athlete1: 85, athlete2: 70, athlete3: 90, athlete4: 65, athlete5: 75, average: 77 },
-  { name: 'Endurance', athlete1: 70, athlete2: 80, athlete3: 65, athlete4: 90, athlete5: 75, average: 76 },
-  { name: 'Strength', athlete1: 90, athlete2: 75, athlete3: 65, athlete4: 80, athlete5: 60, average: 74 },
-  { name: 'Agility', athlete1: 80, athlete2: 85, athlete3: 75, athlete4: 60, athlete5: 90, average: 78 },
-  { name: 'Recovery', athlete1: 75, athlete2: 90, athlete3: 80, athlete4: 85, athlete5: 70, average: 80 },
+  { month: 'Jan', team: 78, average: 72 },
+  { month: 'Feb', team: 82, average: 74 },
+  { month: 'Mar', team: 80, average: 75 },
+  { month: 'Apr', team: 85, average: 76 },
+  { month: 'May', team: 83, average: 77 },
+  { month: 'Jun', team: 88, average: 78 },
+  { month: 'Jul', team: 86, average: 78 },
+  { month: 'Aug', team: 91, average: 79 },
 ];
 
-// Sample wellness data over time
-const wellnessData = [
-  { month: 'Jan', team: 82, benchmark: 78 },
-  { month: 'Feb', team: 85, benchmark: 79 },
-  { month: 'Mar', team: 80, benchmark: 80 },
-  { month: 'Apr', team: 83, benchmark: 80 },
-  { month: 'May', team: 87, benchmark: 81 },
-  { month: 'Jun', team: 85, benchmark: 81 },
-  { month: 'Jul', team: 88, benchmark: 82 },
+const attendanceData = [
+  { month: 'Jan', attended: 92, missed: 8 },
+  { month: 'Feb', attended: 88, missed: 12 },
+  { month: 'Mar', attended: 95, missed: 5 },
+  { month: 'Apr', attended: 90, missed: 10 },
+  { month: 'May', attended: 85, missed: 15 },
+  { month: 'Jun', attended: 93, missed: 7 },
+  { month: 'Jul', attended: 96, missed: 4 },
+  { month: 'Aug', attended: 94, missed: 6 },
 ];
 
-// Sample training distribution data
-const trainingDistributionData = [
-  { name: 'High Intensity', value: 30, color: '#ef4444' },
-  { name: 'Medium Intensity', value: 45, color: '#3b82f6' },
-  { name: 'Low Intensity', value: 25, color: '#22c55e' },
+const wellbeingData = [
+  { month: 'Jan', energy: 7.2, recovery: 6.8, sleep: 7.5 },
+  { month: 'Feb', energy: 7.0, recovery: 6.5, sleep: 7.2 },
+  { month: 'Mar', energy: 7.5, recovery: 7.0, sleep: 7.8 },
+  { month: 'Apr', energy: 7.8, recovery: 7.2, sleep: 8.0 },
+  { month: 'May', energy: 7.6, recovery: 7.1, sleep: 7.7 },
+  { month: 'Jun', energy: 8.0, recovery: 7.5, sleep: 8.2 },
+  { month: 'Jul', energy: 8.2, recovery: 7.8, sleep: 8.3 },
+  { month: 'Aug', energy: 8.1, recovery: 7.6, sleep: 8.1 },
 ];
 
-// Sample athlete risk assessment
-const riskAssessmentData = [
-  { id: 1, name: 'Alex Johnson', risk: 'Low', score: 85, change: 3, indicator: 'up' },
-  { id: 2, name: 'Sam Taylor', risk: 'Medium', score: 68, change: -4, indicator: 'down' },
-  { id: 3, name: 'Jordan Lee', risk: 'Low', score: 92, change: 5, indicator: 'up' },
-  { id: 4, name: 'Casey Williams', risk: 'High', score: 51, change: -8, indicator: 'down' },
-  { id: 5, name: 'Riley Brown', risk: 'Medium', score: 72, change: 0, indicator: 'neutral' },
+const workloadDistribution = [
+  { name: 'Optimal', value: 65, color: '#22c55e' },
+  { name: 'Overtraining', value: 15, color: '#ef4444' },
+  { name: 'Undertraining', value: 20, color: '#3b82f6' },
+];
+
+const injuryRiskAthletes = [
+  { id: '1', name: 'Alex Johnson', indicators: ['High workload', 'Low sleep quality', 'Recent soreness'] },
+  { id: '2', name: 'Sarah Williams', indicators: ['Training intensity spike', 'Poor recovery metrics'] },
+  { id: '3', name: 'David Miller', indicators: ['Consecutive high-intensity days', 'Reported fatigue'] },
+];
+
+const highPerformers = [
+  { id: '1', name: 'Emma Davis', metrics: ['Consistent improvement', '95% attendance', 'Excellent recovery'] },
+  { id: '2', name: 'James Wilson', metrics: ['Strength gains +12%', 'Endurance +15%', 'Perfect attendance'] },
 ];
 
 const TeamAnalytics = () => {
+  const [timeframe, setTimeframe] = useState("3months");
+  
   return (
     <DashboardLayout title="Team Analytics">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Team Performance Analytics</h1>
-        <p className="text-muted-foreground">
-          Comprehensive analytics to track your team's performance, wellness, and training
-        </p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Team Performance Insights</h1>
+          <p className="text-muted-foreground">
+            Analyze team trends, identify outliers, and optimize training strategies
+          </p>
+        </div>
+        <Select defaultValue={timeframe} onValueChange={setTimeframe}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select timeframe" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1month">Last Month</SelectItem>
+            <SelectItem value="3months">Last 3 Months</SelectItem>
+            <SelectItem value="6months">Last 6 Months</SelectItem>
+            <SelectItem value="1year">Last Year</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      {/* Key Performance Indicators */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <Users className="mr-2 h-5 w-5 text-orange-500" />
-              Team Size
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center">
-              <p className="text-4xl font-bold">12</p>
-              <p className="text-sm text-muted-foreground">Active Athletes</p>
-              <Badge className="mt-2" variant="outline">2 new this month</Badge>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <TrendingUp className="mr-2 h-5 w-5 text-green-500" />
-              Overall Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center">
-              <p className="text-4xl font-bold text-green-500">+12%</p>
-              <p className="text-sm text-muted-foreground">vs Last Quarter</p>
-              <Badge className="mt-2" variant="outline">Above Target</Badge>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <Activity className="mr-2 h-5 w-5 text-blue-500" />
-              Team Wellness
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center">
-              <p className="text-4xl font-bold">87</p>
-              <p className="text-sm text-muted-foreground">Avg Score (0-100)</p>
-              <Badge className="mt-2" variant="outline">Top 10%</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="mb-8">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Performance Comparison</CardTitle>
-            <CardDescription>
-              Compare performance metrics across different athletes and team average
+            <CardTitle className="text-3xl font-bold text-green-600">94%</CardTitle>
+            <CardDescription className="flex items-center">
+              Attendance Rate
+              <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                +2%
+              </Badge>
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={performanceData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 20,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip formatter={(value) => [`${value}/100`, '']} />
-                  <Legend />
-                  <Bar dataKey="athlete1" name="Alex J." fill="#8884d8" />
-                  <Bar dataKey="athlete2" name="Sam T." fill="#82ca9d" />
-                  <Bar dataKey="athlete3" name="Jordan L." fill="#ffc658" />
-                  <Bar dataKey="athlete4" name="Casey W." fill="#ff8042" />
-                  <Bar dataKey="athlete5" name="Riley B." fill="#0088fe" />
-                  <Bar dataKey="average" name="Team Average" fill="#ff0000" />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="flex items-center text-gray-500">
+              <Users className="h-4 w-4 mr-1" />
+              <span className="text-sm">Team average</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-3xl font-bold text-blue-600">87.5</CardTitle>
+            <CardDescription className="flex items-center">
+              Performance Score
+              <Badge className="ml-2 bg-blue-100 text-blue-800 hover:bg-blue-100">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                +3.2
+              </Badge>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center text-gray-500">
+              <Activity className="h-4 w-4 mr-1" />
+              <span className="text-sm">Across all metrics</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-3xl font-bold text-amber-600">7.8</CardTitle>
+            <CardDescription className="flex items-center">
+              Avg. Recovery Score
+              <Badge className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-100">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                +0.3
+              </Badge>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center text-gray-500">
+              <Heart className="h-4 w-4 mr-1" />
+              <span className="text-sm">Scale of 1-10</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-3xl font-bold text-red-600">15%</CardTitle>
+            <CardDescription className="flex items-center">
+              Injury Risk
+              <Badge className="ml-2 bg-red-100 text-red-800 hover:bg-red-100">
+                <TrendingDown className="h-3 w-3 mr-1" />
+                -2%
+              </Badge>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center text-gray-500">
+              <AlertTriangle className="h-4 w-4 mr-1" />
+              <span className="text-sm">3 athletes at risk</span>
             </div>
           </CardContent>
         </Card>
       </div>
       
-      <Tabs defaultValue="wellness" className="mb-8">
-        <TabsList className="w-full bg-muted mb-4">
-          <TabsTrigger value="wellness">Team Wellness Trends</TabsTrigger>
-          <TabsTrigger value="training">Training Distribution</TabsTrigger>
-          <TabsTrigger value="risk">Risk Assessment</TabsTrigger>
+      {/* Alert section */}
+      <Alert className="mb-6 border-amber-200 bg-amber-50">
+        <AlertTriangle className="h-5 w-5 text-amber-600" />
+        <AlertTitle className="text-amber-800">Attention Required</AlertTitle>
+        <AlertDescription className="text-amber-700">
+          3 athletes are showing signs of potential overtraining. Review their recent wellbeing scores and consider modifying their training load.
+        </AlertDescription>
+      </Alert>
+      
+      {/* Main charts */}
+      <Tabs defaultValue="performance" className="mb-8">
+        <TabsList>
+          <TabsTrigger value="performance">Team Performance</TabsTrigger>
+          <TabsTrigger value="attendance">Attendance</TabsTrigger>
+          <TabsTrigger value="wellbeing">Wellbeing Metrics</TabsTrigger>
+          <TabsTrigger value="workload">Workload Distribution</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="wellness">
+        <TabsContent value="performance" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Team Wellness Over Time</CardTitle>
+              <CardTitle>Team Performance Over Time</CardTitle>
               <CardDescription>
-                Average wellness scores compared to benchmark
+                Comparing your team's performance against benchmarks
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={wellnessData}
-                    margin={{
-                      top: 20,
-                      right: 30,
-                      left: 20,
-                      bottom: 10,
-                    }}
-                  >
+                  <LineChart data={performanceData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis domain={[50, 100]} />
+                    <YAxis domain={[60, 100]} />
                     <Tooltip />
                     <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="team"
-                      name="Team Score"
-                      stroke="#ff7300"
-                      activeDot={{ r: 8 }}
+                    <Line 
+                      type="monotone" 
+                      dataKey="team" 
+                      stroke="#3b82f6" 
+                      name="Your Team" 
                       strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
                     />
-                    <Line
-                      type="monotone"
-                      dataKey="benchmark"
-                      name="Industry Benchmark"
-                      stroke="#387908"
-                      strokeDasharray="3 3"
+                    <Line 
+                      type="monotone" 
+                      dataKey="average" 
+                      stroke="#94a3b8" 
+                      name="Average" 
+                      strokeDasharray="5 5"
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -211,29 +223,101 @@ const TeamAnalytics = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="training">
+        <TabsContent value="attendance" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Training Intensity Distribution</CardTitle>
+              <CardTitle>Team Attendance Rates</CardTitle>
               <CardDescription>
-                Breakdown of training sessions by intensity level
+                Monthly attendance statistics
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col md:flex-row items-center">
-              <div className="h-[300px] w-full md:w-1/2">
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={attendanceData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="attended" name="Sessions Attended (%)" fill="#22c55e" />
+                    <Bar dataKey="missed" name="Sessions Missed (%)" fill="#ef4444" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="wellbeing" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Wellbeing Metrics</CardTitle>
+              <CardDescription>
+                Average self-reported scores (scale 1-10)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={wellbeingData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis domain={[5, 10]} />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="energy" 
+                      stroke="#f59e0b" 
+                      name="Energy Level" 
+                      strokeWidth={2}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="recovery" 
+                      stroke="#10b981" 
+                      name="Recovery Quality" 
+                      strokeWidth={2}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="sleep" 
+                      stroke="#6366f1" 
+                      name="Sleep Quality" 
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="workload" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Workload Distribution</CardTitle>
+              <CardDescription>
+                Analysis of current training load across the team
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={trainingDistributionData}
+                      data={workloadDistribution}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      outerRadius={100}
+                      innerRadius={80}
+                      outerRadius={140}
                       fill="#8884d8"
+                      paddingAngle={2}
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
-                      {trainingDistributionData.map((entry, index) => (
+                      {workloadDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -241,142 +325,139 @@ const TeamAnalytics = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-full md:w-1/2 pl-0 md:pl-8">
-                <h4 className="font-semibold mb-4">Training Distribution Analysis</h4>
-                <ul className="space-y-4">
-                  <li className="flex items-start">
-                    <div className="h-5 w-5 rounded-full bg-red-500 mt-1 mr-3"></div>
-                    <div>
-                      <p className="font-medium">High Intensity (30%)</p>
-                      <p className="text-sm text-muted-foreground">Training at 80-100% of max capacity, focused on performance peaks</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="h-5 w-5 rounded-full bg-blue-500 mt-1 mr-3"></div>
-                    <div>
-                      <p className="font-medium">Medium Intensity (45%)</p>
-                      <p className="text-sm text-muted-foreground">Training at 60-80% of max capacity, balanced for endurance and strength</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="h-5 w-5 rounded-full bg-green-500 mt-1 mr-3"></div>
-                    <div>
-                      <p className="font-medium">Low Intensity (25%)</p>
-                      <p className="text-sm text-muted-foreground">Training at 40-60% of max capacity, focused on recovery and technique</p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="risk">
-          <Card>
-            <CardHeader>
-              <CardTitle>Athlete Injury Risk Assessment</CardTitle>
-              <CardDescription>
-                AI-powered risk analysis based on training load, recovery, and movement patterns
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="relative overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-muted">
-                    <tr>
-                      <th className="px-6 py-3">Athlete</th>
-                      <th className="px-6 py-3">Risk Level</th>
-                      <th className="px-6 py-3">Readiness Score</th>
-                      <th className="px-6 py-3">Weekly Change</th>
-                      <th className="px-6 py-3">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {riskAssessmentData.map(athlete => (
-                      <tr key={athlete.id} className="bg-white border-b hover:bg-muted/50">
-                        <td className="px-6 py-4 font-medium flex items-center">
-                          <Avatar className="h-8 w-8 mr-2">
-                            <AvatarFallback className="bg-orange-100 text-orange-700">
-                              {athlete.name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          {athlete.name}
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge className={
-                            athlete.risk === 'Low' ? 'bg-green-500' :
-                            athlete.risk === 'Medium' ? 'bg-yellow-500' :
-                            'bg-red-500'
-                          }>
-                            {athlete.risk}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4">
-                          <HoverCard>
-                            <HoverCardTrigger>
-                              <span className={
-                                athlete.score > 80 ? 'text-green-600 font-medium' :
-                                athlete.score > 60 ? 'text-yellow-600 font-medium' :
-                                'text-red-600 font-medium'
-                              }>
-                                {athlete.score}/100
-                              </span>
-                            </HoverCardTrigger>
-                            <HoverCardContent className="w-80">
-                              <div className="space-y-2">
-                                <h4 className="font-semibold">Score Breakdown</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="text-sm">Sleep Quality: <span className="font-medium">82/100</span></div>
-                                  <div className="text-sm">Nutrition: <span className="font-medium">78/100</span></div>
-                                  <div className="text-sm">Recovery: <span className="font-medium">75/100</span></div>
-                                  <div className="text-sm">Training Load: <span className="font-medium">85/100</span></div>
-                                </div>
-                              </div>
-                            </HoverCardContent>
-                          </HoverCard>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            {athlete.indicator === 'up' && (
-                              <ArrowUp className="h-4 w-4 text-green-600 mr-1" />
-                            )}
-                            {athlete.indicator === 'down' && (
-                              <ArrowDown className="h-4 w-4 text-red-600 mr-1" />
-                            )}
-                            <span className={
-                              athlete.change > 0 ? 'text-green-600' :
-                              athlete.change < 0 ? 'text-red-600' :
-                              'text-gray-600'
-                            }>
-                              {athlete.change > 0 ? '+' : ''}{athlete.change}%
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {athlete.risk === 'High' ? (
-                            <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-200">
-                              <AlertTriangle className="h-3 w-3" />
-                              Modify Training
-                            </Badge>
-                          ) : athlete.risk === 'Medium' ? (
-                            <Badge variant="outline" className="flex items-center gap-1 text-yellow-600 border-yellow-200">
-                              Monitor Closely
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-200">
-                              Proceed as Planned
-                            </Badge>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Athlete insights section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* At-risk athletes */}
+        <Card className="border-red-100">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-red-700">
+              <AlertTriangle className="h-5 w-5 mr-2 text-red-500" />
+              Athletes Requiring Attention
+            </CardTitle>
+            <CardDescription>
+              These athletes are showing potential signs of overtraining or injury risk
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-64 pr-4">
+              <div className="space-y-4">
+                {injuryRiskAthletes.map((athlete) => (
+                  <div 
+                    key={athlete.id}
+                    className="p-4 rounded-lg border border-red-100 bg-red-50"
+                  >
+                    <div className="flex items-start">
+                      <UserX2 className="h-5 w-5 mt-0.5 mr-3 text-red-500" />
+                      <div>
+                        <h4 className="font-medium">{athlete.name}</h4>
+                        <ul className="mt-2 space-y-1">
+                          {athlete.indicators.map((indicator, idx) => (
+                            <li key={idx} className="flex items-center text-sm text-red-700">
+                              <AlertTriangle className="h-3.5 w-3.5 mr-1.5 text-red-500" />
+                              {indicator}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+        
+        {/* High performers */}
+        <Card className="border-green-100">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-green-700">
+              <UserRoundCheck className="h-5 w-5 mr-2 text-green-500" />
+              Top Performing Athletes
+            </CardTitle>
+            <CardDescription>
+              Athletes showing exceptional progress and adherence to training plans
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-64 pr-4">
+              <div className="space-y-4">
+                {highPerformers.map((athlete) => (
+                  <div 
+                    key={athlete.id}
+                    className="p-4 rounded-lg border border-green-100 bg-green-50"
+                  >
+                    <div className="flex items-start">
+                      <CheckCircle2 className="h-5 w-5 mt-0.5 mr-3 text-green-500" />
+                      <div>
+                        <h4 className="font-medium">{athlete.name}</h4>
+                        <ul className="mt-2 space-y-1">
+                          {athlete.metrics.map((metric, idx) => (
+                            <li key={idx} className="flex items-center text-sm text-green-700">
+                              <TrendingUp className="h-3.5 w-3.5 mr-1.5 text-green-500" />
+                              {metric}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Training program effectiveness */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Training Program Effectiveness</CardTitle>
+          <CardDescription>
+            Analysis of current training programs and their impact on athlete performance
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-1">Strength Program</h3>
+              <div className="flex items-center">
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                  <div className="bg-green-600 h-2.5 rounded-full" style={{ width: '85%' }}></div>
+                </div>
+                <span className="text-sm font-medium text-gray-700">85%</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Excellent progress, especially in lower body strength gains</p>
+            </div>
+            
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-1">Endurance Program</h3>
+              <div className="flex items-center">
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                  <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: '72%' }}></div>
+                </div>
+                <span className="text-sm font-medium text-gray-700">72%</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Good progress, but recovery metrics suggest potential modifications</p>
+            </div>
+            
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-1">Technical Program</h3>
+              <div className="flex items-center">
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                  <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '80%' }}></div>
+                </div>
+                <span className="text-sm font-medium text-gray-700">80%</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Strong improvement in skill execution and decision-making</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </DashboardLayout>
   );
 };

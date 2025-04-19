@@ -18,8 +18,8 @@ serve(async (req) => {
   try {
     const userProfile = await req.json();
 
-    // Enhanced system messages for more specialized AI responses
-    const workoutSystemMessage = `
+    // Enhanced system messages for more specialized AI responses based on role
+    let workoutSystemMessage = `
       As an expert sports scientist and strength & conditioning coach with expertise in ${userProfile.sportActivity || 'general fitness'}, 
       your task is to create a highly personalized training program. Utilize evidence-based training principles
       including progressive overload, specificity, periodization, and recovery optimization.
@@ -29,6 +29,31 @@ serve(async (req) => {
       Ensure that the workout schedule matches their available ${userProfile.frequency || '3-4'} days per week training frequency.
     `;
 
+    // Add role-specific modifications to the system message
+    if (userProfile.userType === 'athlete') {
+      workoutSystemMessage += `
+        As this plan is for a competitive athlete focusing on ${userProfile.sportActivity}, 
+        include sport-specific drills and exercises that directly enhance performance metrics.
+        Consider competition cycles and periodization to peak at the right times.
+        Include mobility work specifically needed for their sport and position.
+        Address common injury risks in ${userProfile.sportActivity} with preventative exercises.
+      `;
+    } else if (userProfile.userType === 'individual') {
+      workoutSystemMessage += `
+        As this plan is for a fitness enthusiast, balance training efficiency with enjoyment to promote adherence.
+        Include exercise variations to keep workouts interesting and motivating.
+        Address functional fitness for daily life activities alongside specific goals.
+        Provide modifications for exercises based on equipment availability and time constraints.
+      `;
+    } else if (userProfile.userType === 'coach') {
+      workoutSystemMessage += `
+        As this plan will be used by a coach, include coaching cues and technique points for each exercise.
+        Provide options for scaling exercises up or down based on individual athlete abilities.
+        Include assessment metrics to track progress objectively.
+        Suggest group training formats where relevant that could be implemented with teams.
+      `;
+    }
+
     const nutritionSystemMessage = `
       As a sports nutrition specialist with expertise in ${userProfile.sportActivity || 'general fitness'} nutrition,
       your task is to create a personalized nutrition plan. Utilize evidence-based nutritional science
@@ -37,8 +62,35 @@ serve(async (req) => {
       design meal plans that support both performance and recovery.
       Focus on practical, sustainable eating patterns with specific attention to nutrient timing around training.
       Include hydration strategies appropriate for ${userProfile.sportActivity || 'general fitness'} activities.
-      Account for their training frequency of ${userProfile.frequency || '3-4'} days per week.
+      Account for their training frequency of ${userProfile.frequency || '3-4'} days per week and session duration of ${userProfile.duration || '45-60'} minutes.
     `;
+
+    // Add role-specific modifications to the nutrition system message
+    if (userProfile.userType === 'athlete') {
+      nutritionSystemMessage += `
+        This nutrition plan is for a competitive athlete in ${userProfile.sportActivity}.
+        Include nutrition protocols for competition days vs. training days.
+        Address pre-competition nutrition timing and composition in detail.
+        Include recovery nutrition strategies for high-intensity training sessions.
+        Provide specific guidance on appropriate supplement use if relevant to their sport.
+      `;
+    } else if (userProfile.userType === 'individual') {
+      nutritionSystemMessage += `
+        This nutrition plan is for a fitness enthusiast focused on ${userProfile.fitnessGoals?.join(', ') || 'general fitness'}.
+        Emphasize sustainable dietary patterns that work within their lifestyle.
+        Provide practical meal prep strategies and time-saving tips.
+        Include guidance on eating out while staying on track with fitness goals.
+        Focus on long-term dietary adherence rather than short-term aggressive approaches.
+      `;
+    } else if (userProfile.userType === 'coach') {
+      nutritionSystemMessage += `
+        This nutrition plan will be used by a coach working with athletes.
+        Include educational components that can be shared with athletes.
+        Provide team nutrition strategies for training camps or competition days.
+        Include assessment tools to identify nutritional issues in athletes.
+        Address common nutritional misconceptions in sports and fitness.
+      `;
+    }
 
     // Create a detailed prompt for the workout plan
     const workoutPrompt = `
@@ -91,6 +143,8 @@ serve(async (req) => {
       - Sport/Activity: ${userProfile.sportActivity}
       - Experience Level: ${userProfile.experienceLevel}
       - Training Frequency: ${userProfile.frequency} days per week
+      - Session Duration: ${userProfile.duration}
+      - Preferred Time: ${userProfile.timeOfDay} (for timing nutrition around workouts)
 
       Format the response as a JSON object with the following structure:
       {
@@ -127,6 +181,14 @@ serve(async (req) => {
       Make the meal plan extremely detailed and tailored to support the user's training regimen and specific sport requirements. For example, if they're an endurance athlete, emphasize carbohydrate timing strategies.
     `;
 
+    // Log received profile data for debugging
+    console.log("Generating plans for profile:", {
+      type: userProfile.userType,
+      sport: userProfile.sportActivity,
+      goals: userProfile.fitnessGoals,
+      level: userProfile.experienceLevel
+    });
+
     // First, get the workout plan - using gpt-4o for better quality
     const workoutResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -155,7 +217,15 @@ serve(async (req) => {
       throw new Error("Failed to generate workout plan: Invalid API response");
     }
     
-    const workoutPlan = JSON.parse(extractJSON(workoutData.choices[0].message.content));
+    let workoutPlan;
+    try {
+      workoutPlan = JSON.parse(extractJSON(workoutData.choices[0].message.content));
+      console.log("Workout plan successfully parsed");
+    } catch (error) {
+      console.error("Error parsing workout plan:", error);
+      console.error("Raw workout response:", workoutData.choices[0].message.content);
+      throw new Error("Failed to parse workout plan");
+    }
 
     // Next, get the meal plan - using gpt-4o for better quality
     const mealResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -185,7 +255,15 @@ serve(async (req) => {
       throw new Error("Failed to generate meal plan: Invalid API response");
     }
     
-    const mealPlan = JSON.parse(extractJSON(mealData.choices[0].message.content));
+    let mealPlan;
+    try {
+      mealPlan = JSON.parse(extractJSON(mealData.choices[0].message.content));
+      console.log("Meal plan successfully parsed");
+    } catch (error) {
+      console.error("Error parsing meal plan:", error);
+      console.error("Raw meal response:", mealData.choices[0].message.content);
+      throw new Error("Failed to parse meal plan");
+    }
 
     // Log success for debugging purposes
     console.log("Successfully generated workout and meal plans");
@@ -211,7 +289,34 @@ serve(async (req) => {
 
 // Helper function to extract JSON from the response
 function extractJSON(text: string): string {
+  // First try to find a JSON object with standard regex
   const jsonRegex = /{[\s\S]*}/;
   const match = text.match(jsonRegex);
-  return match ? match[0] : '{}';
+  
+  if (match) {
+    try {
+      // Validate that it's parseable JSON before returning
+      JSON.parse(match[0]);
+      return match[0];
+    } catch (e) {
+      console.warn("Found JSON-like text but it's not valid JSON:", e);
+    }
+  }
+
+  // If standard regex fails, try a more aggressive approach with markdown code blocks
+  const markdownMatch = text.match(/```(?:json)?([\s\S]*?)```/);
+  if (markdownMatch) {
+    const potentialJson = markdownMatch[1].trim();
+    try {
+      // Check if the content of the code block is valid JSON
+      JSON.parse(potentialJson);
+      return potentialJson;
+    } catch (e) {
+      console.warn("Found code block but content is not valid JSON:", e);
+    }
+  }
+
+  // If all else fails, return empty object to prevent crashes
+  console.error("Could not extract valid JSON from:", text);
+  return '{}';
 }
