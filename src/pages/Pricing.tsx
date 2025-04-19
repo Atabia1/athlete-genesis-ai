@@ -6,6 +6,7 @@ import { Check, X } from "lucide-react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import { useNavigate } from "react-router-dom";
+import DynamicPlanDemo from "@/components/pricing/DynamicPlanDemo";
 
 const Pricing = () => {
   const navigate = useNavigate();
@@ -178,6 +179,11 @@ const Pricing = () => {
               </CardFooter>
             </Card>
           ))}
+        </div>
+
+        <div className="max-w-6xl mx-auto mt-16">
+          <h2 className="text-2xl font-semibold mb-8 text-center">Premium Features Showcase</h2>
+          <DynamicPlanDemo />
         </div>
 
         <div className="max-w-3xl mx-auto mt-16 bg-gray-50 rounded-lg p-8">
