@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, FileText, Image, Paperclip, Video, Smile, MicIcon, Clock } from "lucide-react";
+import { Send, FileText, Image, Paperclip, Video, Smile, MicIcon, Clock, Dumbbell as DumbbellIcon, CalendarIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
@@ -392,7 +392,9 @@ const CoachChat = () => {
                         className="justify-start h-auto py-3 px-4 whitespace-normal text-left"
                         onClick={() => {
                           setMessage(quickMessage);
-                          document.querySelector('button[value="message"]')?.click();
+                          document.querySelector('button[value="message"]')?.dispatchEvent(
+                            new Event('click', { bubbles: true })
+                          );
                         }}
                       >
                         {quickMessage}
@@ -423,7 +425,7 @@ const CoachChat = () => {
                         className="flex items-center justify-start h-auto py-3 px-4"
                       >
                         <div className="mr-3 bg-athleteBlue-100 p-2 rounded-full">
-                          <Dumbbell className="h-5 w-5 text-athleteBlue-600" />
+                          <DumbbellIcon className="h-5 w-5 text-athleteBlue-600" />
                         </div>
                         <div className="text-left">
                           <p className="font-medium">Workout Results</p>
@@ -449,7 +451,7 @@ const CoachChat = () => {
                         className="flex items-center justify-start h-auto py-3 px-4"
                       >
                         <div className="mr-3 bg-amber-100 p-2 rounded-full">
-                          <Calendar className="h-5 w-5 text-amber-600" />
+                          <CalendarIcon className="h-5 w-5 text-amber-600" />
                         </div>
                         <div className="text-left">
                           <p className="font-medium">Schedule Request</p>
