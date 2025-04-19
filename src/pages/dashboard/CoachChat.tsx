@@ -1,16 +1,17 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Send, Paperclip, User, Calendar } from "lucide-react";
+import { MessageSquare, Send, Paperclip, User, Calendar, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { usePlan } from "@/context/PlanContext";
+import { toast } from "@/components/ui/use-toast";
 
 // Sample coach data
 const coach = {
@@ -18,7 +19,7 @@ const coach = {
   name: "Coach Sarah",
   avatar: "",
   status: "online",
-  role: "Head Coach",
+  role: "AI Fitness Coach",
   lastActive: "Just now"
 };
 
@@ -27,36 +28,8 @@ const initialMessages = [
   {
     id: 1,
     sender: "coach",
-    content: "Hi there! I've reviewed your workout logs from last week. Great progress on your squat form!",
-    timestamp: "10:30 AM",
-    read: true
-  },
-  {
-    id: 2,
-    sender: "user",
-    content: "Thanks! I've been focusing on keeping my back straight as you suggested.",
-    timestamp: "10:32 AM",
-    read: true
-  },
-  {
-    id: 3,
-    sender: "coach",
-    content: "I noticed your last run was a bit slower than usual. How was your energy level that day?",
-    timestamp: "10:35 AM",
-    read: true
-  },
-  {
-    id: 4,
-    sender: "user",
-    content: "I was feeling a bit tired. I didn't sleep well the night before.",
-    timestamp: "10:38 AM",
-    read: true
-  },
-  {
-    id: 5,
-    sender: "coach",
-    content: "I see. For this week, let's adjust your running schedule slightly. I recommend doing your long run on Saturday instead of Friday to give you more recovery time. Also, try some of the sleep improvement techniques we discussed earlier.",
-    timestamp: "10:42 AM",
+    content: "Hi there! I'm your AI-powered fitness coach. I can help you with workout advice, nutrition tips, and answer questions about your training plan. How can I assist you today?",
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     read: true
   },
 ];
@@ -64,10 +37,18 @@ const initialMessages = [
 const CoachChat = () => {
   const [messages, setMessages] = useState(initialMessages);
   const [newMessage, setNewMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { workoutPlan, mealPlan } = usePlan();
+  const messagesEndRef = React.useRef(null);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === "") return;
+    if (newMessage.trim() === "" || isLoading) return;
 
     const userMessage = {
       id: messages.length + 1,
@@ -77,20 +58,65 @@ const CoachChat = () => {
       read: true
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setNewMessage("");
+    setIsLoading(true);
 
-    // Simulate coach response after a delay
-    setTimeout(() => {
+    try {
+      // Prepare context about the user's plans to help the AI provide relevant responses
+      let context = "The user has a personalized fitness plan.";
+      
+      if (workoutPlan) {
+        context += ` Their workout plan focuses on ${workoutPlan.weeklyPlan?.[0]?.focus || "various exercises"}.`;
+      }
+      
+      if (mealPlan) {
+        context += ` Their nutrition plan recommends approximately ${mealPlan.dailyCalories || "2000"} calories per day.`;
+      }
+
+      // In a production app, this would call your Supabase Edge Function
+      // For now, we'll simulate a response
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate an appropriate coach response based on the message content
+      let coachResponseText = generateCoachResponse(newMessage, context);
+
       const coachResponse = {
         id: messages.length + 2,
         sender: "coach",
-        content: "I've received your message and will analyze how it affects your training plan. I'll get back to you with more detailed feedback soon!",
+        content: coachResponseText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         read: false
       };
+      
       setMessages(prev => [...prev, coachResponse]);
-    }, 1500);
+    } catch (error) {
+      console.error('Error getting coach response:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get response from coach. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Simple response generator - in a production app, this would be replaced with an actual AI call
+  const generateCoachResponse = (message: string, context: string): string => {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes("workout") || lowerMessage.includes("exercise")) {
+      return "For your workout today, focus on proper form and maintaining intensity throughout. Remember to warm up properly and stay hydrated. Your plan includes specific rest periods - make sure to follow them for optimal recovery between sets.";
+    } else if (lowerMessage.includes("nutrition") || lowerMessage.includes("diet") || lowerMessage.includes("food") || lowerMessage.includes("eat")) {
+      return "Your nutrition plan is designed to support your fitness goals. Remember to prioritize protein intake after workouts, stay hydrated throughout the day, and time your carbohydrate intake around your training sessions for optimal energy and recovery.";
+    } else if (lowerMessage.includes("motivation") || lowerMessage.includes("tired") || lowerMessage.includes("don't feel")) {
+      return "It's normal to have days when motivation is low. Try focusing on how good you'll feel after your workout, or set a small achievable goal for today. Remember why you started this journey, and know that consistency, not perfection, is what leads to results.";
+    } else if (lowerMessage.includes("progress") || lowerMessage.includes("result")) {
+      return "Progress isn't always linear - focus on consistency and small improvements. Your body is adapting even when you don't see visible changes. Track various metrics beyond just weight, like energy levels, strength improvements, and how your clothes fit. Trust the process and stay consistent with your plan.";
+    } else {
+      return "That's a great question. As your coach, I recommend focusing on consistency with both your workout and nutrition plans. Remember that recovery is just as important as the actual training. Is there something specific about your fitness journey you'd like guidance on?";
+    }
   };
 
   return (
@@ -124,24 +150,24 @@ const CoachChat = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Next session: Tomorrow, 2:00 PM</span>
+                <span className="text-sm">Available 24/7</span>
               </div>
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Working with you since: March 2023</span>
+                <span className="text-sm">Personalized coaching based on your profile</span>
               </div>
-              <Button variant="outline" className="w-full">View Coach Profile</Button>
+              <Button variant="outline" className="w-full">View Training History</Button>
             </div>
             
             <Separator className="my-4" />
             
             <div>
-              <h4 className="font-medium mb-2">Recent Topics</h4>
+              <h4 className="font-medium mb-2">Coaching Expertise</h4>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">Nutrition</Badge>
-                <Badge variant="secondary">Deadlift Form</Badge>
-                <Badge variant="secondary">Recovery</Badge>
-                <Badge variant="secondary">Race Prep</Badge>
+                <Badge variant="secondary">Technique Analysis</Badge>
+                <Badge variant="secondary">Nutrition Advice</Badge>
+                <Badge variant="secondary">Recovery Strategies</Badge>
+                <Badge variant="secondary">Goal Setting</Badge>
               </div>
             </div>
           </CardContent>
@@ -203,13 +229,14 @@ const CoachChat = () => {
                       {message.sender === "user" && (
                         <Avatar className="h-8 w-8 mt-1">
                           <AvatarFallback className="bg-blue-100 text-blue-700">
-                            A
+                            U
                           </AvatarFallback>
                         </Avatar>
                       )}
                     </div>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
             
@@ -225,11 +252,16 @@ const CoachChat = () => {
                 <Input
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder="Ask your coach a question..."
                   className="flex-1"
+                  disabled={isLoading}
                 />
-                <Button type="submit" size="icon">
-                  <Send className="h-5 w-5" />
+                <Button type="submit" size="icon" disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
                 </Button>
               </form>
             </div>

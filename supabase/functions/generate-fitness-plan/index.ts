@@ -18,6 +18,28 @@ serve(async (req) => {
   try {
     const userProfile = await req.json();
 
+    // Enhanced system messages for more specialized AI responses
+    const workoutSystemMessage = `
+      As an expert sports scientist and strength & conditioning coach with expertise in ${userProfile.sportActivity || 'general fitness'}, 
+      your task is to create a highly personalized training program. Utilize evidence-based training principles
+      including progressive overload, specificity, periodization, and recovery optimization.
+      For ${userProfile.experienceLevel || 'intermediate'} level athletes/individuals, focus on their goals of ${userProfile.fitnessGoals?.join(', ') || 'general fitness'}.
+      Design exercises that specifically transfer to improved performance in ${userProfile.sportActivity || 'daily activities'}.
+      Include appropriate training volumes, intensities, and frequencies based on exercise science research.
+      Ensure that the workout schedule matches their available ${userProfile.frequency || '3-4'} days per week training frequency.
+    `;
+
+    const nutritionSystemMessage = `
+      As a sports nutrition specialist with expertise in ${userProfile.sportActivity || 'general fitness'} nutrition,
+      your task is to create a personalized nutrition plan. Utilize evidence-based nutritional science
+      including energy balance, macronutrient timing, meal frequency, and recovery nutrition principles.
+      For ${userProfile.experienceLevel || 'intermediate'} level athletes/individuals pursuing ${userProfile.fitnessGoals?.join(', ') || 'general fitness'},
+      design meal plans that support both performance and recovery.
+      Focus on practical, sustainable eating patterns with specific attention to nutrient timing around training.
+      Include hydration strategies appropriate for ${userProfile.sportActivity || 'general fitness'} activities.
+      Account for their training frequency of ${userProfile.frequency || '3-4'} days per week.
+    `;
+
     // Create a detailed prompt for the workout plan
     const workoutPrompt = `
       Create a detailed workout plan based on the following user profile:
@@ -105,7 +127,7 @@ serve(async (req) => {
       Make the meal plan extremely detailed and tailored to support the user's training regimen and specific sport requirements. For example, if they're an endurance athlete, emphasize carbohydrate timing strategies.
     `;
 
-    // First, get the workout plan
+    // First, get the workout plan - using gpt-4o for better quality
     const workoutResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -113,11 +135,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional fitness coach and sports scientist specialized in creating personalized workout plans. Provide detailed, evidence-based workout plans tailored to the individual\'s specific needs, goals, and constraints. Your plans should be specific to their sport or activity and focused on optimal performance and safety.' 
+            content: workoutSystemMessage
           },
           { role: 'user', content: workoutPrompt }
         ],
@@ -126,9 +148,16 @@ serve(async (req) => {
     });
 
     const workoutData = await workoutResponse.json();
+    console.log("Workout API Response received");
+    
+    if (!workoutData.choices || !workoutData.choices[0]) {
+      console.error("Invalid workout response:", workoutData);
+      throw new Error("Failed to generate workout plan: Invalid API response");
+    }
+    
     const workoutPlan = JSON.parse(extractJSON(workoutData.choices[0].message.content));
 
-    // Next, get the meal plan
+    // Next, get the meal plan - using gpt-4o for better quality
     const mealResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -136,11 +165,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional nutritionist specialized in sports nutrition and fitness. Provide detailed, evidence-based meal plans tailored to support athletic performance and fitness goals. Your nutrition advice should be specific to their sport\'s energy demands and recovery needs.' 
+            content: nutritionSystemMessage
           },
           { role: 'user', content: mealPrompt }
         ],
@@ -149,6 +178,13 @@ serve(async (req) => {
     });
 
     const mealData = await mealResponse.json();
+    console.log("Meal API Response received");
+    
+    if (!mealData.choices || !mealData.choices[0]) {
+      console.error("Invalid meal response:", mealData);
+      throw new Error("Failed to generate meal plan: Invalid API response");
+    }
+    
     const mealPlan = JSON.parse(extractJSON(mealData.choices[0].message.content));
 
     // Log success for debugging purposes
@@ -164,7 +200,8 @@ serve(async (req) => {
     console.error('Error generating fitness plan:', error);
     
     return new Response(JSON.stringify({ 
-      error: 'Failed to generate fitness plan. Please try again.' 
+      error: 'Failed to generate fitness plan. Please try again.',
+      details: error.message 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
