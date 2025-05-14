@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { dependencies } from './package.json';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -13,7 +14,12 @@ export default defineConfig(({ mode }) => {
       port: 8080,
     },
     plugins: [
-      react()
+      react({
+        // Enable React Fast Refresh
+        fastRefresh: true,
+        // Use Babel to transform JSX
+        jsxRuntime: 'automatic',
+      })
     ],
     resolve: {
       alias: {
@@ -25,6 +31,15 @@ export default defineConfig(({ mode }) => {
       __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
       __APP_ENV__: JSON.stringify(mode),
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+      // Ensure React is properly defined
+      'process.env.NODE_ENV': JSON.stringify(mode),
+    },
+    // Optimize dependencies
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react-router-dom'],
+      esbuildOptions: {
+        target: 'es2020',
+      },
     },
     // Build options
     build: {
@@ -42,6 +57,8 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         // External dependencies that shouldn't be bundled
         external: [],
+        // Preserve modules for better debugging
+        preserveModules: mode !== 'production',
         output: {
           // Chunk naming
           manualChunks: (id) => {

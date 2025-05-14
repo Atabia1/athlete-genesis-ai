@@ -8,10 +8,17 @@ if (window.APP_CONFIG) {
   console.error('APP_CONFIG is not defined');
 }
 
+// Check if React is defined
+if (window.React) {
+  console.log('React is defined globally:', window.React.version);
+} else {
+  console.warn('React is not defined globally - this is expected with modern bundlers but may cause issues with certain libraries');
+}
+
 // Add a global error handler
 window.addEventListener('error', function(event) {
   console.error('Global error caught:', event.error);
-  
+
   // Create an error message element
   const errorElement = document.createElement('div');
   errorElement.style.position = 'fixed';
@@ -24,20 +31,20 @@ window.addEventListener('error', function(event) {
   errorElement.style.zIndex = '9999';
   errorElement.style.textAlign = 'center';
   errorElement.style.fontFamily = 'Arial, sans-serif';
-  
+
   errorElement.innerHTML = `
     <h2>Application Error</h2>
     <p>${event.error ? event.error.message : 'Unknown error'}</p>
     <pre>${event.error ? event.error.stack : ''}</pre>
   `;
-  
+
   document.body.appendChild(errorElement);
 });
 
 // Add a handler for unhandled promise rejections
 window.addEventListener('unhandledrejection', function(event) {
   console.error('Unhandled promise rejection:', event.reason);
-  
+
   // Create an error message element
   const errorElement = document.createElement('div');
   errorElement.style.position = 'fixed';
@@ -50,20 +57,20 @@ window.addEventListener('unhandledrejection', function(event) {
   errorElement.style.zIndex = '9999';
   errorElement.style.textAlign = 'center';
   errorElement.style.fontFamily = 'Arial, sans-serif';
-  
+
   errorElement.innerHTML = `
     <h2>Promise Rejection</h2>
     <p>${event.reason ? event.reason.message : 'Unknown error'}</p>
     <pre>${event.reason ? event.reason.stack : ''}</pre>
   `;
-  
+
   document.body.appendChild(errorElement);
 });
 
 // Check DOM content loaded
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM content loaded');
-  
+
   // Check if the root element exists
   const rootElement = document.getElementById('root');
   if (rootElement) {
@@ -72,3 +79,49 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('Root element not found');
   }
 });
+
+// Add React debugging helper
+window.debugReact = function() {
+  if (!window.React) {
+    console.error('React is not available globally');
+    return {
+      available: false,
+      version: null,
+      components: []
+    };
+  }
+
+  // Get React version
+  const version = window.React.version;
+
+  // Try to find React components
+  const components = [];
+  const rootElement = document.getElementById('root');
+
+  if (rootElement && rootElement._reactRootContainer) {
+    console.log('React root container found');
+    components.push('Root container available');
+  }
+
+  return {
+    available: true,
+    version: version,
+    components: components
+  };
+};
+
+// Add forwardRef debugging helper
+window.checkForwardRef = function() {
+  if (!window.React) {
+    console.error('React is not available globally');
+    return false;
+  }
+
+  if (window.React.forwardRef) {
+    console.log('forwardRef is available globally');
+    return true;
+  } else {
+    console.error('forwardRef is not available globally');
+    return false;
+  }
+};
