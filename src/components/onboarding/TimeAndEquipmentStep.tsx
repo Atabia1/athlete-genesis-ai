@@ -43,20 +43,20 @@ const equipmentOptions = [
 
 const TimeAndEquipmentStep = () => {
   const navigate = useNavigate();
-  const { 
-    frequency, setFrequency, 
-    duration, setDuration, 
-    timeOfDay, setTimeOfDay, 
+  const {
+    frequency, setFrequency,
+    duration, setDuration,
+    timeOfDay, setTimeOfDay,
     equipment, setEquipment,
     otherEquipment, setOtherEquipment
   } = usePlan();
-  
+
   const [localFrequency, setLocalFrequency] = useState<FrequencyOption | null>(frequency);
   const [localDuration, setLocalDuration] = useState<DurationOption | null>(duration);
   const [localTimeOfDay, setLocalTimeOfDay] = useState<TimeOfDayOption | null>(timeOfDay);
   const [localEquipment, setLocalEquipment] = useState<EquipmentOption[]>(equipment);
   const [localOtherEquipment, setLocalOtherEquipment] = useState(otherEquipment);
-  
+
   const handleBack = () => {
     navigate('/onboarding/experience-level');
   };
@@ -68,9 +68,9 @@ const TimeAndEquipmentStep = () => {
     setTimeOfDay(localTimeOfDay);
     setEquipment(localEquipment);
     setOtherEquipment(localOtherEquipment);
-    
-    // Navigate to plan generation
-    navigate('/onboarding/plan-generation');
+
+    // Navigate to medical status step
+    navigate('/onboarding/medical-status');
   };
 
   const toggleEquipment = (equipId: EquipmentOption) => {
@@ -84,7 +84,7 @@ const TimeAndEquipmentStep = () => {
   const isOtherSelected = localEquipment.includes('other');
 
   return (
-    <OnboardingLayout step={4} totalSteps={5} title="Time Commitment & Equipment Access">
+    <OnboardingLayout step={4} totalSteps={7} title="Time Commitment & Equipment Access">
       <div className="space-y-6 mb-8">
         <section className="space-y-4">
           <h3 className="font-medium text-lg flex items-center">
@@ -109,7 +109,7 @@ const TimeAndEquipmentStep = () => {
             ))}
           </div>
         </section>
-        
+
         <section className="space-y-4">
           <h3 className="font-medium text-lg flex items-center">
             <Clock className="mr-2 h-5 w-5 text-athleteBlue-500" />
@@ -133,7 +133,7 @@ const TimeAndEquipmentStep = () => {
             ))}
           </div>
         </section>
-        
+
         <section className="space-y-4">
           <h3 className="font-medium text-lg flex items-center">
             <Clock className="mr-2 h-5 w-5 text-athleteBlue-500" />
@@ -152,8 +152,8 @@ const TimeAndEquipmentStep = () => {
               >
                 <div className="flex flex-col items-center">
                   <option.icon className={`h-6 w-6 mb-2 ${
-                    localTimeOfDay === option.id 
-                      ? 'text-athleteBlue-500' 
+                    localTimeOfDay === option.id
+                      ? 'text-athleteBlue-500'
                       : 'text-gray-400'
                   }`} />
                   <span className="font-medium text-sm">{option.label}</span>
@@ -162,7 +162,7 @@ const TimeAndEquipmentStep = () => {
             ))}
           </div>
         </section>
-        
+
         <section className="space-y-4">
           <h3 className="font-medium text-lg flex items-center">
             <Dumbbell className="mr-2 h-5 w-5 text-athleteBlue-500" />
@@ -182,8 +182,8 @@ const TimeAndEquipmentStep = () => {
               >
                 <div className="flex items-center">
                   <div className={`w-5 h-5 rounded border flex items-center justify-center mr-3 ${
-                    localEquipment.includes(option.id as EquipmentOption) 
-                      ? 'bg-athleteBlue-600 border-athleteBlue-600' 
+                    localEquipment.includes(option.id as EquipmentOption)
+                      ? 'bg-athleteBlue-600 border-athleteBlue-600'
                       : 'border-gray-300'
                   }`}>
                     {localEquipment.includes(option.id as EquipmentOption) && (
@@ -197,7 +197,7 @@ const TimeAndEquipmentStep = () => {
               </div>
             ))}
           </div>
-          
+
           {isOtherSelected && (
             <div className="mt-3">
               <label htmlFor="otherEquipment" className="block text-sm font-medium text-gray-700 mb-1">
@@ -215,17 +215,17 @@ const TimeAndEquipmentStep = () => {
           )}
         </section>
       </div>
-      
+
       <div className="flex justify-between">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleBack}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <Button 
-          onClick={handleContinue} 
+        <Button
+          onClick={handleContinue}
           disabled={!localFrequency || !localDuration || !localTimeOfDay || localEquipment.length === 0 || (isOtherSelected && !localOtherEquipment)}
           className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
         >

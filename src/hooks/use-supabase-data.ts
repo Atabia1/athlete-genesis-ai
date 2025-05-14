@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { 
-  supabase, 
-  getSports, 
+import {
+  supabase,
+  getSports,
   getExercises,
   getWorkoutPlans,
   getWorkoutSessions,
@@ -10,10 +10,37 @@ import {
 } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { Sport } from '@/data/sportsDatabase';
+import { Exercise, WorkoutPlan, WorkoutSession } from '@/shared/types/workout';
+
+// Define NutritionLog type
+interface NutritionLog {
+  id: string;
+  userId: string;
+  date: string;
+  meals: {
+    name: string;
+    foods: {
+      name: string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      servingSize: string;
+    }[];
+  }[];
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 // Hook for fetching sports data
 export function useSports() {
-  const [sports, setSports] = useState<any[]>([]);
+  const [sports, setSports] = useState<Sport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -43,7 +70,7 @@ export function useSports() {
 
 // Hook for fetching exercises
 export function useExercises() {
-  const [exercises, setExercises] = useState<any[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -73,7 +100,7 @@ export function useExercises() {
 
 // Hook for fetching workout plans
 export function useWorkoutPlans(userId?: string) {
-  const [workoutPlans, setWorkoutPlans] = useState<any[]>([]);
+  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const auth = useAuth();
@@ -81,7 +108,7 @@ export function useWorkoutPlans(userId?: string) {
   useEffect(() => {
     async function fetchWorkoutPlans() {
       if (!userId && !auth?.user?.id) return;
-      
+
       try {
         setLoading(true);
         const data = await getWorkoutPlans(userId || auth?.user?.id || '');
@@ -106,7 +133,7 @@ export function useWorkoutPlans(userId?: string) {
 
 // Hook for fetching workout sessions
 export function useWorkoutSessions(userId?: string) {
-  const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
+  const [workoutSessions, setWorkoutSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const auth = useAuth();
@@ -114,7 +141,7 @@ export function useWorkoutSessions(userId?: string) {
   useEffect(() => {
     async function fetchWorkoutSessions() {
       if (!userId && !auth?.user?.id) return;
-      
+
       try {
         setLoading(true);
         const data = await getWorkoutSessions(userId || auth?.user?.id || '');
@@ -139,7 +166,7 @@ export function useWorkoutSessions(userId?: string) {
 
 // Hook for fetching nutrition logs
 export function useNutritionLogs(userId?: string) {
-  const [nutritionLogs, setNutritionLogs] = useState<any[]>([]);
+  const [nutritionLogs, setNutritionLogs] = useState<NutritionLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const auth = useAuth();
@@ -147,7 +174,7 @@ export function useNutritionLogs(userId?: string) {
   useEffect(() => {
     async function fetchNutritionLogs() {
       if (!userId && !auth?.user?.id) return;
-      
+
       try {
         setLoading(true);
         const data = await getNutritionLogs(userId || auth?.user?.id || '');

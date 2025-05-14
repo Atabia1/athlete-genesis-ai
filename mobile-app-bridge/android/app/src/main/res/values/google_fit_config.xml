@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Google Fit OAuth 2.0 Client ID -->
+    <!-- Replace with your actual OAuth 2.0 Client ID from Google Developer Console -->
+    <string name="google_fit_client_id">YOUR_OAUTH_CLIENT_ID.apps.googleusercontent.com</string>
+    
+    <!-- Google Fit API Key -->
+    <!-- Replace with your actual API Key from Google Developer Console -->
+    <string name="google_fit_api_key">YOUR_API_KEY</string>
+</resources>

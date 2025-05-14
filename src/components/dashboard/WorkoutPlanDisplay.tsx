@@ -5,9 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dumbbell, ChevronDown, ChevronUp, Check, Info } from 'lucide-react';
 import { usePlan } from '@/context/PlanContext';
+import { WorkoutDay, Exercise } from '@/types/workout';
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
 
 const WorkoutPlanDisplay = () => {
   const { workoutPlan } = usePlan();
+  const { isOnline } = useNetworkStatus();
   const [expandedDay, setExpandedDay] = useState<string | null>("Day 1");
   const [completedExercises, setCompletedExercises] = useState<Record<string, string[]>>({});
 
@@ -54,25 +59,35 @@ const WorkoutPlanDisplay = () => {
   };
 
   return (
-    <Card className="border-athleteBlue-200 shadow-sm">
+    <Card className="border-athleteBlue-200 shadow-sm relative">
+      {!isOnline && <OfflineContentBadge contentType="workout plan" position="top-right" />}
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center">
-          <Dumbbell className="h-5 w-5 mr-2 text-athleteBlue-600" />
-          Your Workout Plan
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center">
+            <Dumbbell className="h-5 w-5 mr-2 text-athleteBlue-600" />
+            Your Workout Plan
+          </CardTitle>
+          {!isOnline && (
+            <OfflineIndicator
+              variant="badge"
+              featureSpecific={true}
+              featureName="This workout plan"
+            />
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="weeklyPlan" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="weeklyPlan">Weekly Plan</TabsTrigger>
-            <TabsTrigger value="details">Details & Progress</TabsTrigger>
+            <TabsTrigger value="weeklyPlan">Weekly Schedule</TabsTrigger>
+            <TabsTrigger value="details">Training Strategy</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="weeklyPlan" className="mt-4">
             <div className="space-y-4">
-              {workoutPlan.weeklyPlan.map((day: any) => (
+              {workoutPlan.weeklyPlan.map((day: WorkoutDay) => (
                 <div key={day.day} className="border rounded-lg overflow-hidden">
-                  <div 
+                  <div
                     className="flex justify-between items-center p-4 cursor-pointer bg-gray-50"
                     onClick={() => toggleDay(day.day)}
                   >
@@ -91,39 +106,39 @@ const WorkoutPlanDisplay = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   {expandedDay === day.day && (
                     <div className="p-4 border-t">
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Warm-up</h4>
                         <p className="text-sm">{day.warmup}</p>
                       </div>
-                      
+
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Exercises</h4>
                         <div className="space-y-3">
-                          {day.exercises.map((exercise: any, index: number) => (
-                            <div 
-                              key={index} 
+                          {day.exercises.map((exercise: Exercise, index: number) => (
+                            <div
+                              key={index}
                               className={`flex items-start p-3 rounded-md border ${
-                                isExerciseCompleted(day.day, exercise.name) 
-                                  ? 'bg-green-50 border-green-200' 
+                                isExerciseCompleted(day.day, exercise.name)
+                                  ? 'bg-green-50 border-green-200'
                                   : 'bg-white border-gray-200'
                               }`}
                             >
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className={`rounded-full mr-3 p-1 ${
-                                  isExerciseCompleted(day.day, exercise.name) 
-                                    ? 'text-green-600 hover:text-green-700 hover:bg-green-100' 
+                                  isExerciseCompleted(day.day, exercise.name)
+                                    ? 'text-green-600 hover:text-green-700 hover:bg-green-100'
                                     : 'text-gray-400 hover:text-gray-500 hover:bg-gray-100'
                                 }`}
                                 onClick={() => toggleExerciseCompletion(day.day, exercise.name)}
                               >
                                 <Check className="h-4 w-4" />
                               </Button>
-                              
+
                               <div className="flex-1">
                                 <div className="flex justify-between items-start">
                                   <h5 className="font-medium">{exercise.name}</h5>
@@ -131,11 +146,11 @@ const WorkoutPlanDisplay = () => {
                                     {exercise.sets} × {exercise.reps}
                                   </div>
                                 </div>
-                                
+
                                 <div className="mt-1 text-sm text-gray-600">
                                   Rest: {exercise.rest}
                                 </div>
-                                
+
                                 {exercise.notes && (
                                   <div className="mt-2 flex items-start text-xs text-gray-500">
                                     <Info className="h-3 w-3 mr-1 mt-0.5" />
@@ -147,7 +162,7 @@ const WorkoutPlanDisplay = () => {
                           ))}
                         </div>
                       </div>
-                      
+
                       <div>
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Cool-down</h4>
                         <p className="text-sm">{day.cooldown}</p>
@@ -158,14 +173,14 @@ const WorkoutPlanDisplay = () => {
               ))}
             </div>
           </TabsContent>
-          
+
           <TabsContent value="details" className="mt-4">
             <div className="space-y-6">
               <div>
                 <h3 className="font-medium mb-2">Periodization</h3>
                 <p className="text-sm text-gray-700">{workoutPlan.periodization}</p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium mb-2">Progression Strategy</h3>
                 <p className="text-sm text-gray-700">{workoutPlan.progressionStrategy}</p>

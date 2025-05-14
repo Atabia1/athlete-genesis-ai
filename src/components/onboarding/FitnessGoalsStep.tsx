@@ -70,12 +70,12 @@ const FitnessGoalsStep = () => {
   };
 
   return (
-    <OnboardingLayout step={1} totalSteps={5} title="What are your primary fitness goals?">
+    <OnboardingLayout step={1} totalSteps={7} title="What are your primary fitness goals?">
       <div className="space-y-4 mb-8">
         <p className="text-gray-600">
           Select one or more goals that align with what you want to achieve. This helps us customize your plan.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           {fitnessGoals.map((goal) => (
             <div
@@ -90,7 +90,7 @@ const FitnessGoalsStep = () => {
               <div className="flex items-start">
                 <div className={`p-2 rounded-full mr-4 ${
                   selectedGoals.includes(goal.id as FitnessGoal)
-                    ? 'bg-athleteBlue-100 text-athleteBlue-600' 
+                    ? 'bg-athleteBlue-100 text-athleteBlue-600'
                     : 'bg-gray-100 text-gray-500'
                 }`}>
                   <goal.icon className="h-5 w-5" />
@@ -104,17 +104,17 @@ const FitnessGoalsStep = () => {
           ))}
         </div>
       </div>
-      
+
       <div className="flex justify-between">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleBack}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <Button 
-          onClick={handleContinue} 
+        <Button
+          onClick={handleContinue}
           disabled={selectedGoals.length === 0}
           className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
         >

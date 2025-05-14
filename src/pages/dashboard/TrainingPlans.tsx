@@ -116,56 +116,56 @@ const TrainingPlans = () => {
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
   const [sportFilter, setSportFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  
+
   // Filter plans based on search and filters
   const filteredPlans = trainingPlans.filter(plan => {
     // Search query filter
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       plan.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       plan.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       plan.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+
     // Level filter
     const matchesLevel = !levelFilter || plan.level === levelFilter;
-    
+
     // Sport filter
-    const matchesSport = !sportFilter || plan.sport === sportFilter || 
+    const matchesSport = !sportFilter || plan.sport === sportFilter ||
       (sportFilter === "Other" && !["Basketball", "Soccer", "Volleyball", "Swimming", "Track & Field"].includes(plan.sport));
-    
+
     // Type filter
     const matchesType = !typeFilter || plan.type === typeFilter;
-    
+
     return matchesSearch && matchesLevel && matchesSport && matchesType;
   });
-  
+
   const resetFilters = () => {
     setLevelFilter(null);
     setSportFilter(null);
     setTypeFilter(null);
     setSearchQuery("");
   };
-  
+
   const handleCopyPlan = (planId: string) => {
     toast({
       title: "Plan duplicated",
       description: "The training plan has been duplicated and added to your plans.",
     });
   };
-  
+
   const handleDeletePlan = (planId: string) => {
     toast({
       title: "Plan deleted",
       description: "The training plan has been deleted.",
     });
   };
-  
+
   const handleAssignPlan = (planId: string) => {
     toast({
       title: "Assignment created",
       description: "Please select athletes to assign this plan to.",
     });
   };
-  
+
   return (
     <DashboardLayout title="Training Plans">
       <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -175,7 +175,7 @@ const TrainingPlans = () => {
             Create, manage and assign training plans to your athletes
           </p>
         </div>
-        
+
         <Dialog>
           <DialogTrigger asChild>
             <Button size="sm" className="sm:w-auto">
@@ -190,22 +190,22 @@ const TrainingPlans = () => {
                 Define the details of your new training plan. You'll be able to add specific workouts after creation.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="plan-name">Plan Name</Label>
                 <Input id="plan-name" placeholder="e.g., Pre-Season Strength Program" />
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="plan-description">Description</Label>
-                <Textarea 
-                  id="plan-description" 
+                <Textarea
+                  id="plan-description"
                   placeholder="Describe the goals and focus of this training plan"
                   rows={3}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="plan-sport">Sport/Activity</Label>
@@ -224,7 +224,7 @@ const TrainingPlans = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="grid gap-2">
                   <Label htmlFor="plan-level">Experience Level</Label>
                   <Select>
@@ -240,7 +240,7 @@ const TrainingPlans = () => {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="plan-duration">Duration</Label>
@@ -258,13 +258,13 @@ const TrainingPlans = () => {
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="grid gap-2">
                   <Label htmlFor="plan-sessions">Sessions Per Week</Label>
                   <Input id="plan-sessions" type="number" min="1" max="14" placeholder="3" />
                 </div>
               </div>
-              
+
               <div className="grid gap-2">
                 <Label>Plan Type</Label>
                 <RadioGroup defaultValue="team">
@@ -284,13 +284,13 @@ const TrainingPlans = () => {
                   </div>
                 </RadioGroup>
               </div>
-              
+
               <div className="grid gap-2">
                 <Label>Tags (Optional)</Label>
                 <Input placeholder="e.g., strength, conditioning, recovery (comma separated)" />
               </div>
             </div>
-            
+
             <DialogFooter>
               <Button type="button" variant="outline">Cancel</Button>
               <Button type="submit">Create Plan</Button>
@@ -298,27 +298,27 @@ const TrainingPlans = () => {
           </DialogContent>
         </Dialog>
       </div>
-      
+
       <Tabs defaultValue="all" className="mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
           <TabsList>
-            <TabsTrigger value="all">All Plans</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="drafts">Drafts</TabsTrigger>
-            <TabsTrigger value="archive">Archive</TabsTrigger>
+            <TabsTrigger value="all">All Programs</TabsTrigger>
+            <TabsTrigger value="active">Active Programs</TabsTrigger>
+            <TabsTrigger value="drafts">Draft Programs</TabsTrigger>
+            <TabsTrigger value="archive">Archived Programs</TabsTrigger>
           </TabsList>
-          
+
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search plans..." 
+                placeholder="Search plans..."
                 className="pl-9 w-full sm:w-auto min-w-[200px]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -328,7 +328,7 @@ const TrainingPlans = () => {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Filter Plans</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                
+
                 <div className="p-2">
                   <Label className="text-xs">Experience Level</Label>
                   <Select value={levelFilter || ""} onValueChange={(value) => setLevelFilter(value || null)}>
@@ -344,7 +344,7 @@ const TrainingPlans = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="p-2">
                   <Label className="text-xs">Sport/Activity</Label>
                   <Select value={sportFilter || ""} onValueChange={(value) => setSportFilter(value || null)}>
@@ -363,7 +363,7 @@ const TrainingPlans = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="p-2">
                   <Label className="text-xs">Plan Type</Label>
                   <Select value={typeFilter || ""} onValueChange={(value) => setTypeFilter(value || null)}>
@@ -378,7 +378,7 @@ const TrainingPlans = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <DropdownMenuSeparator />
                 <div className="p-2">
                   <Button variant="outline" size="sm" className="w-full" onClick={resetFilters}>
@@ -389,7 +389,7 @@ const TrainingPlans = () => {
             </DropdownMenu>
           </div>
         </div>
-        
+
         <TabsContent value="all" className="mt-0">
           {filteredPlans.length === 0 ? (
             <Card className="border-dashed">
@@ -401,7 +401,7 @@ const TrainingPlans = () => {
                     ? "No plans match your current filters. Try adjusting your search criteria."
                     : "You haven't created any training plans yet. Get started by creating your first plan."}
                 </p>
-                
+
                 {searchQuery || levelFilter || sportFilter || typeFilter ? (
                   <Button variant="outline" onClick={resetFilters}>
                     Clear Filters
@@ -463,7 +463,7 @@ const TrainingPlans = () => {
                     <p className="text-sm text-gray-700 line-clamp-2 h-10">
                       {plan.description}
                     </p>
-                    
+
                     <div className="mt-4 grid grid-cols-2 gap-3">
                       <div className="flex items-center text-sm text-gray-600">
                         <Calendar className="h-4 w-4 mr-1 text-gray-400" />
@@ -482,7 +482,7 @@ const TrainingPlans = () => {
                         <span>{plan.completion}% completion</span>
                       </div>
                     </div>
-                    
+
                     <div className="mt-4 flex flex-wrap gap-1">
                       {plan.tags.map((tag, index) => (
                         <Badge key={index} variant="outline" className="bg-gray-100 hover:bg-gray-100">
@@ -503,7 +503,7 @@ const TrainingPlans = () => {
             </div>
           )}
         </TabsContent>
-        
+
         <TabsContent value="active">
           <Card>
             <CardContent className="py-12 text-center">
@@ -512,7 +512,7 @@ const TrainingPlans = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="drafts">
           <Card>
             <CardContent className="py-12 text-center">
@@ -521,7 +521,7 @@ const TrainingPlans = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="archive">
           <Card>
             <CardContent className="py-12 text-center">

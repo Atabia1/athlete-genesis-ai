@@ -1,0 +1,3 @@
+@echo off
+echo Starting Storybook...
+npx storybook dev -p 6006

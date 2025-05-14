@@ -2,11 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, X } from "lucide-react";
+import { Check, X, Zap, Sparkles, Brain, Shield, Users } from "lucide-react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import { useNavigate } from "react-router-dom";
 import DynamicPlanDemo from "@/components/pricing/DynamicPlanDemo";
+import SubscriptionComparison from "@/components/pricing/SubscriptionComparison";
 
 const Pricing = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const Pricing = () => {
       period: "forever",
       description: "Basic features to get started with your fitness journey",
       buttonText: "Get Started",
-      buttonAction: () => navigate("/onboarding"),
+      buttonAction: () => navigate("/signup"),
       isFeatured: false,
       features: [
         { name: "Basic AI-generated workout & meal plans", included: true },
@@ -40,7 +41,7 @@ const Pricing = () => {
       yearlyPrice: "99",
       description: "Advanced plans and tracking for the dedicated athlete",
       buttonText: "Start Pro Trial",
-      buttonAction: () => navigate("/onboarding"),
+      buttonAction: () => navigate("/signup"),
       isFeatured: false,
       features: [
         { name: "Everything in Free, plus:", included: true },
@@ -61,7 +62,7 @@ const Pricing = () => {
       yearlyPrice: "199",
       description: "Team management tools and advanced analytics",
       buttonText: "Start Coach Trial",
-      buttonAction: () => navigate("/onboarding"),
+      buttonAction: () => navigate("/signup"),
       isFeatured: false,
       features: [
         { name: "Everything in Pro Athlete, plus:", included: true },
@@ -82,7 +83,7 @@ const Pricing = () => {
       yearlyPrice: "499",
       description: "Ultra-specific personalization with real-time AI assistance",
       buttonText: "Start Elite Trial",
-      buttonAction: () => navigate("/onboarding"),
+      buttonAction: () => navigate("/signup"),
       isFeatured: true,
       features: [
         { name: "Everything in Coach Pro, plus:", included: true },
@@ -102,83 +103,14 @@ const Pricing = () => {
       <Navbar />
       <div className="container px-4 py-16 mx-auto flex-grow">
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent">Choose Your Plan</h1>
           <p className="text-lg text-gray-600 mb-6">
             Pick the perfect plan for your fitness journey
           </p>
-          
-          <div className="inline-flex items-center rounded-full border border-gray-200 p-1 mb-8">
-            <Button variant="ghost" className="rounded-full px-6">
-              Monthly
-            </Button>
-            <Button variant="default" className="rounded-full px-6">
-              Yearly (Save 20%)
-            </Button>
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {plans.map((plan) => (
-            <Card 
-              key={plan.name} 
-              className={`flex flex-col ${
-                plan.isFeatured 
-                  ? "border-athleteBlue-500 shadow-lg relative" 
-                  : "border-gray-200"
-              }`}
-            >
-              {plan.isFeatured && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-athleteBlue-600">
-                  Most Popular
-                </Badge>
-              )}
-              <CardHeader>
-                <CardTitle className="text-xl">{plan.name}</CardTitle>
-                <CardDescription>{plan.tagline}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">${plan.price}</span>
-                  <span className="text-gray-500 ml-2">/{plan.period}</span>
-                  {plan.yearlyPrice && (
-                    <div className="text-sm text-gray-500 mt-1">
-                      or ${plan.yearlyPrice}/year
-                    </div>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500 mb-6">{plan.description}</p>
-                <div className="space-y-3">
-                  {plan.features.map((feature, index) => (
-                    <div key={index} className="flex items-start">
-                      {feature.included ? (
-                        <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                      ) : (
-                        <X className="h-5 w-5 text-gray-300 mr-2 flex-shrink-0" />
-                      )}
-                      <span className={`text-sm ${feature.included ? "text-gray-700" : "text-gray-400"}`}>
-                        {feature.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  onClick={plan.buttonAction} 
-                  className={`w-full ${
-                    plan.isFeatured 
-                      ? "bg-athleteBlue-600 hover:bg-athleteBlue-700" 
-                      : plan.name === "Free" 
-                        ? "bg-gray-200 hover:bg-gray-300 text-gray-800" 
-                        : "bg-gray-800 hover:bg-gray-900"
-                  }`}
-                  variant={plan.name === "Free" ? "outline" : "default"}
-                >
-                  {plan.buttonText}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+        <div className="max-w-7xl mx-auto">
+          <SubscriptionComparison />
         </div>
 
         <div className="max-w-6xl mx-auto mt-16">
@@ -192,9 +124,9 @@ const Pricing = () => {
             Coaches can manage up to 10 athletes for just $99/month
           </p>
           <div className="flex justify-center">
-            <Button 
-              className="bg-athleteBlue-600 hover:bg-athleteBlue-700" 
-              onClick={() => navigate("/onboarding")}
+            <Button
+              className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
+              onClick={() => navigate("/signup")}
             >
               Contact for Team Pricing
             </Button>
@@ -206,10 +138,10 @@ const Pricing = () => {
           <p className="text-gray-600 mb-6">
             Experience our most powerful AI features with our risk-free 7-day trial
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
-            onClick={() => navigate("/onboarding")}
+            onClick={() => navigate("/signup")}
           >
             Start Your 7-Day Free Trial
           </Button>

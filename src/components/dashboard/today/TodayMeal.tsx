@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Utensils, Check, Coffee, Sun, Sunset, PenLine, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -14,12 +14,16 @@ import {
 } from "@/components/ui/sheet";
 import MealLogger from "./MealLogger";
 import { useNavigate } from "react-router-dom";
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
 
 const TodayMeal = () => {
   const { mealPlan } = usePlan();
   const navigate = useNavigate();
+  const { isOnline } = useNetworkStatus();
   const [completedMeals, setCompletedMeals] = useState<string[]>([]);
-  
+
   if (!mealPlan) {
     return (
       <Card className="border-athleteGreen-200 shadow-sm">
@@ -59,40 +63,50 @@ const TodayMeal = () => {
   };
 
   return (
-    <Card className="border-athleteGreen-200 shadow-sm">
+    <Card className="border-athleteGreen-200 shadow-sm relative">
+      {!isOnline && <OfflineContentBadge contentType="meal plan" position="top-right" />}
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center">
-          <Utensils className="h-5 w-5 mr-2 text-athleteGreen-600" />
-          Today's Meals
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center">
+            <Utensils className="h-5 w-5 mr-2 text-athleteGreen-600" />
+            Today's Meals
+          </CardTitle>
+          {!isOnline && (
+            <OfflineIndicator
+              variant="badge"
+              featureSpecific={true}
+              featureName="This meal plan"
+            />
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {mealPlan.mealPlan.map((meal: any, index: number) => {
             const MealIcon = getMealIcon(meal.meal);
-            
+
             return (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`flex items-start p-4 rounded-md border ${
-                  completedMeals.includes(meal.meal) 
-                    ? 'bg-green-50 border-green-200' 
+                  completedMeals.includes(meal.meal)
+                    ? 'bg-green-50 border-green-200'
                     : 'bg-white border-gray-200'
                 }`}
               >
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className={`rounded-full mr-3 p-1 ${
-                    completedMeals.includes(meal.meal) 
-                      ? 'text-green-600 hover:text-green-700 hover:bg-green-100' 
+                    completedMeals.includes(meal.meal)
+                      ? 'text-green-600 hover:text-green-700 hover:bg-green-100'
                       : 'text-gray-400 hover:text-gray-500 hover:bg-gray-100'
                   }`}
                   onClick={() => toggleMealCompletion(meal.meal)}
                 >
                   <Check className="h-4 w-4" />
                 </Button>
-                
+
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
                     <h4 className="font-medium flex items-center">
@@ -103,7 +117,7 @@ const TodayMeal = () => {
                     </h4>
                     <span className="text-xs text-gray-500">{meal.time}</span>
                   </div>
-                  
+
                   <div className="mt-3">
                     {meal.options.map((option: any, optionIndex: number) => (
                       <div key={optionIndex} className="mt-2 ml-2 text-sm">
@@ -134,8 +148,8 @@ const TodayMeal = () => {
       <CardFooter className="flex justify-between">
         <Sheet>
           <SheetTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-athleteGreen-200 text-athleteGreen-700 hover:bg-athleteGreen-50 hover:text-athleteGreen-800"
             >
               <PenLine className="mr-2 h-4 w-4" />
@@ -149,9 +163,9 @@ const TodayMeal = () => {
             <MealLogger mealPlan={mealPlan.mealPlan} />
           </SheetContent>
         </Sheet>
-        
-        <Button 
-          variant="ghost" 
+
+        <Button
+          variant="ghost"
           className="text-gray-500"
           onClick={() => navigate("/dashboard")}
         >

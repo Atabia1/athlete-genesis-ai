@@ -2,10 +2,14 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { PlanProvider } from './context/PlanContext.tsx'
+import { AppProviders } from './app/providers/AppProviders'
+import { ThemeProvider } from './components/theme-provider'
 
+// Render the app with full providers
 createRoot(document.getElementById("root")!).render(
-  <PlanProvider>
-    <App />
-  </PlanProvider>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <AppProviders>
+      <App />
+    </AppProviders>
+  </ThemeProvider>
 );

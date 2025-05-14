@@ -33,7 +33,7 @@ const ExperienceLevelStep = () => {
   const { experienceLevel, setExperienceLevel } = usePlan();
   const [selectedLevel, setSelectedLevel] = useState<ExperienceLevel | null>(experienceLevel);
   const navigate = useNavigate();
-  
+
   const handleBack = () => {
     navigate('/onboarding/sport-activity');
   };
@@ -46,12 +46,12 @@ const ExperienceLevelStep = () => {
   };
 
   return (
-    <OnboardingLayout step={3} totalSteps={5} title="What's your experience level?">
+    <OnboardingLayout step={3} totalSteps={7} title="What's your experience level?">
       <div className="space-y-4 mb-8">
         <p className="text-gray-600">
           Select your current experience level in your primary sport or activity.
         </p>
-        
+
         <div className="grid grid-cols-1 gap-4 mt-6">
           {experienceLevels.map((level) => (
             <div
@@ -71,17 +71,17 @@ const ExperienceLevelStep = () => {
           ))}
         </div>
       </div>
-      
+
       <div className="flex justify-between">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleBack}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <Button 
-          onClick={handleContinue} 
+        <Button
+          onClick={handleContinue}
           disabled={!selectedLevel}
           className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
         >

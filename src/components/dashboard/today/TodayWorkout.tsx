@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dumbbell, Check, X, PenLine, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -15,12 +15,17 @@ import {
 } from "@/components/ui/sheet";
 import WorkoutLogger from "./WorkoutLogger";
 import { useNavigate } from "react-router-dom";
+import { WorkoutDay, Exercise } from "@/types/workout";
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
 
 const TodayWorkout = () => {
   const { workoutPlan } = usePlan();
   const navigate = useNavigate();
+  const { isOnline } = useNetworkStatus();
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
-  
+
   if (!workoutPlan) {
     return (
       <Card className="border-athleteBlue-200 shadow-sm">
@@ -46,9 +51,9 @@ const TodayWorkout = () => {
   const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const dayName = `Day ${dayOfWeek + 1}`; // Convert to 1-indexed for "Day 1", "Day 2", etc.
-  
+
   // Find today's workout
-  const todayWorkout = workoutPlan.weeklyPlan.find((day: any) => 
+  const todayWorkout = workoutPlan.weeklyPlan.find((day: WorkoutDay) =>
     day.day.includes(dayName) || day.day.includes(dayNames[dayOfWeek])
   );
 
@@ -66,8 +71,8 @@ const TodayWorkout = () => {
             <Badge className="mb-4 bg-green-100 text-green-800 hover:bg-green-100">Rest Day</Badge>
             <h3 className="text-lg font-medium text-gray-700">No Workout Scheduled for Today</h3>
             <p className="text-gray-500 mt-2">Enjoy your recovery day! Rest is an important part of your training plan.</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="mt-4"
               onClick={() => navigate("/dashboard")}
             >
@@ -96,16 +101,26 @@ const TodayWorkout = () => {
   };
 
   return (
-    <Card className="border-athleteBlue-200 shadow-sm">
+    <Card className="border-athleteBlue-200 shadow-sm relative">
+      {!isOnline && <OfflineContentBadge contentType="workout" position="top-right" />}
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center">
             <Dumbbell className="h-5 w-5 mr-2 text-athleteBlue-600" />
             Today's Workout
           </CardTitle>
-          <Badge className="bg-athleteBlue-100 text-athleteBlue-800 hover:bg-athleteBlue-100">
-            {todayWorkout.focus}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {!isOnline && (
+              <OfflineIndicator
+                variant="badge"
+                featureSpecific={true}
+                featureName="This workout"
+              />
+            )}
+            <Badge className="bg-athleteBlue-100 text-athleteBlue-800 hover:bg-athleteBlue-100">
+              {todayWorkout.focus}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -113,9 +128,9 @@ const TodayWorkout = () => {
           <h3 className="font-medium text-sm mb-2">Warm-up (5-10 mins)</h3>
           <p className="text-sm text-gray-600">{todayWorkout.warmup}</p>
         </div>
-        
+
         <Separator className="my-4" />
-        
+
         <div>
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-medium text-sm">Exercises</h3>
@@ -123,30 +138,30 @@ const TodayWorkout = () => {
               {completedExercises.length} of {todayWorkout.exercises.length} completed
             </span>
           </div>
-          
+
           <div className="space-y-3 mb-4">
-            {todayWorkout.exercises.map((exercise: any, index: number) => (
-              <div 
-                key={index} 
+            {todayWorkout.exercises.map((exercise: Exercise, index: number) => (
+              <div
+                key={index}
                 className={`flex items-start p-3 rounded-md border ${
-                  completedExercises.includes(exercise.name) 
-                    ? 'bg-green-50 border-green-200' 
+                  completedExercises.includes(exercise.name)
+                    ? 'bg-green-50 border-green-200'
                     : 'bg-white border-gray-200'
                 }`}
               >
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className={`rounded-full mr-3 p-1 ${
-                    completedExercises.includes(exercise.name) 
-                      ? 'text-green-600 hover:text-green-700 hover:bg-green-100' 
+                    completedExercises.includes(exercise.name)
+                      ? 'text-green-600 hover:text-green-700 hover:bg-green-100'
                       : 'text-gray-400 hover:text-gray-500 hover:bg-gray-100'
                   }`}
                   onClick={() => toggleExerciseCompletion(exercise.name)}
                 >
                   <Check className="h-4 w-4" />
                 </Button>
-                
+
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
                     <h5 className="font-medium">{exercise.name}</h5>
@@ -154,7 +169,7 @@ const TodayWorkout = () => {
                       {exercise.sets} × {exercise.reps}
                     </div>
                   </div>
-                  
+
                   <div className="mt-1 text-xs text-gray-600">
                     Rest: {exercise.rest}
                   </div>
@@ -163,9 +178,9 @@ const TodayWorkout = () => {
             ))}
           </div>
         </div>
-        
+
         <Separator className="my-4" />
-        
+
         <div>
           <h3 className="font-medium text-sm mb-2">Cool-down (5-10 mins)</h3>
           <p className="text-sm text-gray-600">{todayWorkout.cooldown}</p>
@@ -174,8 +189,8 @@ const TodayWorkout = () => {
       <CardFooter className="flex justify-between">
         <Sheet>
           <SheetTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-athleteBlue-200 text-athleteBlue-700 hover:bg-athleteBlue-50 hover:text-athleteBlue-800"
             >
               <PenLine className="mr-2 h-4 w-4" />
@@ -189,9 +204,9 @@ const TodayWorkout = () => {
             <WorkoutLogger workout={todayWorkout} />
           </SheetContent>
         </Sheet>
-        
-        <Button 
-          variant="ghost" 
+
+        <Button
+          variant="ghost"
           className="text-gray-500"
           onClick={() => navigate("/dashboard")}
         >

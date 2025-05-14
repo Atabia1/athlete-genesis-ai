@@ -63,7 +63,7 @@ const highPerformers = [
 
 const TeamAnalytics = () => {
   const [timeframe, setTimeframe] = useState("3months");
-  
+
   return (
     <DashboardLayout title="Team Analytics">
       <div className="mb-6 flex justify-between items-center">
@@ -85,7 +85,7 @@ const TeamAnalytics = () => {
           </SelectContent>
         </Select>
       </div>
-      
+
       {/* Key Performance Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <Card>
@@ -106,7 +106,7 @@ const TeamAnalytics = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-3xl font-bold text-blue-600">87.5</CardTitle>
@@ -125,7 +125,7 @@ const TeamAnalytics = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-3xl font-bold text-amber-600">7.8</CardTitle>
@@ -144,7 +144,7 @@ const TeamAnalytics = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-3xl font-bold text-red-600">15%</CardTitle>
@@ -164,7 +164,7 @@ const TeamAnalytics = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Alert section */}
       <Alert className="mb-6 border-amber-200 bg-amber-50">
         <AlertTriangle className="h-5 w-5 text-amber-600" />
@@ -173,16 +173,16 @@ const TeamAnalytics = () => {
           3 athletes are showing signs of potential overtraining. Review their recent wellbeing scores and consider modifying their training load.
         </AlertDescription>
       </Alert>
-      
+
       {/* Main charts */}
       <Tabs defaultValue="performance" className="mb-8">
         <TabsList>
-          <TabsTrigger value="performance">Team Performance</TabsTrigger>
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
-          <TabsTrigger value="wellbeing">Wellbeing Metrics</TabsTrigger>
-          <TabsTrigger value="workload">Workload Distribution</TabsTrigger>
+          <TabsTrigger value="performance">Performance Metrics</TabsTrigger>
+          <TabsTrigger value="attendance">Attendance Records</TabsTrigger>
+          <TabsTrigger value="wellbeing">Health & Recovery</TabsTrigger>
+          <TabsTrigger value="workload">Training Load</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="performance" className="mt-4">
           <Card>
             <CardHeader>
@@ -200,20 +200,20 @@ const TeamAnalytics = () => {
                     <YAxis domain={[60, 100]} />
                     <Tooltip />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="team" 
-                      stroke="#3b82f6" 
-                      name="Your Team" 
+                    <Line
+                      type="monotone"
+                      dataKey="team"
+                      stroke="#3b82f6"
+                      name="Your Team"
                       strokeWidth={2}
                       dot={{ r: 4 }}
                       activeDot={{ r: 6 }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="average" 
-                      stroke="#94a3b8" 
-                      name="Average" 
+                    <Line
+                      type="monotone"
+                      dataKey="average"
+                      stroke="#94a3b8"
+                      name="Average"
                       strokeDasharray="5 5"
                     />
                   </LineChart>
@@ -222,7 +222,7 @@ const TeamAnalytics = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="attendance" className="mt-4">
           <Card>
             <CardHeader>
@@ -248,7 +248,7 @@ const TeamAnalytics = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="wellbeing" className="mt-4">
           <Card>
             <CardHeader>
@@ -266,25 +266,25 @@ const TeamAnalytics = () => {
                     <YAxis domain={[5, 10]} />
                     <Tooltip />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="energy" 
-                      stroke="#f59e0b" 
-                      name="Energy Level" 
+                    <Line
+                      type="monotone"
+                      dataKey="energy"
+                      stroke="#f59e0b"
+                      name="Energy Level"
                       strokeWidth={2}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="recovery" 
-                      stroke="#10b981" 
-                      name="Recovery Quality" 
+                    <Line
+                      type="monotone"
+                      dataKey="recovery"
+                      stroke="#10b981"
+                      name="Recovery Quality"
                       strokeWidth={2}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sleep" 
-                      stroke="#6366f1" 
-                      name="Sleep Quality" 
+                    <Line
+                      type="monotone"
+                      dataKey="sleep"
+                      stroke="#6366f1"
+                      name="Sleep Quality"
                       strokeWidth={2}
                     />
                   </LineChart>
@@ -293,7 +293,7 @@ const TeamAnalytics = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="workload" className="mt-4">
           <Card>
             <CardHeader>
@@ -329,7 +329,7 @@ const TeamAnalytics = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Athlete insights section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* At-risk athletes */}
@@ -347,7 +347,7 @@ const TeamAnalytics = () => {
             <ScrollArea className="h-64 pr-4">
               <div className="space-y-4">
                 {injuryRiskAthletes.map((athlete) => (
-                  <div 
+                  <div
                     key={athlete.id}
                     className="p-4 rounded-lg border border-red-100 bg-red-50"
                   >
@@ -371,7 +371,7 @@ const TeamAnalytics = () => {
             </ScrollArea>
           </CardContent>
         </Card>
-        
+
         {/* High performers */}
         <Card className="border-green-100">
           <CardHeader className="pb-3">
@@ -387,7 +387,7 @@ const TeamAnalytics = () => {
             <ScrollArea className="h-64 pr-4">
               <div className="space-y-4">
                 {highPerformers.map((athlete) => (
-                  <div 
+                  <div
                     key={athlete.id}
                     className="p-4 rounded-lg border border-green-100 bg-green-50"
                   >
@@ -412,7 +412,7 @@ const TeamAnalytics = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Training program effectiveness */}
       <Card className="mb-6">
         <CardHeader>
@@ -433,7 +433,7 @@ const TeamAnalytics = () => {
               </div>
               <p className="text-sm text-gray-500 mt-2">Excellent progress, especially in lower body strength gains</p>
             </div>
-            
+
             <div className="p-4 border rounded-lg">
               <h3 className="font-medium mb-1">Endurance Program</h3>
               <div className="flex items-center">
@@ -444,7 +444,7 @@ const TeamAnalytics = () => {
               </div>
               <p className="text-sm text-gray-500 mt-2">Good progress, but recovery metrics suggest potential modifications</p>
             </div>
-            
+
             <div className="p-4 border rounded-lg">
               <h3 className="font-medium mb-1">Technical Program</h3>
               <div className="flex items-center">

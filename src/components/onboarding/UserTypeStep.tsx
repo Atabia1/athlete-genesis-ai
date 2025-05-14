@@ -6,6 +6,20 @@ import { ArrowRight, UserCircle, Dumbbell, Users } from 'lucide-react';
 import OnboardingLayout from './OnboardingLayout';
 import { usePlan, UserType } from '@/context/PlanContext';
 
+/**
+ * UserTypeStep: First step in the onboarding process
+ *
+ * This component allows users to select their user type, which determines
+ * the dashboard experience and available features. The selection is saved
+ * to the PlanContext and used throughout the application.
+ */
+
+/**
+ * Available user types with descriptions and icons
+ * - Athlete: Sport-specific training with performance focus
+ * - Fitness Enthusiast: General fitness and health goals
+ * - Coach: Team management and athlete monitoring
+ */
 const userTypes = [
   {
     id: 'athlete',
@@ -27,25 +41,53 @@ const userTypes = [
   },
 ];
 
+/**
+ * UserTypeStep Component
+ * Renders the user type selection interface and handles navigation to the next step
+ */
 const UserTypeStep = () => {
   const { userType, setUserType } = usePlan();
   const [selectedType, setSelectedType] = useState<UserType>(userType);
   const navigate = useNavigate();
 
+  /**
+   * Saves the selected user type to context and navigates to the appropriate next step
+   * based on the selected user type:
+   * - Athlete: Standard flow starting with fitness goals
+   * - Fitness Enthusiast: Custom flow starting with health assessment
+   * - Coach: Custom flow starting with coaching philosophy
+   */
   const handleContinue = () => {
     if (selectedType) {
       setUserType(selectedType);
-      navigate('/onboarding/fitness-goals');
+
+      // Route to different onboarding paths based on user type
+      switch (selectedType) {
+        case 'athlete':
+          // Athletes follow the standard onboarding flow
+          navigate('/onboarding/fitness-goals');
+          break;
+        case 'individual':
+          // Fitness enthusiasts get a lifestyle-focused flow
+          navigate('/onboarding/individual/health-assessment');
+          break;
+        case 'coach':
+          // Coaches get a team-focused flow
+          navigate('/onboarding/coach/philosophy');
+          break;
+        default:
+          navigate('/onboarding/fitness-goals');
+      }
     }
   };
 
   return (
-    <OnboardingLayout step={0} totalSteps={5} title="Tell us about yourself">
+    <OnboardingLayout step={0} totalSteps={7} title="Tell us about yourself">
       <div className="space-y-4 mb-8">
         <p className="text-gray-600">
           Select the option that best describes you. This helps us personalize your experience.
         </p>
-        
+
         <div className="grid grid-cols-1 gap-4 mt-6">
           {userTypes.map((type) => (
             <div
@@ -60,7 +102,7 @@ const UserTypeStep = () => {
               <div className="flex items-start">
                 <div className={`p-2 rounded-full mr-4 ${
                   selectedType === type.id
-                    ? 'bg-athleteBlue-100 text-athleteBlue-600' 
+                    ? 'bg-athleteBlue-100 text-athleteBlue-600'
                     : 'bg-gray-100 text-gray-500'
                 }`}>
                   <type.icon className="h-5 w-5" />
@@ -74,10 +116,10 @@ const UserTypeStep = () => {
           ))}
         </div>
       </div>
-      
+
       <div className="flex justify-end">
-        <Button 
-          onClick={handleContinue} 
+        <Button
+          onClick={handleContinue}
           disabled={!selectedType}
           className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
         >

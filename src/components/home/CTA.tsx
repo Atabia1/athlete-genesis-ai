@@ -14,7 +14,7 @@ const CTA = () => {
           <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
             Join thousands of athletes who are already using AI to optimize their performance. Start your personalized journey today.
           </p>
-          <Link to="/onboarding">
+          <Link to="/signup">
             <Button className="bg-white text-athleteBlue-900 hover:bg-gray-100 font-semibold px-6 py-6">
               Get Started Now
               <ArrowRight className="ml-2 h-4 w-4" />

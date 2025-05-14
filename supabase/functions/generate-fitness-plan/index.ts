@@ -1,26 +1,75 @@
 
+/**
+ * Supabase Edge Function: Generate Fitness Plan
+ *
+ * This Edge Function generates personalized workout and meal plans based on user profiles.
+ * It uses OpenAI's GPT-4o model to create highly customized fitness and nutrition plans
+ * tailored to the user's specific goals, experience level, and available equipment.
+ *
+ * The function takes a user profile as input and returns workout and meal plans as JSON.
+ * It includes fallback mechanisms and detailed error handling for production reliability.
+ *
+ * @requires OPENAI_API_KEY - Environment variable for OpenAI API authentication
+ */
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+/**
+ * Get the OpenAI API key from environment variables
+ * This key is required for making requests to the OpenAI API
+ */
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
+// Check if OpenAI API key is set
+if (!openAIApiKey) {
+  console.error('OPENAI_API_KEY environment variable is not set');
+}
+
+/**
+ * CORS headers configuration
+ * These headers allow cross-origin requests to the Edge Function
+ * Required for frontend applications to communicate with this API
+ */
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': '*',                // Allow requests from any origin
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', // Allow specific HTTP methods
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', // Allow specific headers
+  'Access-Control-Max-Age': '86400',                 // Cache preflight requests for 24 hours
 };
 
+/**
+ * Main Edge Function handler
+ * Processes incoming HTTP requests and generates fitness plans
+ *
+ * @param {Request} req - The incoming HTTP request
+ * @returns {Response} - JSON response with workout and meal plans or error details
+ */
 serve(async (req) => {
-  // Handle CORS preflight requests
+  /**
+   * Handle CORS preflight requests (OPTIONS method)
+   * Required for browsers to verify if the actual request is allowed
+   */
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    /**
+     * Parse the request body to get the user profile data
+     * This contains all the information needed to generate personalized plans
+     *
+     * @type {Object} userProfile - User's fitness profile and preferences
+     */
     const userProfile = await req.json();
 
-    // Enhanced system messages for more specialized AI responses based on role
+    /**
+     * System message for workout plan generation
+     * This provides context and instructions to the AI model
+     * Customized based on the user's sport, goals, and experience level
+     */
     let workoutSystemMessage = `
-      As an expert sports scientist and strength & conditioning coach with expertise in ${userProfile.sportActivity || 'general fitness'}, 
+      As an expert sports scientist and strength & conditioning coach with expertise in ${userProfile.sportActivity || 'general fitness'},
       your task is to create a highly personalized training program. Utilize evidence-based training principles
       including progressive overload, specificity, periodization, and recovery optimization.
       For ${userProfile.experienceLevel || 'intermediate'} level athletes/individuals, focus on their goals of ${userProfile.fitnessGoals?.join(', ') || 'general fitness'}.
@@ -32,7 +81,7 @@ serve(async (req) => {
     // Add role-specific modifications to the system message
     if (userProfile.userType === 'athlete') {
       workoutSystemMessage += `
-        As this plan is for a competitive athlete focusing on ${userProfile.sportActivity}, 
+        As this plan is for a competitive athlete focusing on ${userProfile.sportActivity},
         include sport-specific drills and exercises that directly enhance performance metrics.
         Consider competition cycles and periodization to peak at the right times.
         Include mobility work specifically needed for their sport and position.
@@ -54,7 +103,12 @@ serve(async (req) => {
       `;
     }
 
-    const nutritionSystemMessage = `
+    /**
+     * System message for nutrition plan generation
+     * This provides context and instructions to the AI model for creating meal plans
+     * Customized based on the user's sport, goals, and training schedule
+     */
+    let nutritionSystemMessage = `
       As a sports nutrition specialist with expertise in ${userProfile.sportActivity || 'general fitness'} nutrition,
       your task is to create a personalized nutrition plan. Utilize evidence-based nutritional science
       including energy balance, macronutrient timing, meal frequency, and recovery nutrition principles.
@@ -65,7 +119,10 @@ serve(async (req) => {
       Account for their training frequency of ${userProfile.frequency || '3-4'} days per week and session duration of ${userProfile.duration || '45-60'} minutes.
     `;
 
-    // Add role-specific modifications to the nutrition system message
+    /**
+     * Add role-specific modifications to the nutrition system message
+     * Different user types (athlete, individual, coach) get specialized nutrition guidance
+     */
     if (userProfile.userType === 'athlete') {
       nutritionSystemMessage += `
         This nutrition plan is for a competitive athlete in ${userProfile.sportActivity}.
@@ -92,7 +149,11 @@ serve(async (req) => {
       `;
     }
 
-    // Create a detailed prompt for the workout plan
+    /**
+     * Create a detailed prompt for the workout plan generation
+     * This prompt includes the user's profile information and specifies the expected JSON format
+     * It provides clear instructions to the AI about what to include in the workout plan
+     */
     const workoutPrompt = `
       Create a detailed workout plan based on the following user profile:
       - User Type: ${userProfile.userType}
@@ -131,11 +192,15 @@ serve(async (req) => {
       }
 
       Make the plan extremely detailed and specific to the user's sport, goals, and equipment availability. Include appropriate intensity levels (RPE or %1RM if applicable). Design the workout schedule to match their available frequency.
-      
+
       Focus on exercises that transfer well to their specific sport or activity. For example, if they're a basketball player, emphasize exercises that improve vertical jump, lateral movement, and upper body control.
     `;
 
-    // Create a detailed prompt for the meal plan
+    /**
+     * Create a detailed prompt for the meal plan generation
+     * This prompt includes the user's profile information and specifies the expected JSON format
+     * It provides clear instructions to the AI about what to include in the nutrition plan
+     */
     const mealPrompt = `
       Create a detailed meal plan based on the following user profile:
       - User Type: ${userProfile.userType}
@@ -181,7 +246,10 @@ serve(async (req) => {
       Make the meal plan extremely detailed and tailored to support the user's training regimen and specific sport requirements. For example, if they're an endurance athlete, emphasize carbohydrate timing strategies.
     `;
 
-    // Log received profile data for debugging
+    /**
+     * Log received profile data for debugging purposes
+     * This helps with troubleshooting by showing the key user profile data being processed
+     */
     console.log("Generating plans for profile:", {
       type: userProfile.userType,
       sport: userProfile.sportActivity,
@@ -189,7 +257,20 @@ serve(async (req) => {
       level: userProfile.experienceLevel
     });
 
-    // First, get the workout plan - using gpt-4o for better quality
+    /**
+     * Verify OpenAI API key is available before making API calls
+     * This prevents unnecessary API calls and provides a clear error message
+     */
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key is not set. Please configure the OPENAI_API_KEY environment variable.');
+    }
+
+    /**
+     * Make API call to OpenAI to generate the workout plan
+     * Uses GPT-4o model for higher quality, more detailed workout plans
+     *
+     * @returns {Promise<Response>} - Response from OpenAI API containing the workout plan
+     */
     const workoutResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -199,25 +280,37 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { 
-            role: 'system', 
+          {
+            role: 'system',
             content: workoutSystemMessage
           },
           { role: 'user', content: workoutPrompt }
         ],
-        temperature: 0.7,
+        temperature: 0.7, // Controls randomness: lower is more deterministic
       }),
     });
 
+    /**
+     * Parse the OpenAI API response for the workout plan
+     * @type {any} - The parsed JSON response from OpenAI
+     */
     const workoutData = await workoutResponse.json();
     console.log("Workout API Response received");
-    
+
+    /**
+     * Validate the OpenAI API response contains the expected data structure
+     * This prevents errors when trying to access undefined properties
+     */
     if (!workoutData.choices || !workoutData.choices[0]) {
       console.error("Invalid workout response:", workoutData);
       throw new Error("Failed to generate workout plan: Invalid API response");
     }
-    
-    let workoutPlan;
+
+    /**
+     * Extract and parse the JSON workout plan from the OpenAI response
+     * @type {any} - The parsed workout plan object
+     */
+    let workoutPlan: any;
     try {
       workoutPlan = JSON.parse(extractJSON(workoutData.choices[0].message.content));
       console.log("Workout plan successfully parsed");
@@ -227,7 +320,12 @@ serve(async (req) => {
       throw new Error("Failed to parse workout plan");
     }
 
-    // Next, get the meal plan - using gpt-4o for better quality
+    /**
+     * Make API call to OpenAI to generate the meal plan
+     * Uses GPT-4o model for higher quality, more detailed nutrition plans
+     *
+     * @returns {Promise<Response>} - Response from OpenAI API containing the meal plan
+     */
     const mealResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -237,25 +335,36 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { 
-            role: 'system', 
+          {
+            role: 'system',
             content: nutritionSystemMessage
           },
           { role: 'user', content: mealPrompt }
         ],
-        temperature: 0.7,
+        temperature: 0.7, // Controls randomness: lower is more deterministic
       }),
     });
 
+    /**
+     * Parse the OpenAI API response for the meal plan
+     */
     const mealData = await mealResponse.json();
     console.log("Meal API Response received");
-    
+
+    /**
+     * Validate the OpenAI API response contains the expected data structure
+     * This prevents errors when trying to access undefined properties
+     */
     if (!mealData.choices || !mealData.choices[0]) {
       console.error("Invalid meal response:", mealData);
       throw new Error("Failed to generate meal plan: Invalid API response");
     }
-    
-    let mealPlan;
+
+    /**
+     * Extract and parse the JSON meal plan from the OpenAI response
+     * @type {any} - The parsed meal plan object
+     */
+    let mealPlan: any;
     try {
       mealPlan = JSON.parse(extractJSON(mealData.choices[0].message.content));
       console.log("Meal plan successfully parsed");
@@ -265,21 +374,33 @@ serve(async (req) => {
       throw new Error("Failed to parse meal plan");
     }
 
-    // Log success for debugging purposes
+    /**
+     * Log success for debugging purposes
+     * This helps track successful API calls in the logs
+     */
     console.log("Successfully generated workout and meal plans");
 
-    return new Response(JSON.stringify({ 
-      workoutPlan, 
-      mealPlan 
+    /**
+     * Return the combined plans as a JSON response
+     * Includes both workout and meal plans in a single response object
+     * Sets appropriate CORS headers for cross-origin access
+     */
+    return new Response(JSON.stringify({
+      workoutPlan,
+      mealPlan
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    /**
+     * Handle and log any errors that occur during plan generation
+     * Returns a structured error response with appropriate status code
+     */
     console.error('Error generating fitness plan:', error);
-    
-    return new Response(JSON.stringify({ 
+
+    return new Response(JSON.stringify({
       error: 'Failed to generate fitness plan. Please try again.',
-      details: error.message 
+      details: error.message
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -287,12 +408,24 @@ serve(async (req) => {
   }
 });
 
-// Helper function to extract JSON from the response
+/**
+ * Helper function to extract JSON from the response text
+ *
+ * OpenAI sometimes returns JSON embedded in markdown code blocks or with additional text.
+ * This function attempts to extract valid JSON using multiple strategies:
+ * 1. First tries to find a standard JSON object using regex
+ * 2. If that fails, looks for JSON in markdown code blocks
+ * 3. Validates that extracted content is valid JSON before returning
+ * 4. Returns empty object as fallback to prevent crashes
+ *
+ * @param {string} text - The text containing JSON, possibly wrapped in markdown
+ * @returns {string} - The extracted JSON string or empty object if no valid JSON found
+ */
 function extractJSON(text: string): string {
   // First try to find a JSON object with standard regex
   const jsonRegex = /{[\s\S]*}/;
   const match = text.match(jsonRegex);
-  
+
   if (match) {
     try {
       // Validate that it's parseable JSON before returning

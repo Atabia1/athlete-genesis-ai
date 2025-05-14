@@ -1,0 +1,31 @@
+{
+  "app": {
+    "title": "Athlete GPT",
+    "description": "Personalized fitness and nutrition plans",
+    "start": "Get Started",
+    "login": "Log In",
+    "signup": "Sign Up",
+    "logout": "Log Out"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "workouts": "Workouts",
+    "nutrition": "Nutrition",
+    "profile": "Profile",
+    "settings": "Settings",
+    "pricing": "Pricing",
+    "features": "Features",
+    "about": "About"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "loading": "Loading..."
+  }
+}

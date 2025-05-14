@@ -23,7 +23,17 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
-      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }],
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/explicit-function-return-type": ["warn", {
+        "allowExpressions": true,
+        "allowTypedFunctionExpressions": true
+      }],
+      "@typescript-eslint/consistent-type-imports": "warn",
+      "@typescript-eslint/no-non-null-assertion": "error",
     },
   }
 );

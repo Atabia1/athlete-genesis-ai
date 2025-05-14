@@ -1,0 +1,31 @@
+{
+  "app": {
+    "title": "Athlete GPT",
+    "description": "Ahoboa ne aduane nhyehyɛe a wɔayɛ no sɛdeɛ ɛfata wo",
+    "start": "Hyɛ Ase",
+    "login": "Kɔ Mu",
+    "signup": "Yɛ Akontaabu",
+    "logout": "Pue"
+  },
+  "nav": {
+    "home": "Fie",
+    "dashboard": "Dashboard",
+    "workouts": "Dwumadie",
+    "nutrition": "Aduane",
+    "profile": "Wo Ho Nsɛm",
+    "settings": "Nhyehyɛeɛ",
+    "pricing": "Pricing",
+    "features": "Features",
+    "about": "About"
+  },
+  "actions": {
+    "save": "Sie",
+    "cancel": "Twa Mu",
+    "delete": "Yi Fi Hɔ",
+    "edit": "Sesa",
+    "add": "Fa Ka Ho",
+    "remove": "Yi Fi Hɔ",
+    "confirm": "Si So Dua",
+    "loading": "Ɛrekɔ so..."
+  }
+}

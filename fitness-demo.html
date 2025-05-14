@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlete Genesis AI - Fitness Features Demo</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-outline {
+            border: 1px solid #d1d5db;
+            background-color: transparent;
+        }
+        .btn-outline:hover {
+            background-color: #f3f4f6;
+        }
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e5e7eb;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .exercise-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        .exercise-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .exercise-card.completed {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+        }
+        .timer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Workout Timer Component
+        const WorkoutTimer = () => {
+            const [time, setTime] = React.useState(0);
+            const [isRunning, setIsRunning] = React.useState(false);
+            const [workoutComplete, setWorkoutComplete] = React.useState(false);
+            const intervalRef = React.useRef(null);
+            
+            const formatTime = (timeInSeconds) => {
+                const minutes = Math.floor(timeInSeconds / 60);
+                const seconds = timeInSeconds % 60;
+                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            };
+            
+            const startTimer = () => {
+                if (!isRunning) {
+                    setIsRunning(true);
+                    intervalRef.current = setInterval(() => {
+                        setTime(prevTime => prevTime + 1);
+                    }, 1000);
+                }
+            };
+            
+            const pauseTimer = () => {
+                if (isRunning) {
+                    clearInterval(intervalRef.current);
+                    setIsRunning(false);
+                }
+            };
+            
+            const resetTimer = () => {
+                clearInterval(intervalRef.current);
+                setIsRunning(false);
+                setTime(0);
+                setWorkoutComplete(false);
+            };
+            
+            const completeWorkout = () => {
+                pauseTimer();
+                setWorkoutComplete(true);
+            };
+            
+            React.useEffect(() => {
+                return () => {
+                    clearInterval(intervalRef.current);
+                };
+            }, []);
+            
+            return (
+                <div className="card">
+                    <h2 className="text-xl font-semibold mb-4">Workout Timer</h2>
+                    
+                    <div className="timer">{formatTime(time)}</div>
+                    
+                    <div className="flex justify-center gap-2 mb-4">
+                        {!isRunning ? (
+                            <button className="btn btn-primary" onClick={startTimer}>
+                                {time === 0 ? 'Start Workout' : 'Resume'}
+                            </button>
+                        ) : (
+                            <button className="btn btn-outline" onClick={pauseTimer}>
+                                Pause
+                            </button>
+                        )}
+                        
+                        <button className="btn btn-outline" onClick={resetTimer}>
+                            Reset
+                        </button>
+                        
+                        <button 
+                            className="btn btn-primary" 
+                            onClick={completeWorkout}
+                            disabled={time === 0}
+                        >
+                            Complete Workout
+                        </button>
+                    </div>
+                    
+                    {workoutComplete && (
+                        <div className="bg-green-100 text-green-800 p-4 rounded-md">
+                            <h3 className="font-medium">Workout Complete!</h3>
+                            <p>Total time: {formatTime(time)}</p>
+                            <p className="text-sm mt-2">Great job! Your workout has been logged.</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        
+        // Exercise Tracker Component
+        const ExerciseTracker = () => {
+            const [exercises, setExercises] = React.useState([
+                { id: 1, name: 'Squats', sets: 3, reps: 12, completed: false },
+                { id: 2, name: 'Push-ups', sets: 3, reps: 10, completed: false },
+                { id: 3, name: 'Lunges', sets: 3, reps: 10, completed: false },
+                { id: 4, name: 'Plank', sets: 3, time: '30 sec', completed: false },
+                { id: 5, name: 'Dumbbell Rows', sets: 3, reps: 12, completed: false },
+            ]);
+            
+            const toggleExercise = (id) => {
+                setExercises(exercises.map(exercise => 
+                    exercise.id === id 
+                        ? { ...exercise, completed: !exercise.completed } 
+                        : exercise
+                ));
+            };
+            
+            const progress = Math.round((exercises.filter(e => e.completed).length / exercises.length) * 100);
+            
+            return (
+                <div className="card">
+                    <h2 className="text-xl font-semibold mb-2">Today's Workout</h2>
+                    <p className="text-gray-600 mb-4">Track your progress through today's exercises</p>
+                    
+                    <div className="mb-4">
+                        <div className="flex justify-between mb-1">
+                            <span className="text-sm font-medium">Progress</span>
+                            <span className="text-sm font-medium">{progress}%</span>
+                        </div>
+                        <div className="progress-bar">
+                            <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        {exercises.map(exercise => (
+                            <div 
+                                key={exercise.id} 
+                                className={`exercise-card ${exercise.completed ? 'completed' : ''}`}
+                                onClick={() => toggleExercise(exercise.id)}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="font-medium">{exercise.name}</h3>
+                                        <p className="text-sm text-gray-600">
+                                            {exercise.sets} sets × {exercise.reps || exercise.time}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={exercise.completed}
+                                            onChange={() => {}}
+                                            className="h-5 w-5 text-blue-600"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+        
+        // Workout Summary Component
+        const WorkoutSummary = () => {
+            const [workouts, setWorkouts] = React.useState([
+                { date: 'Today', duration: '45 min', type: 'Strength', calories: 320 },
+                { date: 'Yesterday', duration: '30 min', type: 'Cardio', calories: 280 },
+                { date: '2 days ago', duration: '50 min', type: 'Full Body', calories: 350 },
+                { date: '3 days ago', duration: 'Rest Day', type: '-', calories: 0 },
+                { date: '4 days ago', duration: '40 min', type: 'HIIT', calories: 400 },
+            ]);
+            
+            return (
+                <div className="card">
+                    <h2 className="text-xl font-semibold mb-4">Recent Workouts</h2>
+                    
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Calories</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {workouts.map((workout, index) => (
+                                    <tr key={index}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{workout.date}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{workout.duration}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{workout.type}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{workout.calories}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Main App component
+        const App = () => {
+            return (
+                <div className="container">
+                    <header className="mb-6">
+                        <h1 className="text-3xl font-bold text-gray-900">Athlete Genesis AI</h1>
+                        <p className="text-gray-600">Your AI-powered fitness companion</p>
+                    </header>
+                    
+                    <WorkoutTimer />
+                    <ExerciseTracker />
+                    <WorkoutSummary />
+                </div>
+            );
+        };
+
+        // Render the App
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

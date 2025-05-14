@@ -15,11 +15,17 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
-    "noFallthroughCasesInSwitch": false,
+    "strict": true, /* All strict type checking options enabled */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true, /* Enable type checking for implicit any */
+    "noImplicitThis": true, /* Enable type checking for implicit this */
+    "noFallthroughCasesInSwitch": true,
+    "strictBindCallApply": true, /* Enable strict 'bind', 'call', and 'apply' methods on functions */
+    "strictFunctionTypes": true, /* Enable strict checking of function types */
+    "strictNullChecks": true, /* Enable strict null checks */
+    "strictPropertyInitialization": true, /* Enable strict property initialization checks */
+    "alwaysStrict": true, /* Enable 'use strict' for every file */
 
     "baseUrl": ".",
     "paths": {

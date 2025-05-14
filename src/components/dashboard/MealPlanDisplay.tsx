@@ -5,9 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Utensils, ChevronDown, ChevronUp, Coffee, Sun, Sunset } from 'lucide-react';
 import { usePlan } from '@/context/PlanContext';
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
 
 const MealPlanDisplay = () => {
   const { mealPlan } = usePlan();
+  const { isOnline } = useNetworkStatus();
   const [expandedMeal, setExpandedMeal] = useState<string | null>("Breakfast");
 
   if (!mealPlan) {
@@ -40,28 +44,38 @@ const MealPlanDisplay = () => {
   };
 
   return (
-    <Card className="border-athleteGreen-200 shadow-sm">
+    <Card className="border-athleteGreen-200 shadow-sm relative">
+      {!isOnline && <OfflineContentBadge contentType="meal plan" position="top-right" />}
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center">
-          <Utensils className="h-5 w-5 mr-2 text-athleteGreen-600" />
-          Your Meal Plan
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center">
+            <Utensils className="h-5 w-5 mr-2 text-athleteGreen-600" />
+            Your Meal Plan
+          </CardTitle>
+          {!isOnline && (
+            <OfflineIndicator
+              variant="badge"
+              featureSpecific={true}
+              featureName="This meal plan"
+            />
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="mealPlan" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="mealPlan">Daily Meals</TabsTrigger>
-            <TabsTrigger value="nutrition">Nutrition Info</TabsTrigger>
+            <TabsTrigger value="mealPlan">Meal Schedule</TabsTrigger>
+            <TabsTrigger value="nutrition">Nutritional Analysis</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="mealPlan" className="mt-4">
             <div className="space-y-4">
               {mealPlan.mealPlan.map((meal: any) => {
                 const MealIcon = getMealIcon(meal.meal);
-                
+
                 return (
                   <div key={meal.meal} className="border rounded-lg overflow-hidden">
-                    <div 
+                    <div
                       className="flex justify-between items-center p-4 cursor-pointer bg-gray-50"
                       onClick={() => toggleMeal(meal.meal)}
                     >
@@ -82,7 +96,7 @@ const MealPlanDisplay = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     {expandedMeal === meal.meal && (
                       <div className="p-4 border-t">
                         <h4 className="text-sm font-medium text-gray-500 mb-3">Options</h4>
@@ -90,7 +104,7 @@ const MealPlanDisplay = () => {
                           {meal.options.map((option: any, index: number) => (
                             <div key={index} className="border rounded-md p-3">
                               <h5 className="font-medium mb-2">{option.name}</h5>
-                              
+
                               <div className="mt-2">
                                 <h6 className="text-xs font-medium text-gray-500 mb-1">Ingredients:</h6>
                                 <div className="flex flex-wrap gap-1 mb-3">
@@ -101,7 +115,7 @@ const MealPlanDisplay = () => {
                                   ))}
                                 </div>
                               </div>
-                              
+
                               <div className="grid grid-cols-4 gap-2 text-center mt-3">
                                 <div className="bg-gray-50 rounded p-2">
                                   <p className="text-xs text-gray-500">Calories</p>
@@ -130,14 +144,14 @@ const MealPlanDisplay = () => {
               })}
             </div>
           </TabsContent>
-          
+
           <TabsContent value="nutrition" className="mt-4">
             <div className="space-y-6">
               <div>
                 <h3 className="font-medium mb-2">Daily Calories</h3>
                 <p className="text-lg font-bold text-athleteGreen-700">{mealPlan.dailyCalories}</p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium mb-2">Macronutrient Breakdown</h3>
                 <div className="grid grid-cols-3 gap-4">
@@ -155,12 +169,12 @@ const MealPlanDisplay = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="font-medium mb-2">Hydration Guidelines</h3>
                 <p className="text-sm text-gray-700">{mealPlan.hydrationGuidelines}</p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium mb-2">Supplement Recommendations</h3>
                 <p className="text-sm text-gray-700">{mealPlan.supplementRecommendations}</p>

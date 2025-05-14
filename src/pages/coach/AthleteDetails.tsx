@@ -39,7 +39,7 @@ const AthleteDetails = () => {
   const { athleteId } = useParams<{ athleteId: string }>();
   const athlete = getAthleteById(athleteId || '1');
   const [activeTab, setActiveTab] = useState('overview');
-  
+
   return (
     <DashboardLayout title="Athlete Details">
       <div className="grid gap-6">
@@ -52,14 +52,14 @@ const AthleteDetails = () => {
                   {athlete.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="flex-1 space-y-2">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                   <div>
                     <h2 className="text-2xl font-bold">{athlete.name}</h2>
                     <p className="text-gray-500">{athlete.sport} • {athlete.position}</p>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" className="flex items-center gap-1">
                       <Mail className="h-4 w-4" />
@@ -75,7 +75,7 @@ const AthleteDetails = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-2 text-sm">
                   <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
                     <Mail className="h-3 w-3" />
@@ -90,17 +90,17 @@ const AthleteDetails = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         {/* Tabs for different views */}
         <Tabs defaultValue="overview" onValueChange={setActiveTab} value={activeTab}>
           <TabsList className="mb-6 grid grid-cols-4 md:grid-cols-5 lg:w-auto lg:grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="workouts">Workouts</TabsTrigger>
-            <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
-            <TabsTrigger value="wellbeing">Well-being</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="overview">Dashboard</TabsTrigger>
+            <TabsTrigger value="workouts">Training History</TabsTrigger>
+            <TabsTrigger value="nutrition">Nutrition Plan</TabsTrigger>
+            <TabsTrigger value="wellbeing">Health Metrics</TabsTrigger>
+            <TabsTrigger value="progress">Performance</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="overview" className="space-y-6">
             {/* Adherence Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -113,7 +113,7 @@ const AthleteDetails = () => {
                   <Dumbbell className="h-6 w-6 text-gray-400" />
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-2xl font-bold">{athlete.nutritionAdherence}%</CardTitle>
@@ -123,7 +123,7 @@ const AthleteDetails = () => {
                   <Utensils className="h-6 w-6 text-gray-400" />
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-2xl font-bold">{athlete.wellbeingData.energy.level}</CardTitle>
@@ -134,7 +134,7 @@ const AthleteDetails = () => {
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Recent Workouts */}
             <Card>
               <CardHeader>
@@ -161,7 +161,7 @@ const AthleteDetails = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Well-being Summary */}
             <Card>
               <CardHeader>
@@ -174,19 +174,19 @@ const AthleteDetails = () => {
                     <p className="text-lg font-medium">{athlete.wellbeingData.sleep.average} hours</p>
                     <p className="text-xs text-gray-400">Trend: {athlete.wellbeingData.sleep.trend}</p>
                   </div>
-                  
+
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="text-sm text-gray-500">Stress Level</p>
                     <p className="text-lg font-medium capitalize">{athlete.wellbeingData.stress.level}</p>
                     <p className="text-xs text-gray-400">Trend: {athlete.wellbeingData.stress.trend}</p>
                   </div>
-                  
+
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="text-sm text-gray-500">Muscle Soreness</p>
                     <p className="text-lg font-medium capitalize">{athlete.wellbeingData.soreness.level}</p>
                     <p className="text-xs text-gray-400">Areas: {athlete.wellbeingData.soreness.areas.join(', ')}</p>
                   </div>
-                  
+
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="text-sm text-gray-500">Energy Level</p>
                     <p className="text-lg font-medium capitalize">{athlete.wellbeingData.energy.level}</p>
@@ -196,7 +196,7 @@ const AthleteDetails = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="workouts" className="space-y-6">
             <Card>
               <CardHeader>
@@ -208,7 +208,7 @@ const AthleteDetails = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="nutrition" className="space-y-6">
             <Card>
               <CardHeader>
@@ -220,7 +220,7 @@ const AthleteDetails = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="wellbeing" className="space-y-6">
             <Card>
               <CardHeader>
@@ -232,7 +232,7 @@ const AthleteDetails = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="progress" className="space-y-6">
             <Card>
               <CardHeader>

@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -15,39 +15,30 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { CheckCircle, Info, Minus, Plus } from "lucide-react";
+import { WorkoutDay, Exercise, ExerciseLog, ExerciseSet } from "@/types/workout";
 
 interface WorkoutLoggerProps {
-  workout: any;
-}
-
-interface ExerciseLog {
-  name: string;
-  sets: {
-    weight: string;
-    reps: string;
-    rpe: number;
-  }[];
-  notes: string;
-  skipped: boolean;
+  workout: WorkoutDay;
 }
 
 const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
   const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>(
-    workout.exercises.map((exercise: any) => ({
+    workout.exercises.map((exercise: Exercise) => ({
       name: exercise.name,
       sets: Array(parseInt(exercise.sets) || 1).fill({
-        weight: "",
+        weight: exercise.weight || "",
         reps: exercise.reps?.toString()?.split('-')?.[0] || "",
-        rpe: 7
+        rpe: 7,
+        completed: false
       }),
       notes: "",
       skipped: false
     }))
   );
-  
+
   const [duration, setDuration] = useState("60");
   const [overallNotes, setOverallNotes] = useState("");
-  
+
   const updateExerciseSet = (exerciseIndex: number, setIndex: number, field: keyof ExerciseLog['sets'][0], value: any) => {
     setExerciseLogs(prev => {
       const newLogs = [...prev];
@@ -58,7 +49,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
       return newLogs;
     });
   };
-  
+
   const updateExerciseNotes = (exerciseIndex: number, notes: string) => {
     setExerciseLogs(prev => {
       const newLogs = [...prev];
@@ -66,7 +57,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
       return newLogs;
     });
   };
-  
+
   const toggleSkipped = (exerciseIndex: number) => {
     setExerciseLogs(prev => {
       const newLogs = [...prev];
@@ -74,7 +65,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
       return newLogs;
     });
   };
-  
+
   const addSet = (exerciseIndex: number) => {
     setExerciseLogs(prev => {
       const newLogs = [...prev];
@@ -83,7 +74,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
       return newLogs;
     });
   };
-  
+
   const removeSet = (exerciseIndex: number) => {
     setExerciseLogs(prev => {
       const newLogs = [...prev];
@@ -93,7 +84,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
       return newLogs;
     });
   };
-  
+
   const handleSubmit = () => {
     // Here you would send the data to your backend or context
     // For now, let's just show a toast notification
@@ -104,13 +95,13 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
       overallNotes,
       date: new Date().toISOString()
     });
-    
+
     toast({
       title: "Workout logged successfully!",
       description: "Your workout has been saved.",
     });
   };
-  
+
   return (
     <div className="py-4">
       <div className="space-y-6">
@@ -118,30 +109,30 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
           <h3 className="text-sm font-medium mb-2">{workout.day} - {workout.focus}</h3>
           <div className="mb-4">
             <Label htmlFor="duration">Duration (minutes)</Label>
-            <Input 
+            <Input
               id="duration"
-              type="number" 
-              value={duration} 
+              type="number"
+              value={duration}
               onChange={e => setDuration(e.target.value)}
               className="mt-1"
             />
           </div>
         </div>
-        
+
         <div className="space-y-6">
           {exerciseLogs.map((exercise, exerciseIndex) => (
             <Card key={exerciseIndex} className={`p-4 ${exercise.skipped ? 'bg-gray-50' : ''}`}>
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-medium">{exercise.name}</h4>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => toggleSkipped(exerciseIndex)}
                 >
                   {exercise.skipped ? 'Unskip' : 'Skip'}
                 </Button>
               </div>
-              
+
               {!exercise.skipped ? (
                 <>
                   <div className="space-y-3 mb-3">
@@ -149,8 +140,8 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
                       <div key={setIndex} className="grid grid-cols-3 gap-2">
                         <div>
                           <Label className="text-xs">Weight</Label>
-                          <Input 
-                            type="number" 
+                          <Input
+                            type="number"
                             placeholder="lb/kg"
                             value={set.weight}
                             onChange={e => updateExerciseSet(exerciseIndex, setIndex, 'weight', e.target.value)}
@@ -159,7 +150,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
                         </div>
                         <div>
                           <Label className="text-xs">Reps</Label>
-                          <Input 
+                          <Input
                             type="number"
                             value={set.reps}
                             onChange={e => updateExerciseSet(exerciseIndex, setIndex, 'reps', e.target.value)}
@@ -171,8 +162,8 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
                             RPE
                             <Info className="h-3 w-3 ml-1 text-muted-foreground" />
                           </Label>
-                          <Select 
-                            value={set.rpe.toString()} 
+                          <Select
+                            value={set.rpe.toString()}
                             onValueChange={value => updateExerciseSet(exerciseIndex, setIndex, 'rpe', parseInt(value))}
                           >
                             <SelectTrigger>
@@ -188,19 +179,19 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
                       </div>
                     ))}
                   </div>
-                  
+
                   <div className="flex space-x-2 mb-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => addSet(exerciseIndex)}
                       className="w-full"
                     >
                       <Plus className="h-4 w-4 mr-1" /> Add Set
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => removeSet(exerciseIndex)}
                       className="w-full"
                       disabled={exercise.sets.length <= 1}
@@ -214,10 +205,10 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
                   Exercise skipped
                 </div>
               )}
-              
+
               <div>
                 <Label htmlFor={`notes-${exerciseIndex}`}>Notes</Label>
-                <Textarea 
+                <Textarea
                   id={`notes-${exerciseIndex}`}
                   placeholder="How did it feel? Any adjustments?"
                   value={exercise.notes}
@@ -228,10 +219,10 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
             </Card>
           ))}
         </div>
-        
+
         <div>
           <Label htmlFor="overall-notes">Overall Notes</Label>
-          <Textarea 
+          <Textarea
             id="overall-notes"
             placeholder="How was the workout overall? Energy level, etc."
             value={overallNotes}
@@ -239,8 +230,8 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
             className="mt-1"
           />
         </div>
-        
-        <Button 
+
+        <Button
           className="w-full"
           onClick={handleSubmit}
         >

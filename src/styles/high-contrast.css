@@ -1,0 +1,229 @@
+/**
+ * High Contrast Theme
+ *
+ * This file contains CSS variables and styles for the high contrast theme.
+ * It overrides the default theme variables when the .high-contrast class
+ * is applied to the html element.
+ *
+ * Performance optimizations:
+ * - Use will-change to optimize rendering
+ * - Use transform: translateZ(0) to force GPU acceleration
+ * - Minimize the number of color variables
+ * - Use simpler HSL values for better performance
+ */
+
+/* Apply high contrast theme with GPU acceleration */
+.high-contrast {
+  will-change: color, background-color, border-color;
+  transform: translateZ(0);
+
+  /* Base colors - simplified for performance */
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+
+  /* Primary colors */
+  --primary: 210 100% 50%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary colors */
+  --secondary: 60 100% 50%;
+  --secondary-foreground: 0 0% 0%;
+
+  /* Muted colors */
+  --muted: 0 0% 20%;
+  --muted-foreground: 0 0% 100%;
+
+  /* Accent colors */
+  --accent: 120 100% 50%;
+  --accent-foreground: 0 0% 0%;
+
+  /* Destructive colors */
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Card colors */
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 100%;
+
+  /* Popover colors */
+  --popover: 0 0% 10%;
+  --popover-foreground: 0 0% 100%;
+
+  /* Border colors */
+  --border: 0 0% 60%;
+
+  /* Input colors */
+  --input: 0 0% 20%;
+
+  /* Ring colors */
+  --ring: 210 100% 50%;
+
+  /* Focus outline */
+  --focus-ring: 3px solid hsl(var(--ring));
+
+  /* Sidebar colors - simplified to use base colors where possible */
+  --sidebar-background: 0 0% 10%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 210 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 120 100% 50%;
+  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-border: 0 0% 60%;
+
+  /* Athlete GPT custom colors - simplified to key colors only */
+  --athlete-blue-500: 210 100% 50%;
+  --athlete-blue-700: 210 100% 30%;
+  --athlete-blue-900: 210 100% 10%;
+
+  --athlete-green-500: 120 100% 50%;
+  --athlete-green-700: 120 100% 30%;
+  --athlete-green-900: 120 100% 10%;
+
+  /* Generate other shades dynamically using CSS calculations */
+  --athlete-blue-50: 210 100% 95%;
+  --athlete-blue-100: 210 100% 90%;
+  --athlete-blue-200: 210 100% 80%;
+  --athlete-blue-300: 210 100% 70%;
+  --athlete-blue-400: 210 100% 60%;
+  --athlete-blue-600: 210 100% 40%;
+  --athlete-blue-800: 210 100% 20%;
+  --athlete-blue-950: 210 100% 5%;
+
+  --athlete-green-50: 120 100% 95%;
+  --athlete-green-100: 120 100% 90%;
+  --athlete-green-200: 120 100% 80%;
+  --athlete-green-300: 120 100% 70%;
+  --athlete-green-400: 120 100% 60%;
+  --athlete-green-600: 120 100% 40%;
+  --athlete-green-800: 120 100% 20%;
+  --athlete-green-950: 120 100% 5%;
+}
+
+/* Enhanced focus styles for high contrast mode */
+.high-contrast *:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Ensure text on colored backgrounds is readable */
+.high-contrast .bg-primary {
+  color: hsl(var(--primary-foreground));
+}
+
+.high-contrast .bg-secondary {
+  color: hsl(var(--secondary-foreground));
+}
+
+.high-contrast .bg-accent {
+  color: hsl(var(--accent-foreground));
+}
+
+.high-contrast .bg-destructive {
+  color: hsl(var(--destructive-foreground));
+}
+
+/* Enhance border visibility */
+.high-contrast .border {
+  border-color: hsl(var(--border));
+  border-width: 2px;
+}
+
+/* Enhance button styles */
+.high-contrast .button {
+  border: 2px solid transparent;
+}
+
+.high-contrast .button:hover {
+  border-color: hsl(var(--border));
+}
+
+/* Enhance form controls */
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  border: 2px solid hsl(var(--border));
+  background-color: hsl(var(--input));
+  color: hsl(var(--foreground));
+}
+
+.high-contrast input:focus,
+.high-contrast select:focus,
+.high-contrast textarea:focus {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Enhance links */
+.high-contrast a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.high-contrast a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Enhance checkboxes and radio buttons */
+.high-contrast input[type="checkbox"],
+.high-contrast input[type="radio"] {
+  border: 2px solid hsl(var(--border));
+  width: 20px;
+  height: 20px;
+}
+
+.high-contrast input[type="checkbox"]:checked,
+.high-contrast input[type="radio"]:checked {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--primary));
+}
+
+/* Enhance disabled elements */
+.high-contrast button:disabled,
+.high-contrast input:disabled,
+.high-contrast select:disabled,
+.high-contrast textarea:disabled {
+  opacity: 0.5;
+  border: 2px dashed hsl(var(--border));
+}
+
+/* Enhance tooltips */
+.high-contrast [role="tooltip"] {
+  border: 2px solid hsl(var(--border));
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+}
+
+/* Enhance dialogs */
+.high-contrast [role="dialog"] {
+  border: 2px solid hsl(var(--border));
+}
+
+/* Enhance focus indicators for interactive elements */
+.high-contrast button:focus-visible,
+.high-contrast a:focus-visible,
+.high-contrast input:focus-visible,
+.high-contrast select:focus-visible,
+.high-contrast textarea:focus-visible,
+.high-contrast [role="button"]:focus-visible,
+.high-contrast [role="link"]:focus-visible,
+.high-contrast [role="tab"]:focus-visible,
+.high-contrast [role="checkbox"]:focus-visible,
+.high-contrast [role="radio"]:focus-visible,
+.high-contrast [role="switch"]:focus-visible,
+.high-contrast [role="combobox"]:focus-visible,
+.high-contrast [role="listbox"]:focus-visible,
+.high-contrast [role="menuitem"]:focus-visible,
+.high-contrast [role="menuitemcheckbox"]:focus-visible,
+.high-contrast [role="menuitemradio"]:focus-visible,
+.high-contrast [role="option"]:focus-visible,
+.high-contrast [role="slider"]:focus-visible,
+.high-contrast [role="spinbutton"]:focus-visible,
+.high-contrast [role="textbox"]:focus-visible,
+.high-contrast [role="searchbox"]:focus-visible,
+.high-contrast [role="grid"]:focus-visible,
+.high-contrast [role="gridcell"]:focus-visible,
+.high-contrast [role="rowheader"]:focus-visible,
+.high-contrast [role="columnheader"]:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}

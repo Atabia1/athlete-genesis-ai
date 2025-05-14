@@ -1,0 +1,48 @@
+# Netlify configuration file
+# Documentation: https://docs.netlify.com/configure-builds/file-based-configuration/
+
+# Build settings
+[build]
+  # Directory to publish (relative to root of your repo)
+  publish = "dist"
+  
+  # Default build command
+  command = "npm run build"
+
+# Environment variable inheritance
+[build.environment]
+  # Set Node version
+  NODE_VERSION = "18"
+
+# Redirects and rewrites
+[[redirects]]
+  # SPA redirect - send all navigation requests back to index.html
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers to return with requests for the specified paths
+[[headers]]
+  # Define headers for all files
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache control for static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Plugin configuration
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+# Functions configuration (if you're using Netlify Functions)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

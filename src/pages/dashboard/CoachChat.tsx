@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, FileText, Image, Paperclip, Video, Smile, MicIcon, Clock, Dumbbell as DumbbellIcon, CalendarIcon } from "lucide-react";
+import { Send, FileText, Image, Paperclip, Video, Smile, MicIcon, Clock, Dumbbell as DumbbellIcon, CalendarIcon, WifiOff } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { usePlan } from "@/context/PlanContext";
 import { toast } from "@/components/ui/use-toast";
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Mock data for demonstration
 const mockConversations = [
@@ -94,6 +96,7 @@ const mockMessages = [
 
 const CoachChat = () => {
   const { userType } = usePlan();
+  const { isOnline } = useNetworkStatus();
   const [activeConversation, setActiveConversation] = useState(mockConversations[0]);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState(mockMessages);
@@ -159,6 +162,16 @@ const CoachChat = () => {
 
   return (
     <DashboardLayout title={userType === 'coach' ? "Athlete Communication" : "Coach Chat"}>
+      {!isOnline && (
+        <Alert variant="destructive" className="mb-6">
+          <WifiOff className="h-4 w-4 mr-2" />
+          <AlertTitle>You're offline</AlertTitle>
+          <AlertDescription>
+            Coach chat requires an internet connection. Messages can't be sent or received while offline.
+            Your draft messages will be saved locally.
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-13rem)]">
         {/* Conversations list */}
         <Card className="lg:col-span-1 border shadow-sm">
@@ -328,7 +341,7 @@ const CoachChat = () => {
                     <TabsTrigger value="share">Share Data</TabsTrigger>
                   )}
                 </TabsList>
-                
+
                 <TabsContent value="message" className="m-0">
                   <div className="flex items-end gap-2">
                     <div className="flex-1">
@@ -363,17 +376,19 @@ const CoachChat = () => {
                         </Button>
                       </div>
                     </div>
-                    <Button 
-                      className="h-24" 
+                    <Button
+                      className="h-24"
                       onClick={handleSendMessage}
-                      disabled={!message.trim()}
+                      disabled={!message.trim() || !isOnline}
                     >
                       <Send className="h-4 w-4 mr-2" />
-                      Send
+                      {isOnline ? 'Send' : 'Offline'}
                     </Button>
                   </div>
                 </TabsContent>
-                
+
+
+
                 <TabsContent value="quick" className="m-0">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {[
@@ -386,7 +401,7 @@ const CoachChat = () => {
                       "My recovery is going well today.",
                       "I'm experiencing some soreness in my...",
                     ].map((quickMessage, index) => (
-                      <Button 
+                      <Button
                         key={index}
                         variant="outline"
                         className="justify-start h-auto py-3 px-4 whitespace-normal text-left"
@@ -402,11 +417,11 @@ const CoachChat = () => {
                     ))}
                   </div>
                 </TabsContent>
-                
+
                 {userType !== 'coach' && (
                   <TabsContent value="share" className="m-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <Button 
+                      <Button
                         variant="outline"
                         className="flex items-center justify-start h-auto py-3 px-4"
                         onClick={() => setShowWellbeingShare(true)}
@@ -419,8 +434,8 @@ const CoachChat = () => {
                           <p className="text-xs text-gray-500">Share your latest wellbeing data</p>
                         </div>
                       </Button>
-                      
-                      <Button 
+
+                      <Button
                         variant="outline"
                         className="flex items-center justify-start h-auto py-3 px-4"
                       >
@@ -432,8 +447,8 @@ const CoachChat = () => {
                           <p className="text-xs text-gray-500">Share your latest workout data</p>
                         </div>
                       </Button>
-                      
-                      <Button 
+
+                      <Button
                         variant="outline"
                         className="flex items-center justify-start h-auto py-3 px-4"
                       >
@@ -445,8 +460,8 @@ const CoachChat = () => {
                           <p className="text-xs text-gray-500">Share your weekly progress</p>
                         </div>
                       </Button>
-                      
-                      <Button 
+
+                      <Button
                         variant="outline"
                         className="flex items-center justify-start h-auto py-3 px-4"
                       >

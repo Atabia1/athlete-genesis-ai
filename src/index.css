@@ -1,6 +1,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Import accessibility styles */
+@import './styles/high-contrast.css';
+@import './styles/reduced-motion.css';
+@import './styles/confetti.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -75,7 +80,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224 76% 48%;
-    
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -95,25 +100,36 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+
+  /* Focus styles for keyboard navigation */
+  :focus {
+    outline: none;
+  }
+
+  .focus-visible :focus-visible,
+  .focus-visible [data-focus-visible-added] {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
   .hero-gradient {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
   }
-  
+
   .feature-card {
     @apply bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300;
   }
-  
+
   .btn-primary {
     @apply bg-athleteBlue-600 hover:bg-athleteBlue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200;
   }
-  
+
   .btn-secondary {
     @apply bg-athleteGreen-600 hover:bg-athleteGreen-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200;
   }
-  
+
   .btn-outline {
     @apply border border-athleteBlue-600 text-athleteBlue-600 hover:bg-athleteBlue-50 font-medium py-2 px-4 rounded-md transition-colors duration-200;
   }

@@ -1,34 +1,8 @@
+/**
+ * Re-export of the authentication hook from the auth feature
+ * 
+ * This file re-exports the useAuth hook from the auth feature to maintain
+ * backward compatibility with existing imports.
+ */
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-
-export function useAuth() {
-  const [user, setUser] = useState<{ id: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    // Check if user is authenticated
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        setUser({ id: session.user.id });
-      } else {
-        setUser(null);
-      }
-      setIsLoading(false);
-    });
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setUser({ id: session.user.id });
-      }
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  return { user, isLoading };
-}
+export { useAuth, type User, type LoginCredentials, type RegistrationData, type PasswordResetRequest, type PasswordResetData, type UseAuthResult } from '@/features/auth/hooks/use-auth';

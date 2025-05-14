@@ -1,0 +1,73 @@
+/**
+ * Reduced Motion Styles
+ * 
+ * This file contains styles that respect the user's preference for reduced motion.
+ * It disables or reduces animations and transitions when the user has enabled
+ * the "prefers-reduced-motion" setting in their operating system.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations and transitions */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Disable specific animations */
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-ping {
+    animation: none !important;
+  }
+  
+  /* Disable accordion animations */
+  .animate-accordion-down,
+  .animate-accordion-up {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  /* Disable fade animations */
+  .animate-fade-in,
+  .animate-fade-out {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  /* Disable scroll animations */
+  html {
+    scroll-behavior: auto !important;
+  }
+  
+  /* Disable progress bar animations */
+  progress {
+    appearance: auto !important;
+  }
+  
+  /* Disable marquee animations */
+  [data-marquee] {
+    animation: none !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+  
+  /* Disable hover animations */
+  *:hover {
+    transition: none !important;
+  }
+  
+  /* Disable focus animations */
+  *:focus {
+    transition: none !important;
+  }
+  
+  /* Disable active animations */
+  *:active {
+    transition: none !important;
+  }
+}
