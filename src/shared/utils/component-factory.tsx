@@ -11,9 +11,14 @@
  */
 
 import * as React from 'react';
-import type { ComponentType } from 'react';
-import { memo, useCallback, useState } from 'react';
-import { forwardRef } from '@/lib/utils';
+import {
+  ComponentType,
+  memo,
+  useCallback,
+  useState,
+  forwardRef,
+  safeForwardRef
+} from '../utils/react-utils';
 import { logError, showErrorToast } from './error-handling';
 
 /**
@@ -74,7 +79,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo): void {
+  componentDidCatch(error: Error, _info: React.ErrorInfo): void {
     logError(error, 'ErrorBoundary');
 
     if (this.props.onError) {
@@ -224,7 +229,7 @@ export function createComponent<P extends object>(
 
   // Add forward ref if requested
   if (shouldForwardRef) {
-    EnhancedComponent = forwardRef((props: P, ref) => (
+    EnhancedComponent = safeForwardRef<any, P>((props: P, ref) => (
       <EnhancedComponent {...props} ref={ref} />
     )) as unknown as ComponentType<P>;
 
@@ -261,7 +266,7 @@ export function createTryCatchComponent<P extends object>(
 
   // Add forward ref if requested
   if (shouldForwardRef) {
-    EnhancedComponent = forwardRef((props: P, ref) => (
+    EnhancedComponent = safeForwardRef<any, P>((props: P, ref) => (
       <EnhancedComponent {...props} ref={ref} />
     )) as unknown as ComponentType<P>;
 

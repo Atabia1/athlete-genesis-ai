@@ -1,12 +1,11 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { dependencies } from './package.json';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load environment variables based on mode
-  const env = loadEnv(mode, process.cwd(), '');
+  loadEnv(mode, process.cwd(), '');
 
   return {
     server: {
@@ -45,6 +44,11 @@ export default defineConfig(({ mode }) => {
     build: {
       // Generate source maps for production build
       sourcemap: mode !== 'production',
+      // Ensure React is properly bundled
+      commonjsOptions: {
+        include: [/node_modules/],
+        transformMixedEsModules: true,
+      },
       // Minify options
       minify: mode === 'production' ? 'esbuild' : false,
       // Output directory
@@ -60,35 +64,11 @@ export default defineConfig(({ mode }) => {
         // Preserve modules for better debugging
         preserveModules: mode !== 'production',
         output: {
-          // Chunk naming
-          manualChunks: (id) => {
-            // React and related packages
-            if (id.includes('node_modules/react') ||
-                id.includes('node_modules/react-dom') ||
-                id.includes('node_modules/react-router-dom')) {
-              return 'react';
-            }
-
-            // UI libraries
-            if (id.includes('node_modules/@radix-ui') ||
-                id.includes('node_modules/@headlessui') ||
-                id.includes('node_modules/vaul')) {
-              return 'ui';
-            }
-
-            // Utility libraries
-            if (id.includes('node_modules/date-fns') ||
-                id.includes('node_modules/clsx') ||
-                id.includes('node_modules/tailwind-merge') ||
-                id.includes('node_modules/lucide-react') ||
-                id.includes('node_modules/axios')) {
-              return 'utils';
-            }
-
-            // Keep other node_modules in a separate chunk
-            if (id.includes('node_modules')) {
-              return 'vendor';
-            }
+          // Manual chunks for better code splitting
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-slot', '@radix-ui/react-tooltip'],
+            'utils-vendor': ['clsx', 'tailwind-merge', 'date-fns', 'lucide-react', 'axios']
           }
         },
       },
