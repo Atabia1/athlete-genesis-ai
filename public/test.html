@@ -1,58 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Page</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f0f4ff;
-    }
-    .container {
-      text-align: center;
-      padding: 2rem;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      color: #2a3af7;
-    }
-    p {
-      color: #4b5563;
-      margin-bottom: 1.5rem;
-    }
-    .button {
-      display: inline-block;
-      background-color: #2a3af7;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      text-decoration: none;
-      font-weight: bold;
-      margin: 0 0.5rem;
-    }
-    .button.outline {
-      background-color: transparent;
-      color: #2a3af7;
-      border: 1px solid #2a3af7;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Test Page</h1>
-    <p>This is a standalone test page to check if the browser can render basic HTML.</p>
-    <div>
-      <a href="#" class="button">Primary Button</a>
-      <a href="#" class="button outline">Secondary Button</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Netlify Deployment Test</title>
+    <!-- Include the config.js file -->
+    <script src="/config.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+        background-color: #f0f4ff;
+      }
+      h1 {
+        color: #2a3af7;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+      .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .button {
+        display: inline-block;
+        background-color: #2a3af7;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        margin: 0 0.5rem;
+        cursor: pointer;
+        border: none;
+      }
+      .button.outline {
+        background-color: transparent;
+        color: #2a3af7;
+        border: 1px solid #2a3af7;
+      }
+      pre {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Netlify Deployment Test</h1>
+
+    <div class="card">
+      <h2>Basic HTML Test</h2>
+      <p>
+        If you can see this page, basic HTML deployment is working correctly.
+      </p>
     </div>
-  </div>
-</body>
+
+    <div class="card">
+      <h2>JavaScript Test</h2>
+      <p>Click the button to test JavaScript functionality:</p>
+      <button id="testButton" class="button">Test JavaScript</button>
+      <p id="jsResult">JavaScript test result will appear here.</p>
+    </div>
+
+    <div class="card">
+      <h2>Config Test</h2>
+      <p>Testing if window.APP_CONFIG is available:</p>
+      <pre id="configResult">Config test result will appear here.</pre>
+    </div>
+
+    <div class="card">
+      <h2>Browser Information</h2>
+      <pre id="browserInfo">Browser information will appear here.</pre>
+    </div>
+
+    <script>
+      // Test basic JavaScript
+      document
+        .getElementById("testButton")
+        .addEventListener("click", function () {
+          document.getElementById("jsResult").textContent =
+            "JavaScript is working correctly! " + new Date().toISOString();
+        });
+
+      // Test config.js
+      window.onload = function () {
+        const configResult = document.getElementById("configResult");
+        try {
+          if (window.APP_CONFIG) {
+            configResult.textContent =
+              "APP_CONFIG found: " + JSON.stringify(window.APP_CONFIG, null, 2);
+          } else {
+            configResult.textContent = "APP_CONFIG is not defined";
+          }
+        } catch (error) {
+          configResult.textContent =
+            "Error checking APP_CONFIG: " + error.message;
+        }
+
+        // Display browser information
+        const browserInfo = document.getElementById("browserInfo");
+        browserInfo.textContent =
+          "User Agent: " +
+          navigator.userAgent +
+          "\n" +
+          "Platform: " +
+          navigator.platform +
+          "\n" +
+          "Online: " +
+          navigator.onLine +
+          "\n" +
+          "Cookies Enabled: " +
+          navigator.cookieEnabled;
+      };
+    </script>
+  </body>
 </html>

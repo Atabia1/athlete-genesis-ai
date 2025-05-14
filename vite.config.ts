@@ -37,31 +37,42 @@ export default defineConfig(({ mode }) => {
       // Asset handling
       assetsDir: 'assets',
       // Chunk size warning limit
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 1500,
       // Rollup options
       rollupOptions: {
         // External dependencies that shouldn't be bundled
         external: [],
         output: {
           // Chunk naming
-          manualChunks: {
-            react: ['react', 'react-dom', 'react-router-dom'],
-            ui: [
-              '@radix-ui/react-accordion',
-              '@radix-ui/react-alert-dialog',
-              '@radix-ui/react-avatar',
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-dropdown-menu',
-              '@radix-ui/react-label',
-              '@radix-ui/react-popover',
-              '@radix-ui/react-select',
-              '@radix-ui/react-slot',
-              '@radix-ui/react-tabs',
-              '@radix-ui/react-toast',
-              '@radix-ui/react-tooltip',
-            ],
-            utils: ['date-fns', 'clsx', 'tailwind-merge', 'lucide-react', 'axios'],
-          },
+          manualChunks: (id) => {
+            // React and related packages
+            if (id.includes('node_modules/react') ||
+                id.includes('node_modules/react-dom') ||
+                id.includes('node_modules/react-router-dom')) {
+              return 'react';
+            }
+
+            // UI libraries
+            if (id.includes('node_modules/@radix-ui') ||
+                id.includes('node_modules/@headlessui') ||
+                id.includes('node_modules/vaul')) {
+              return 'ui';
+            }
+
+            // Utility libraries
+            if (id.includes('node_modules/date-fns') ||
+                id.includes('node_modules/clsx') ||
+                id.includes('node_modules/tailwind-merge') ||
+                id.includes('node_modules/lucide-react') ||
+                id.includes('node_modules/axios')) {
+              return 'utils';
+            }
+
+            // Keep other node_modules in a separate chunk
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          }
         },
       },
     },
