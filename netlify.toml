@@ -6,8 +6,8 @@
   # Directory to publish (relative to root of your repo)
   publish = "dist"
 
-  # Default build command with legacy peer deps flag to resolve dependency conflicts
-  command = "npm install --legacy-peer-deps && npm run build"
+  # Default build command
+  command = "npm run build"
 
 # Environment variable inheritance
 [build.environment]
