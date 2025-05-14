@@ -40,6 +40,8 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1000,
       // Rollup options
       rollupOptions: {
+        // External dependencies that shouldn't be bundled
+        external: ['axios'],
         output: {
           // Chunk naming
           manualChunks: {
@@ -58,7 +60,7 @@ export default defineConfig(({ mode }) => {
               '@radix-ui/react-toast',
               '@radix-ui/react-tooltip',
             ],
-            utils: ['date-fns', 'clsx', 'tailwind-merge', 'lucide-react'],
+            utils: ['date-fns', 'clsx', 'tailwind-merge', 'lucide-react', 'axios'],
           },
         },
       },
