@@ -35,7 +35,19 @@ export default defineConfig(({ mode }) => {
     },
     // Optimize dependencies
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom'],
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        '@radix-ui/react-dialog',
+        '@radix-ui/react-popover',
+        '@radix-ui/react-slot',
+        '@radix-ui/react-tooltip',
+        '@radix-ui/react-tabs',
+        '@radix-ui/react-switch',
+        '@paystack/inline-js',
+        'react-paystack'
+      ],
       esbuildOptions: {
         target: 'es2020',
       },

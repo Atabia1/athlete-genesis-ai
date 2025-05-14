@@ -97,6 +97,9 @@ import FeatureAccessExample from "./components/examples/FeatureAccessExample";
 import SubscriptionManagement from "./pages/dashboard/SubscriptionManagement";
 import ReceiptPage from "./pages/receipts/[id]";
 import HealthAppSettings from "./pages/settings/HealthAppSettings";
+
+// Test page
+import TestPage from "./pages/TestPage";
 /**
  * Main App component that sets up application routing
  */
@@ -180,6 +183,9 @@ const App = () => (
 
       {/* Example Routes */}
       <Route path="/examples/feature-access" element={<FeatureAccessExample />} />
+
+      {/* Test Page */}
+      <Route path="/test" element={<TestPage />} />
 
       {/* 404 Not Found */}
       <Route path="*" element={<NotFound />} />

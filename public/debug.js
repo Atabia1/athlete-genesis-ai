@@ -1,5 +1,48 @@
-// Debug script to help identify issues with the application
+/**
+ * Debug Script
+ *
+ * This script provides debugging tools for the application.
+ * It logs information about the environment and provides utilities for debugging.
+ */
+
 console.log('Debug script loaded');
+
+// Create a debug object
+window.APP_DEBUG = {
+  // Version information
+  version: {
+    app: window.__APP_VERSION__ || 'unknown',
+    env: window.__APP_ENV__ || 'unknown',
+    buildTime: window.__BUILD_TIME__ || 'unknown'
+  },
+
+  // Environment information
+  environment: {
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    platform: navigator.platform,
+    online: navigator.onLine,
+    cookiesEnabled: navigator.cookieEnabled,
+    screenSize: {
+      width: window.screen.width,
+      height: window.screen.height
+    },
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight
+    }
+  },
+
+  // React information
+  react: {
+    available: typeof window.React !== 'undefined',
+    version: window.React?.version || 'unknown',
+    features: {}
+  },
+
+  // Config information
+  config: window.APP_CONFIG || {}
+};
 
 // Check if window.APP_CONFIG is defined
 if (window.APP_CONFIG) {
@@ -11,6 +54,33 @@ if (window.APP_CONFIG) {
 // Check if React is defined
 if (window.React) {
   console.log('React is defined globally:', window.React.version);
+
+  // Check React features
+  const reactFeatures = [
+    'createElement',
+    'createContext',
+    'forwardRef',
+    'memo',
+    'Fragment',
+    'useEffect',
+    'useState',
+    'useContext',
+    'useRef',
+    'useCallback',
+    'useMemo',
+    'useReducer',
+    'useLayoutEffect',
+    'useImperativeHandle',
+    'Children',
+    'cloneElement',
+    'isValidElement'
+  ];
+
+  reactFeatures.forEach(feature => {
+    const isAvailable = typeof window.React[feature] === 'function';
+    window.APP_DEBUG.react.features[feature] = isAvailable;
+    console.log(`React.${feature} is ${isAvailable ? 'available' : 'NOT available'}`);
+  });
 } else {
   console.warn('React is not defined globally - this is expected with modern bundlers but may cause issues with certain libraries');
 }
