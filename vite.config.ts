@@ -68,7 +68,9 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
             'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-slot', '@radix-ui/react-tooltip'],
-            'utils-vendor': ['clsx', 'tailwind-merge', 'date-fns', 'lucide-react', 'axios']
+            'utils-vendor': ['clsx', 'tailwind-merge', 'date-fns', 'lucide-react', 'axios'],
+            // Separate chunk for Paystack to isolate any issues
+            'paystack-vendor': ['@paystack/inline-js', 'react-paystack']
           }
         },
       },

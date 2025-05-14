@@ -10,7 +10,8 @@
  */
 
 import { useState } from 'react';
-import { usePaystackPayment } from 'react-paystack';
+// Import our safe wrapper instead of the direct library
+import { usePaystackPayment } from '@/components/payment/PaystackWrapper';
 import { useAuth } from './use-auth';
 import { toast } from '@/components/ui/use-toast';
 import paystackService, {
