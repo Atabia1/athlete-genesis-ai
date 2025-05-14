@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
       // Rollup options
       rollupOptions: {
         // External dependencies that shouldn't be bundled
-        external: ['axios'],
+        external: [],
         output: {
           // Chunk naming
           manualChunks: {
