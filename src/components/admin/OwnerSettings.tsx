@@ -1,3 +1,4 @@
+
 /**
  * Owner Settings Component
  *
@@ -51,10 +52,11 @@ const OwnerSettings = () => {
       setSuccess(false);
 
       // Update the user's profile in Supabase using a custom field
+      // Note: We're using user_type as the field to mark the owner since is_owner doesn't exist
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          is_owner: true // Using a direct field instead of metadata
+          user_type: 'owner' // Using user_type field instead of is_owner
         })
         .eq('id', user.id);
 
@@ -89,11 +91,11 @@ const OwnerSettings = () => {
       setError(null);
       setSuccess(false);
 
-      // Update the user's profile in Supabase using a direct field
+      // Update the user's profile in Supabase using user_type
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          is_owner: false // Using a direct field instead of metadata
+          user_type: 'individual' // Reset to individual type
         })
         .eq('id', user.id);
 

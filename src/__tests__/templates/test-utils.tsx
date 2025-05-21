@@ -1,36 +1,24 @@
 
 import React, { ReactNode } from 'react';
-import { render } from '@testing-library/react';
+import { render, RenderOptions } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 
 /**
  * Custom wrapper for test components
  */
 export const TestWrapper = ({ children }: { children: ReactNode }) => {
-  return <div data-testid="test-wrapper">{children}</div>;
+  return (
+    <BrowserRouter>
+      <div data-testid="test-wrapper">{children}</div>
+    </BrowserRouter>
+  );
 };
-
-/**
- * Mock implementation of toBeInTheDocument
- */
-expect.extend({
-  toBeInTheDocument(received) {
-    const pass = received !== null;
-    if (pass) {
-      return {
-        message: () => `expected ${received} not to be in the document`,
-        pass: true,
-      };
-    } else {
-      return {
-        message: () => `expected ${received} to be in the document`,
-        pass: false,
-      };
-    }
-  },
-});
 
 /**
  * Custom render function that wraps components in the test wrapper
  */
-export const customRender = (ui: React.ReactElement, options = {}) =>
+export const customRender = (ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
   render(ui, { wrapper: TestWrapper, ...options });
+
+// Re-export everything from testing-library
+export * from '@testing-library/react';
