@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -50,7 +49,7 @@ const DashboardCustomizer: React.FC<DashboardCustomizerProps> = ({
   };
   
   return (
-    <div className="space-y-6">
+    <div className={`dashboard-customizer ${open ? 'open' : 'closed'}`}>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="layout">Layout</TabsTrigger>

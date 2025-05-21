@@ -697,7 +697,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
               {healthData.oxygenSaturation && (
                 <div className="bg-slate-50 p-4 rounded-lg">
                   <div className="flex items-center mb-2">
-                    <Lungs className="h-5 w-5 mr-2 text-blue-500" />
+                    <Wind className="h-5 w-5 mr-2 text-blue-500" />
                     <span className="font-medium">Oxygen Saturation</span>
                   </div>
                   <div className="text-xl font-bold">

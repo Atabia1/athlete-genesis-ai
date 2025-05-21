@@ -6,24 +6,21 @@
  */
 
 // Import Jest types
-import { jest } from '@jest/globals';
+import { jest, expect as jestExpect } from '@jest/globals';
 
 // Define types for globalThis extensions
 declare global {
   namespace NodeJS {
     interface Global {
-      expect: typeof jest.expect;
+      expect: typeof jestExpect;
     }
   }
-
-  // Add expect to the global namespace for TypeScript
-  const expect: typeof jest.expect;
 }
 
 // Mock implementation for toBeInTheDocument
-if (typeof jest.expect !== 'undefined') {
-  jest.expect.extend({
-    toBeInTheDocument(received: any) {
+if (typeof jestExpect !== 'undefined') {
+  jestExpect.extend({
+    toBeInTheDocument(received: unknown) {
       const pass = received !== null;
       return {
         message: () => `expected ${received} ${pass ? 'not ' : ''}to be in the document`,

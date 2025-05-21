@@ -12,6 +12,6 @@ export { useAuth, type User, type LoginCredentials, type RegistrationData, type 
 declare module '@/features/auth/hooks/use-auth' {
   interface UseAuthResult {
     logout: () => void;
-    signOut: () => void;
+    signOut: () => void; // Alias for logout
   }
 }

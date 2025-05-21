@@ -1,200 +1,104 @@
-
-/**
- * Dashboard Layout Component
- * 
- * This component provides the main layout for the dashboard, including
- * the navigation sidebar, header, and content area.
- * 
- * It handles user authentication, feature access, and theme settings.
- */
-
-import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
-import { useTheme } from '@/context/ThemeContext';
-import { useFeatureAccess } from '@/context/FeatureAccessContext';
-import { Sidebar } from '@/components/layout/Sidebar';
-import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { TopNavigation } from '@/components/layout/TopNavigation';
-import { SyncBanner } from '@/components/ui/sync-banner';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { User, Download, Zap } from 'lucide-react';
-import { 
+import { MainSidebar } from '@/components/layout/MainSidebar';
+import { MobileSidebar } from '@/components/layout/MobileSidebar';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { DashboardCustomizer } from '@/components/dashboard/DashboardCustomizer';
-import { createMockNavigate } from '@/utils/test-utils';
-import { createMockParams } from '@/utils/test-utils';
-import { createMockSearchParams } from '@/utils/test-utils';
-
-// Define feature types that match what the useFeatureAccess hook expects
-type Feature = 'coach_management' | 'team_management' | 'ai_features' | 'export_data';
+} from "@/components/ui/dropdown-menu"
+import { useFeatureAccess } from '@/context/FeatureAccessContext';
+import { useToast } from "@/components/ui/use-toast"
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Dashboard Layout Component
+ * 
+ * This component provides the main layout for the dashboard, including
+ * the top navigation, main sidebar, and mobile sidebar.
  */
 const DashboardLayout: React.FC = () => {
+  const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
-  const { hasFeatureAccess } = useFeatureAccess();
-  const location = useLocation();
+  const { toast } = useToast()
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isCustomizerDialogOpen, setIsCustomizerDialogOpen] = useState(false);
 
-  // Determine if the current route is a coach or team route
-  const isCoachRoute = location.pathname.startsWith('/dashboard/coach');
-  const isTeamRoute = location.pathname.startsWith('/dashboard/team');
+  const toggleMobileSidebar = () => {
+    setMobileSidebarOpen(!isMobileSidebarOpen);
+  };
 
-  // Extract coach or team ID from the URL
-  const coachId = isCoachRoute ? location.pathname.split('/').pop() : null;
-  const teamId = isTeamRoute ? location.pathname.split('/').pop() : null;
-
-  // Mock data for testing purposes
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'test') {
-      // Mock useParams based on the current route
-      if (isCoachRoute && coachId) {
-        createMockParams({ coachId });
-      } else if (isTeamRoute && teamId) {
-        createMockParams({ teamId });
-      }
-
-      // Mock useNavigate
-      createMockNavigate();
-
-      // Mock search params
-      createMockSearchParams({});
-    }
-  }, [location.pathname, isCoachRoute, isTeamRoute, coachId, teamId]);
-
-  // Function to handle navigation based on user type and feature access
-  const handleNavigation = (path: string) => {
-    if (path.startsWith('/dashboard/coach/') || path.startsWith('/dashboard/team/')) {
-      // Extract the ID from the path
-      const id = path.split('/').pop() || '';
-
-      if (path.startsWith('/dashboard/coach/')) {
-        // Navigate to the coach dashboard if the user has access
-        if (hasFeatureAccess('coach_management' as Feature)) {
-          navigate(`/dashboard/coach/${id}`);
-        } else {
-          // Redirect to the subscription page if the user doesn't have access
-          navigate('/dashboard/subscription');
-        }
-      } else if (path.startsWith('/dashboard/team/')) {
-        // Navigate to the team dashboard if the user has access
-        if (hasFeatureAccess('team_management' as Feature)) {
-          navigate(`/dashboard/team/${id}`);
-        } else {
-          // Redirect to the subscription page if the user doesn't have access
-          navigate('/dashboard/subscription');
-        }
-      }
-    } else {
-      // For other paths, navigate directly
-      navigate(path);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out successfully.",
+        description: "Redirecting to the home page...",
+      })
+      navigate('/');
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error logging out.",
+        description: "Please try again or contact support.",
+      })
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900 antialiased">
+    <div className="flex h-screen bg-gray-50">
+      {/* Main Sidebar (Hidden on small screens) */}
+      <MainSidebar className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:border-r lg:bg-gray-50" />
+      
       {/* Mobile Sidebar */}
-      <MobileSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)}>
-        <Sidebar onNavigation={handleNavigation} />
+      <MobileSidebar isOpen={isMobileSidebarOpen} onClose={toggleMobileSidebar}>
+        {/* Mobile Sidebar Content */}
+        <nav className="flex flex-col space-y-2">
+          <a href="/dashboard" className="block px-4 py-2 text-sm font-medium hover:bg-gray-100">
+            Dashboard
+          </a>
+          <a href="/dashboard/training-plans" className="block px-4 py-2 text-sm font-medium hover:bg-gray-100">
+            Training Plans
+          </a>
+          {/* Add more mobile navigation links here */}
+        </nav>
+        <Button variant="outline" onClick={handleLogout}>Logout</Button>
       </MobileSidebar>
 
-      {/* Desktop Sidebar */}
-      <Sidebar className="w-64 flex-shrink-0 border-r bg-white" onNavigation={handleNavigation} />
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Page Content */}
+      <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top Navigation */}
-        <TopNavigation onMenuClick={() => setIsSidebarOpen(true)}>
-          <SyncBanner />
+        <TopNavigation onMenuClick={toggleMobileSidebar}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button variant="ghost" className="h-8 w-8 p-0">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatar_url || ""} alt={user?.first_name} />
-                  <AvatarFallback>{user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}</AvatarFallback>
+                  <AvatarImage src="https://github.com/shadcn.png" alt="Shadcn" />
+                  <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mr-2">
+            <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/dashboard/profile')}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/dashboard/export')}>
-                <Download className="mr-2 h-4 w-4" />
-                <span>Export Data</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/dashboard/subscription')}>
-                <Zap className="mr-2 h-4 w-4" />
-                <span>Subscription</span>
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/dashboard/profile')}>Profile</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/dashboard/subscription')}>Subscription</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => logout()}>
-                Log out
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </TopNavigation>
 
-        {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto">
-          <ScrollArea className="h-full p-4">
-            <Outlet />
-          </ScrollArea>
-        </div>
-
-        {/* Footer */}
-        <footer className="border-t p-4 text-center text-sm text-gray-500">
-          <div className="container">
-            <p>&copy; {new Date().getFullYear()} Athlete Genesis AI. All rights reserved.</p>
-            <Dialog open={isCustomizerDialogOpen} onOpenChange={setIsCustomizerDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="link">Customize Dashboard</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Customize Dashboard</DialogTitle>
-                  <DialogDescription>
-                    Make changes to your dashboard here. Click save when you're done.
-                  </DialogDescription>
-                </DialogHeader>
-                <DashboardCustomizer 
-                  open={isCustomizerDialogOpen} 
-                  onOpenChange={setIsCustomizerDialogOpen}
-                  layout="default"
-                  onLayoutChange={() => {}}
-                  theme="light"
-                  onThemeChange={() => {}}
-                  widgets={[]}
-                  onWidgetsChange={() => {}}
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
-        </footer>
+        {/* Main Content */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

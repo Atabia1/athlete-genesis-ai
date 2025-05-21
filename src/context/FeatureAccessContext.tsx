@@ -8,6 +8,8 @@ interface FeatureAccessContextType {
   hasFeatureAccess: (feature: Feature) => boolean;
   grantFeatureAccess: (feature: Feature) => void;
   revokeFeatureAccess: (feature: Feature) => void;
+  isOwner?: boolean; // Added isOwner property
+  setIsOwner?: (value: boolean) => void; // Method to set owner status
 }
 
 const FeatureAccessContext = createContext<FeatureAccessContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export const FeatureAccessProvider: React.FC<{ children: React.ReactNode }> = ({
     'coach_management',
     'team_management'
   ]);
+  const [isOwner, setIsOwner] = useState<boolean>(false);
 
   const hasFeatureAccess = (feature: Feature) => {
     return accessibleFeatures.includes(feature);
@@ -41,7 +44,13 @@ export const FeatureAccessProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <FeatureAccessContext.Provider value={{ hasFeatureAccess, grantFeatureAccess, revokeFeatureAccess }}>
+    <FeatureAccessContext.Provider value={{ 
+      hasFeatureAccess, 
+      grantFeatureAccess, 
+      revokeFeatureAccess,
+      isOwner,
+      setIsOwner
+    }}>
       {children}
     </FeatureAccessContext.Provider>
   );
