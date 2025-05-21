@@ -1,152 +1,327 @@
-/**
- * IndexedDB Core Functionality
- *
- * This file contains the core functionality for the IndexedDB service.
- */
-
-import { IndexedDBError } from './errors';
-import { IndexedDBErrorType, DBMigration, ActiveTransaction, DatabaseInfo } from './types';
 
 /**
- * Core IndexedDB service class
+ * Core IndexedDB Service
+ * 
+ * Provides base functionality for interacting with IndexedDB.
  */
-export class IndexedDBCore {
+
+import { IndexedDBError, IndexedDBErrorType } from './errors';
+import { TransactionModes, type TransactionMode, type TransactionOperations } from './types';
+
+/**
+ * Base IndexedDB Service
+ */
+export class IndexedDBService {
   private dbName: string;
-  private currentVersion: number;
-  private migrations: DBMigration[];
+  private version: number;
   private db: IDBDatabase | null = null;
-  private activeTransaction: ActiveTransaction | null = null;
+  private stores: string[];
+  private isInitialized: boolean = false;
 
   /**
-   * Create a new IndexedDBCore
+   * Create a new IndexedDB Service
    * @param dbName The name of the database
-   * @param migrations Array of migrations to apply, in order of version
+   * @param stores Array of store names to create if they don't exist
+   * @param version The database version
    */
-  constructor(dbName: string, migrations: DBMigration[]) {
+  constructor(dbName: string, stores: string[], version: number = 1) {
     this.dbName = dbName;
-    this.migrations = migrations.sort((a, b) => a.version - b.version);
-    this.currentVersion = this.migrations.length > 0 ?
-      this.migrations[this.migrations.length - 1].version : 1;
+    this.stores = stores;
+    this.version = version;
   }
 
   /**
-   * Initialize the database with proper version management
-   * @returns Promise that resolves when the database is open and migrated
+   * Initialize the database and create object stores
+   * @returns Promise that resolves when the database is initialized
    */
   async initDatabase(): Promise<void> {
-    try {
-      // Check if IndexedDB is supported
-      if (!window.indexedDB) {
-        throw new IndexedDBError(
-          'IndexedDB is not supported in this browser',
-          IndexedDBErrorType.DATABASE_FAILED_TO_OPEN,
-          undefined,
-          false
-        );
-      }
+    if (this.isInitialized) return;
+    
+    return new Promise((resolve, reject) => {
+      try {
+        const request = indexedDB.open(this.dbName, this.version);
 
-      return new Promise((resolve, reject) => {
-        console.log(`Opening database ${this.dbName} with version ${this.currentVersion}`);
-        const request = window.indexedDB.open(this.dbName, this.currentVersion);
-
-        request.onerror = (event) => {
-          const error = (event.target as IDBRequest).error;
-          let errorType = IndexedDBErrorType.DATABASE_FAILED_TO_OPEN;
-          let recoverable = false;
-
-          // Determine specific error type
-          if (error?.name === 'QuotaExceededError') {
-            errorType = IndexedDBErrorType.QUOTA_EXCEEDED;
-            recoverable = true; // User can free up space
-          } else if (error?.name === 'VersionError') {
-            errorType = IndexedDBErrorType.VERSION_ERROR;
-            recoverable = false; // Requires code change
-          }
-
-          reject(new IndexedDBError(
-            `Failed to open database: ${error?.message || 'Unknown error'}`,
-            errorType,
-            error as DOMException,
-            recoverable
-          ));
-        };
-
-        // This event is triggered when the database is being upgraded
         request.onupgradeneeded = (event) => {
-          try {
-            const db = (event.target as IDBOpenDBRequest).result;
-            const transaction = (event.target as IDBOpenDBRequest).transaction;
-            if (!transaction) {
-              throw new Error('Transaction not available during upgrade');
+          const db = (event.target as IDBOpenDBRequest).result;
+          
+          // Create stores if they don't exist
+          for (const storeName of this.stores) {
+            if (!db.objectStoreNames.contains(storeName)) {
+              db.createObjectStore(storeName, { keyPath: 'id' });
             }
-            const oldVersion = event.oldVersion || 0;
-
-            console.log(`Upgrading database from version ${oldVersion} to ${this.currentVersion}`);
-
-            // Apply each migration that's newer than the current database version
-            for (const migration of this.migrations) {
-              if (migration.version > oldVersion) {
-                console.log(`Applying migration to version ${migration.version}: ${migration.description}`);
-
-                // Apply the migration
-                migration.migrate(db, transaction);
-
-                // Validate the migration if a validation function is provided
-                if (migration.validateMigration && !migration.validateMigration(db)) {
-                  throw new Error(`Migration validation failed for version ${migration.version}`);
-                }
-
-                console.log(`Successfully applied migration to version ${migration.version}`);
-              }
-            }
-          } catch (migrationError) {
-            console.error('Error during database migration:', migrationError);
-            // We can't reject here because onupgradeneeded is synchronous
-            // The error will be caught in the transaction's error handler
-            throw new IndexedDBError(
-              `Database migration failed: ${(migrationError as Error).message}`,
-              IndexedDBErrorType.MIGRATION_ERROR,
-              migrationError as Error,
-              false
-            );
           }
         };
 
         request.onsuccess = (event) => {
           this.db = (event.target as IDBOpenDBRequest).result;
-
-          // Handle connection errors
-          this.db.onerror = (event) => {
-            console.error('Database error:', (event.target as IDBDatabase).error);
-          };
-
-          console.log(`Successfully opened database ${this.dbName} version ${this.db.version}`);
+          this.isInitialized = true;
           resolve();
         };
-      });
-    } catch (error) {
-      // Handle unexpected errors
-      if (error instanceof IndexedDBError) {
-        throw error;
-      } else {
-        throw new IndexedDBError(
-          `Unexpected error initializing database: ${(error as Error).message}`,
-          IndexedDBErrorType.UNKNOWN_ERROR,
-          error as Error,
-          false
-        );
+
+        request.onerror = (event) => {
+          const error = new IndexedDBError(
+            'Failed to initialize database',
+            IndexedDBErrorType.INITIALIZATION_ERROR,
+            (event.target as IDBOpenDBRequest).error?.message
+          );
+          reject(error);
+        };
+      } catch (error) {
+        reject(new IndexedDBError(
+          'Error opening database',
+          IndexedDBErrorType.INITIALIZATION_ERROR,
+          error instanceof Error ? error.message : String(error)
+        ));
       }
+    });
+  }
+
+  /**
+   * Ensure the database is initialized
+   * @returns Promise that resolves when the database is ready to use
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized) {
+      await this.initDatabase();
     }
   }
 
   /**
-   * Ensure the database is open
-   * @returns Promise that resolves when the database is open
+   * Start a transaction on one or more object stores
+   * @param storeNames Array of object store names to include in the transaction
+   * @param mode Transaction mode ('readonly' or 'readwrite')
+   * @returns Transaction operations object
    */
-  async ensureDatabaseOpen(): Promise<void> {
+  async startTransaction(storeNames: string[], mode: TransactionMode = TransactionModes.READONLY): Promise<TransactionOperations> {
+    await this.ensureInitialized();
+
     if (!this.db) {
-      await this.initDatabase();
+      throw new IndexedDBError(
+        'Database is not initialized',
+        IndexedDBErrorType.NOT_INITIALIZED
+      );
     }
+
+    try {
+      const transaction = this.db.transaction(storeNames, mode);
+      const stores: Record<string, IDBObjectStore> = {};
+
+      for (const storeName of storeNames) {
+        stores[storeName] = transaction.objectStore(storeName);
+      }
+
+      return {
+        transaction,
+        stores,
+        complete: () => new Promise<void>((resolve, reject) => {
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = (event) => reject(new IndexedDBError(
+            'Transaction failed',
+            IndexedDBErrorType.TRANSACTION_ERROR,
+            (event.target as IDBTransaction).error?.message
+          ));
+          transaction.onabort = (event) => reject(new IndexedDBError(
+            'Transaction aborted',
+            IndexedDBErrorType.TRANSACTION_ABORTED,
+            (event.target as IDBTransaction).error?.message
+          ));
+        }),
+      };
+    } catch (error) {
+      throw new IndexedDBError(
+        'Failed to start transaction',
+        IndexedDBErrorType.TRANSACTION_ERROR,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  /**
+   * Add an item to a store
+   * @param storeName The name of the object store
+   * @param item The item to add
+   * @returns Promise that resolves when the item is added
+   */
+  async add<T>(storeName: string, item: T): Promise<void> {
+    const { stores, complete } = await this.startTransaction([storeName], TransactionModes.READWRITE);
+    
+    return new Promise((resolve, reject) => {
+      try {
+        const request = stores[storeName].add(item);
+        
+        request.onsuccess = () => resolve();
+        
+        request.onerror = (event) => {
+          let errorType = IndexedDBErrorType.ADD_ERROR;
+          
+          // Check for quota exceeded error
+          if ((event.target as IDBRequest).error?.name === 'QuotaExceededError') {
+            errorType = IndexedDBErrorType.QUOTA_EXCEEDED;
+          }
+          
+          reject(new IndexedDBError(
+            'Failed to add item to store',
+            errorType,
+            (event.target as IDBRequest).error?.message,
+            { recoverable: errorType === IndexedDBErrorType.QUOTA_EXCEEDED }
+          ));
+        };
+        
+        // Wait for transaction to complete
+        complete().then(() => resolve()).catch(reject);
+      } catch (error) {
+        reject(new IndexedDBError(
+          'Error adding item to store',
+          IndexedDBErrorType.ADD_ERROR,
+          error instanceof Error ? error.message : String(error)
+        ));
+      }
+    });
+  }
+
+  /**
+   * Update an item in a store
+   * @param storeName The name of the object store
+   * @param item The item to update
+   * @returns Promise that resolves when the item is updated
+   */
+  async update<T>(storeName: string, item: T): Promise<void> {
+    const { stores, complete } = await this.startTransaction([storeName], TransactionModes.READWRITE);
+    
+    return new Promise((resolve, reject) => {
+      try {
+        const request = stores[storeName].put(item);
+        
+        request.onsuccess = () => resolve();
+        
+        request.onerror = (event) => {
+          let errorType = IndexedDBErrorType.UPDATE_ERROR;
+          
+          // Check for quota exceeded error
+          if ((event.target as IDBRequest).error?.name === 'QuotaExceededError') {
+            errorType = IndexedDBErrorType.QUOTA_EXCEEDED;
+          }
+          
+          reject(new IndexedDBError(
+            'Failed to update item in store',
+            errorType,
+            (event.target as IDBRequest).error?.message,
+            { recoverable: errorType === IndexedDBErrorType.QUOTA_EXCEEDED }
+          ));
+        };
+        
+        // Wait for transaction to complete
+        complete().then(() => resolve()).catch(reject);
+      } catch (error) {
+        reject(new IndexedDBError(
+          'Error updating item in store',
+          IndexedDBErrorType.UPDATE_ERROR,
+          error instanceof Error ? error.message : String(error)
+        ));
+      }
+    });
+  }
+
+  /**
+   * Delete an item from a store
+   * @param storeName The name of the object store
+   * @param id The ID of the item to delete
+   * @returns Promise that resolves when the item is deleted
+   */
+  async delete(storeName: string, id: string): Promise<void> {
+    const { stores, complete } = await this.startTransaction([storeName], TransactionModes.READWRITE);
+    
+    return new Promise((resolve, reject) => {
+      try {
+        const request = stores[storeName].delete(id);
+        
+        request.onsuccess = () => resolve();
+        
+        request.onerror = (event) => {
+          reject(new IndexedDBError(
+            'Failed to delete item from store',
+            IndexedDBErrorType.DELETE_ERROR,
+            (event.target as IDBRequest).error?.message
+          ));
+        };
+        
+        // Wait for transaction to complete
+        complete().then(() => resolve()).catch(reject);
+      } catch (error) {
+        reject(new IndexedDBError(
+          'Error deleting item from store',
+          IndexedDBErrorType.DELETE_ERROR,
+          error instanceof Error ? error.message : String(error)
+        ));
+      }
+    });
+  }
+
+  /**
+   * Get all items from a store
+   * @param storeName The name of the object store
+   * @returns Promise that resolves with all items in the store
+   */
+  async getAll<T>(storeName: string): Promise<T[]> {
+    const { stores } = await this.startTransaction([storeName], TransactionModes.READONLY);
+    
+    return new Promise((resolve, reject) => {
+      try {
+        const request = stores[storeName].getAll();
+        
+        request.onsuccess = (event) => {
+          resolve((event.target as IDBRequest<T[]>).result);
+        };
+        
+        request.onerror = (event) => {
+          reject(new IndexedDBError(
+            'Failed to get all items from store',
+            IndexedDBErrorType.GET_ERROR,
+            (event.target as IDBRequest).error?.message
+          ));
+        };
+      } catch (error) {
+        reject(new IndexedDBError(
+          'Error getting all items from store',
+          IndexedDBErrorType.GET_ERROR,
+          error instanceof Error ? error.message : String(error)
+        ));
+      }
+    });
+  }
+
+  /**
+   * Get an item by ID
+   * @param storeName The name of the object store
+   * @param id The ID of the item to get
+   * @returns Promise that resolves with the item or null if not found
+   */
+  async getById<T>(storeName: string, id: string): Promise<T | null> {
+    const { stores } = await this.startTransaction([storeName], TransactionModes.READONLY);
+    
+    return new Promise((resolve, reject) => {
+      try {
+        const request = stores[storeName].get(id);
+        
+        request.onsuccess = (event) => {
+          resolve((event.target as IDBRequest<T>).result || null);
+        };
+        
+        request.onerror = (event) => {
+          reject(new IndexedDBError(
+            'Failed to get item by ID',
+            IndexedDBErrorType.GET_ERROR,
+            (event.target as IDBRequest).error?.message
+          ));
+        };
+      } catch (error) {
+        reject(new IndexedDBError(
+          'Error getting item by ID',
+          IndexedDBErrorType.GET_ERROR,
+          error instanceof Error ? error.message : String(error)
+        ));
+      }
+    });
   }
 
   /**
@@ -156,86 +331,7 @@ export class IndexedDBCore {
     if (this.db) {
       this.db.close();
       this.db = null;
+      this.isInitialized = false;
     }
-  }
-
-  /**
-   * Get the database instance
-   * @returns The database instance or null if not initialized
-   */
-  getDatabase(): IDBDatabase | null {
-    return this.db;
-  }
-
-  /**
-   * Set the active transaction
-   * @param transaction The active transaction
-   */
-  setActiveTransaction(transaction: ActiveTransaction | null): void {
-    this.activeTransaction = transaction;
-  }
-
-  /**
-   * Get the active transaction
-   * @returns The active transaction or null if none is active
-   */
-  getActiveTransaction(): ActiveTransaction | null {
-    return this.activeTransaction;
-  }
-
-  /**
-   * Check if a transaction is currently active
-   * @returns True if a transaction is active
-   */
-  isTransactionActive(): boolean {
-    return this.activeTransaction !== null;
-  }
-
-  /**
-   * Check if IndexedDB is supported in this browser
-   * @returns True if IndexedDB is supported
-   */
-  static isSupported(): boolean {
-    return !!window.indexedDB;
-  }
-
-  /**
-   * Get the estimated size of the database
-   * @returns Promise that resolves with the estimated size in bytes, or null if not supported
-   */
-  async getEstimatedSize(): Promise<number | null> {
-    try {
-      if ('storage' in navigator && 'estimate' in navigator.storage) {
-        const estimate = await navigator.storage.estimate();
-        return estimate.usage || null;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error getting storage estimate:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Get the current database version
-   * @returns The current database version or null if the database is not open
-   */
-  getDatabaseVersion(): number | null {
-    return this.db ? this.db.version : null;
-  }
-
-  /**
-   * Get information about the database
-   * @returns Object with database information
-   */
-  async getDatabaseInfo(): Promise<DatabaseInfo> {
-    await this.ensureDatabaseOpen();
-
-    return {
-      name: this.dbName,
-      version: this.getDatabaseVersion(),
-      objectStores: this.db ? Array.from(this.db.objectStoreNames) : [],
-      size: await this.getEstimatedSize()
-    };
   }
 }
