@@ -6,17 +6,28 @@
  * - Improved error recovery mechanisms
  * - Better handling of offline scenarios
  * - Enhanced data validation
+ * - Storage quota management
  */
 
-import { IndexedDBService, IndexedDBError, IndexedDBErrorType, TransactionMode, TransactionOperations, DBMigration } from './indexeddb-service';
-import { validateData, ValidationResult } from '@/utils/validation';
+import {
+  IndexedDBService,
+  IndexedDBError,
+  IndexedDBErrorType,
+  TransactionModes
+} from './indexeddb/index';
+import type {
+  TransactionMode,
+  TransactionOperations
+} from './indexeddb/index';
+import { storageManager } from './storage-manager';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Enhanced IndexedDB service with transaction queue
  */
 export class EnhancedIndexedDBService extends IndexedDBService {
   // Queue for pending transactions
-  private transactionQueue: Array<() => Promise<any>> = [];
+  private transactionQueue: Array<() => Promise<unknown>> = [];
   // Flag to track if the queue is being processed
   private isProcessingQueue = false;
   // Maximum number of retries for a transaction
@@ -25,10 +36,32 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   /**
    * Create a new EnhancedIndexedDBService
    * @param dbName The name of the database
-   * @param migrations Array of migrations to apply, in order of version
    */
-  constructor(dbName: string, migrations: DBMigration[]) {
-    super(dbName, migrations);
+  constructor(dbName: string) {
+    super(dbName, []);
+  }
+
+  /**
+   * Initialize the database and storage manager
+   * @returns Promise that resolves when initialization is complete
+   */
+  async initDatabase(): Promise<void> {
+    try {
+      // Initialize the database
+      await super.initDatabase();
+
+      // Check storage status
+      await storageManager.checkStorage();
+
+      // Clean up old data if needed
+      const storageInfo = await storageManager.getStorageInfo();
+      if (storageInfo?.isLow) {
+        await storageManager.cleanupOldData();
+      }
+    } catch (error) {
+      console.error('Error initializing enhanced IndexedDB service:', error);
+      throw error;
+    }
   }
 
   /**
@@ -137,7 +170,7 @@ export class EnhancedIndexedDBService extends IndexedDBService {
    * @param mode Transaction mode ('readonly' or 'readwrite')
    * @returns Transaction operations object
    */
-  async startTransaction(storeNames: string[], mode: TransactionMode = 'readonly'): Promise<TransactionOperations> {
+  async startTransaction(storeNames: string[], mode: TransactionMode = TransactionModes.READONLY): Promise<TransactionOperations> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
         return super.startTransaction(storeNames, mode);
@@ -154,7 +187,55 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   async add<T>(storeName: string, item: T): Promise<void> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
-        return super.add(storeName, item);
+        try {
+          // Check storage before adding
+          const storageInfo = await storageManager.checkStorage(true);
+
+          // If storage is critically low, try to free up space
+          if (storageInfo?.isCritical) {
+            await storageManager.cleanupOldData();
+          }
+
+          return super.add(storeName, item);
+        } catch (error) {
+          // Handle specific error types
+          if (error instanceof IndexedDBError) {
+            // Handle quota exceeded errors
+            if (error.type === IndexedDBErrorType.QUOTA_EXCEEDED) {
+              // Try to free up space
+              const success = await storageManager.handleQuotaExceeded();
+
+              if (success) {
+                // Retry the operation
+                return super.add(storeName, item);
+              } else {
+                // Show error message
+                toast({
+                  title: "Storage Full",
+                  description: error.userMessage,
+                  variant: "destructive",
+                });
+              }
+            } else {
+              // Show user-friendly error message for other errors
+              toast({
+                title: "Database Error",
+                description: error.userMessage,
+                variant: "destructive",
+              });
+            }
+          } else {
+            // Generic error handling for non-IndexedDBError
+            toast({
+              title: "Error",
+              description: "An unexpected error occurred while saving data.",
+              variant: "destructive",
+            });
+          }
+
+          // Re-throw the error
+          throw error;
+        }
       });
     });
   }
@@ -168,7 +249,55 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   async update<T>(storeName: string, item: T): Promise<void> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
-        return super.update(storeName, item);
+        try {
+          // Check storage before updating
+          const storageInfo = await storageManager.checkStorage(true);
+
+          // If storage is critically low, try to free up space
+          if (storageInfo?.isCritical) {
+            await storageManager.cleanupOldData();
+          }
+
+          return super.update(storeName, item);
+        } catch (error) {
+          // Handle specific error types
+          if (error instanceof IndexedDBError) {
+            // Handle quota exceeded errors
+            if (error.type === IndexedDBErrorType.QUOTA_EXCEEDED) {
+              // Try to free up space
+              const success = await storageManager.handleQuotaExceeded();
+
+              if (success) {
+                // Retry the operation
+                return super.update(storeName, item);
+              } else {
+                // Show error message
+                toast({
+                  title: "Storage Full",
+                  description: error.userMessage,
+                  variant: "destructive",
+                });
+              }
+            } else {
+              // Show user-friendly error message for other errors
+              toast({
+                title: "Database Error",
+                description: error.userMessage,
+                variant: "destructive",
+              });
+            }
+          } else {
+            // Generic error handling for non-IndexedDBError
+            toast({
+              title: "Error",
+              description: "An unexpected error occurred while updating data.",
+              variant: "destructive",
+            });
+          }
+
+          // Re-throw the error
+          throw error;
+        }
       });
     });
   }
@@ -209,11 +338,29 @@ export class EnhancedIndexedDBService extends IndexedDBService {
       return super.getById<T>(storeName, id);
     });
   }
+
+  /**
+   * Display a user-friendly error message for an IndexedDB error
+   * @param error The error to display
+   * @param operation The operation that failed (e.g., 'saving', 'loading')
+   */
+  displayErrorMessage(error: unknown, operation: string): void {
+    if (error instanceof IndexedDBError) {
+      toast({
+        title: "Database Error",
+        description: error.userMessage || `Error ${operation} data.`,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: `An unexpected error occurred while ${operation} data.`,
+        variant: "destructive",
+      });
+    }
+  }
 }
 
-// Create a singleton instance with the same migrations as the original service
-import { dbService as originalDbService } from './indexeddb-service';
-
 // Export the enhanced service
-// Use the same database name as the original service but create our own instance
-export const enhancedDbService = new EnhancedIndexedDBService('AthleteGenesisDB', []);
+// Use the same database name as the original service
+export const enhancedDbService = new EnhancedIndexedDBService('AthleteGenesisDB');

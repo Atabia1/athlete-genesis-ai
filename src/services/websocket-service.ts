@@ -1,6 +1,6 @@
 /**
  * WebSocket Service
- * 
+ *
  * This service provides a WebSocket connection for real-time data updates.
  * It handles connection management, reconnection, and message handling.
  */
@@ -75,7 +75,7 @@ class WebSocketService {
 
     try {
       // Add auth token as query parameter if available
-      const connectionUrl = this.authToken 
+      const connectionUrl = this.authToken
         ? `${this.url}?token=${encodeURIComponent(this.authToken)}`
         : this.url;
 
@@ -147,7 +147,10 @@ class WebSocketService {
       this.eventListeners.set(type, []);
     }
 
-    this.eventListeners.get(type)!.push(listener as WebSocketEventListener);
+    const listeners = this.eventListeners.get(type);
+    if (listeners) {
+      listeners.push(listener as WebSocketEventListener);
+    }
   }
 
   /**
@@ -160,9 +163,10 @@ class WebSocketService {
       return;
     }
 
-    const listeners = this.eventListeners.get(type)!;
-    const index = listeners.indexOf(listener as WebSocketEventListener);
+    const listeners = this.eventListeners.get(type);
+    if (!listeners) return;
 
+    const index = listeners.indexOf(listener as WebSocketEventListener);
     if (index !== -1) {
       listeners.splice(index, 1);
     }
@@ -212,11 +216,13 @@ class WebSocketService {
   private handleMessage(event: MessageEvent) {
     try {
       const message = JSON.parse(event.data) as WebSocketMessage;
-      
+
       // Dispatch the message to all registered listeners
       if (this.eventListeners.has(message.type)) {
-        const listeners = this.eventListeners.get(message.type)!;
-        listeners.forEach(listener => listener(message.data));
+        const listeners = this.eventListeners.get(message.type);
+        if (listeners) {
+          listeners.forEach(listener => listener(message.data));
+        }
       }
     } catch (error) {
       console.error('Error parsing WebSocket message:', error);
@@ -281,7 +287,7 @@ class WebSocketService {
 // Create a singleton instance
 export const websocketService = new WebSocketService(
   // Use secure WebSocket protocol in production
-  window.location.protocol === 'https:' 
+  window.location.protocol === 'https:'
     ? `wss://${window.location.host}/api/ws`
     : `ws://${window.location.host}/api/ws`
 );

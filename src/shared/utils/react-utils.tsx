@@ -1,6 +1,6 @@
 /**
  * React Utilities
- * 
+ *
  * This file provides essential React utilities and re-exports to ensure
  * consistent React usage throughout the application.
  */
@@ -61,7 +61,7 @@ export type {
  * Safe forwardRef implementation that ensures the ref is properly handled
  * even if React.forwardRef is not available at runtime
  */
-export function safeForwardRef<T, P = {}>(
+export function safeForwardRef<T, P = Record<string, unknown>>(
   render: (props: P, ref: React.Ref<T>) => React.ReactElement | null
 ): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<T>> {
   // First try to use the native forwardRef
@@ -78,8 +78,8 @@ export function safeForwardRef<T, P = {}>(
   };
 
   // Set display name
-  FallbackForwardRef.displayName = render.name 
-    ? `SafeForwardRef(${render.name})` 
+  FallbackForwardRef.displayName = render.name
+    ? `SafeForwardRef(${render.name})`
     : 'SafeForwardRef';
 
   return FallbackForwardRef as any;
@@ -96,17 +96,17 @@ export function createSafeComponent<P extends object, R = any>(
   }
 ): React.ComponentType<P> {
   const { displayName, withRef = false } = options;
-  
+
   // Set display name
   Component.displayName = displayName;
-  
+
   // Add forward ref if requested
   if (withRef) {
     return safeForwardRef<R, P>((props, ref) => (
       <Component {...props} ref={ref} />
     ));
   }
-  
+
   return Component;
 }
 
