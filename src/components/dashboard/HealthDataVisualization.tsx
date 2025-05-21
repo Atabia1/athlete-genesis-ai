@@ -1,706 +1,712 @@
-/**
- * Health Data Visualization Component
- *
- * This component provides detailed visualizations for health data
- * imported from connected health apps.
- */
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Activity,
-  Heart,
-  Footprints,
-  Moon,
-  Dumbbell,
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { 
   Clock,
-  Calendar,
-  ArrowRight,
-  BarChart3,
-  LineChart,
+  Calendar, 
+  Heart, 
+  Activity, 
+  BarChart3, 
+  LineChart, 
   PieChart,
+  Footprints,
   Scale,
-  Ruler,
-  Droplets,
-  Wind
+  Moon
 } from 'lucide-react';
-import {
-  LineChart as RechartsLineChart,
-  Line,
-  BarChart as RechartsBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  Legend
+import { 
+  LineChart as RechartsLineChart, 
+  Line, 
+  AreaChart, 
+  Area,
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  Legend 
 } from 'recharts';
-import { HealthData } from '@/integrations/health-apps/types';
 
-interface HealthDataVisualizationProps {
-  /** Health data to visualize */
-  healthData: HealthData;
+// Define health metric types
+type HealthMetric = 'steps' | 'heartRate' | 'sleep' | 'weight' | 'calories';
 
-  /** Optional className for styling */
-  className?: string;
+// Define health data interface
+interface HealthData {
+  date: string;
+  steps: number;
+  distance: number;
+  calories: number;
+  heartRate: {
+    resting: number;
+    average: number;
+    max: number;
+  };
+  sleep: {
+    duration: number; // in minutes
+    quality: number; // 0-100
+    deepSleep: number; // in minutes
+    remSleep: number; // in minutes
+    lightSleep: number; // in minutes
+    awake: number; // in minutes
+  };
+  weight: number; // in kg
+  bodyFat: number; // in percentage
+  hydration: number; // in ml
+  oxygenSaturation: number; // in percentage
 }
 
-/**
- * Health Data Visualization Component
- */
-const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisualizationProps) => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
+// Sample data - 7 days of health metrics
+const sampleHealthData: HealthData[] = [
+  {
+    date: '2023-07-01',
+    steps: 8756,
+    distance: 6.5,
+    calories: 2340,
+    heartRate: { resting: 62, average: 72, max: 142 },
+    sleep: { duration: 440, quality: 85, deepSleep: 120, remSleep: 100, lightSleep: 180, awake: 40 },
+    weight: 72.5,
+    bodyFat: 18.2,
+    hydration: 2100,
+    oxygenSaturation: 98
+  },
+  {
+    date: '2023-07-02',
+    steps: 10243,
+    distance: 7.8,
+    calories: 2450,
+    heartRate: { resting: 60, average: 74, max: 156 },
+    sleep: { duration: 420, quality: 80, deepSleep: 115, remSleep: 95, lightSleep: 170, awake: 40 },
+    weight: 72.3,
+    bodyFat: 18.1,
+    hydration: 2300,
+    oxygenSaturation: 97
+  },
+  {
+    date: '2023-07-03',
+    steps: 7890,
+    distance: 5.9,
+    calories: 2280,
+    heartRate: { resting: 63, average: 71, max: 135 },
+    sleep: { duration: 460, quality: 90, deepSleep: 130, remSleep: 110, lightSleep: 190, awake: 30 },
+    weight: 72.4,
+    bodyFat: 18.0,
+    hydration: 2200,
+    oxygenSaturation: 98
+  },
+  {
+    date: '2023-07-04',
+    steps: 9120,
+    distance: 6.8,
+    calories: 2380,
+    heartRate: { resting: 61, average: 73, max: 148 },
+    sleep: { duration: 430, quality: 82, deepSleep: 125, remSleep: 105, lightSleep: 175, awake: 25 },
+    weight: 72.2,
+    bodyFat: 17.9,
+    hydration: 2350,
+    oxygenSaturation: 98
+  },
+  {
+    date: '2023-07-05',
+    steps: 11325,
+    distance: 8.5,
+    calories: 2520,
+    heartRate: { resting: 59, average: 75, max: 162 },
+    sleep: { duration: 400, quality: 75, deepSleep: 110, remSleep: 90, lightSleep: 160, awake: 40 },
+    weight: 72.1,
+    bodyFat: 17.8,
+    hydration: 2450,
+    oxygenSaturation: 99
+  },
+  {
+    date: '2023-07-06',
+    steps: 8432,
+    distance: 6.3,
+    calories: 2290,
+    heartRate: { resting: 62, average: 70, max: 140 },
+    sleep: { duration: 450, quality: 88, deepSleep: 128, remSleep: 107, lightSleep: 185, awake: 30 },
+    weight: 72.0,
+    bodyFat: 17.7,
+    hydration: 2250,
+    oxygenSaturation: 98
+  },
+  {
+    date: '2023-07-07',
+    steps: 9765,
+    distance: 7.2,
+    calories: 2410,
+    heartRate: { resting: 60, average: 72, max: 154 },
+    sleep: { duration: 435, quality: 84, deepSleep: 122, remSleep: 103, lightSleep: 180, awake: 30 },
+    weight: 71.9,
+    bodyFat: 17.6,
+    hydration: 2400,
+    oxygenSaturation: 98
+  }
+];
 
-  // Calculate step progress percentage
-  const calculateStepProgress = (): number => {
-    if (!healthData.steps) return 0;
-    const goal = 10000; // Default step goal
-    const percentage = (healthData.steps / goal) * 100;
-    return Math.min(percentage, 100);
+/**
+ * HealthDataVisualization Component
+ * 
+ * Visualizes health data from connected devices or apps.
+ */
+const HealthDataVisualization = ({ className = '' }) => {
+  const [activeMetric, setActiveMetric] = useState<HealthMetric>('steps');
+  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
+  const [healthData, setHealthData] = useState<HealthData[]>(sampleHealthData);
+
+  // Format time from minutes to hours and minutes
+  const formatTime = (minutes: number) => {
+    const hrs = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hrs}h ${mins}m`;
   };
 
   // Format date for display
-  const formatDate = (date?: Date) => {
-    if (!date) return '';
-
-    return new Date(date).toLocaleDateString([], {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
-
-  // Format time for display
-  const formatTime = (date?: Date) => {
-    if (!date) return '';
-
-    return new Date(date).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  
+  // Get the latest health data entry
+  const getLatestData = (): HealthData => {
+    return healthData[healthData.length - 1];
   };
-
-  // Format duration in minutes
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    } else {
-      return `${mins}m`;
-    }
-  };
-
-  // Get health app source name
-  const getSourceName = () => {
-    switch (healthData.source) {
-      case 'apple_health':
-        return 'Apple Health';
-      case 'samsung_health':
-        return 'Samsung Health';
-      case 'google_fit':
-        return 'Google Fit';
+  
+  // Calculate daily average for a metric
+  const calculateAverage = (metric: HealthMetric): number => {
+    switch (metric) {
+      case 'steps':
+        return Math.round(healthData.reduce((sum, day) => sum + day.steps, 0) / healthData.length);
+      case 'heartRate':
+        return Math.round(healthData.reduce((sum, day) => sum + day.heartRate.average, 0) / healthData.length);
+      case 'sleep':
+        return Math.round(healthData.reduce((sum, day) => sum + day.sleep.duration, 0) / healthData.length);
+      case 'weight':
+        return healthData.reduce((sum, day) => sum + day.weight, 0) / healthData.length;
+      case 'calories':
+        return Math.round(healthData.reduce((sum, day) => sum + day.calories, 0) / healthData.length);
       default:
-        return 'Connected Health App';
+        return 0;
+    }
+  };
+  
+  // Calculate latest data entry value for selected metric
+  const getLatestMetricValue = (metric: HealthMetric): number | string => {
+    const latest = getLatestData();
+    switch (metric) {
+      case 'steps':
+        return latest.steps.toLocaleString();
+      case 'heartRate':
+        return latest.heartRate.average;
+      case 'sleep': 
+        return (latest.sleep.duration / 60).toFixed(1); // Convert to hours
+      case 'weight':
+        return latest.weight.toFixed(1);
+      case 'calories':
+        return latest.calories.toLocaleString();
+      default:
+        return 0;
     }
   };
 
-  // Generate mock step data for visualization
-  const generateStepData = () => {
-    const data = [];
-    const now = new Date();
-
-    if (timeRange === 'day') {
-      // Hourly data for the current day
-      for (let i = 0; i < 24; i++) {
-        const hour = i;
-        const value = Math.floor(Math.random() * 1000) + 100;
-        data.push({
-          time: `${hour}:00`,
-          steps: value });
-      }
-    } else if (timeRange === 'week') {
-      // Daily data for the current week
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(now.getDate() - i);
-        const dayName = dayNames[date.getDay()];
-        const value = i === 0 ? (healthData.steps || 0) : Math.floor(Math.random() * 5000) + 3000;
-        data.push({
-          day: dayName,
-          steps: value });
-      }
-    } else if (timeRange === 'month') {
-      // Weekly data for the current month
-      for (let i = 4; i >= 0; i--) {
-        const weekNum = 5 - i;
-        const value = i === 0 ? (healthData.steps || 0) : Math.floor(Math.random() * 30000) + 20000;
-        data.push({
-          week: `Week ${weekNum}`,
-          steps: value });
-      }
-    }
-
-    return data;
-  };
-
-  // Generate mock heart rate data for visualization
-  const generateHeartRateData = () => {
-    const data = [];
-    const now = new Date();
-
-    if (timeRange === 'day') {
-      // Hourly data for the current day
-      for (let i = 0; i < 24; i++) {
-        const hour = i;
-        const value = Math.floor(Math.random() * 30) + 60;
-        data.push({
-          time: `${hour}:00`,
-          heartRate: value });
-      }
-    } else if (timeRange === 'week') {
-      // Daily data for the current week
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(now.getDate() - i);
-        const dayName = dayNames[date.getDay()];
-        const value = i === 0 && healthData.heartRate?.average
-          ? healthData.heartRate.average
-          : Math.floor(Math.random() * 20) + 65;
-        data.push({
-          day: dayName,
-          heartRate: value });
-      }
-    } else if (timeRange === 'month') {
-      // Weekly data for the current month
-      for (let i = 4; i >= 0; i--) {
-        const weekNum = 5 - i;
-        const value = i === 0 && healthData.heartRate?.average
-          ? healthData.heartRate.average
-          : Math.floor(Math.random() * 15) + 70;
-        data.push({
-          week: `Week ${weekNum}`,
-          heartRate: value });
-      }
-    }
-
-    return data;
-  };
-
-  // Generate workout distribution data
-  const generateWorkoutDistribution = () => {
-    if (!healthData.workouts || healthData.workouts.length === 0) {
-      return [
-        { name: 'No Data', value: 1 }
-      ];
-    }
-
-    const workoutTypes: Record<string, number> = {};
-
-    // Count workouts by type
-    healthData.workouts.forEach(workout => {
-      const type = workout.type;
-      if (workoutTypes[type]) {
-        workoutTypes[type]++;
-      } else {
-        workoutTypes[type] = 1;
+  // Get data for the selected metric chart
+  const getChartData = () => {
+    const formatSleepHours = (minutes: number) => (minutes / 60).toFixed(1);
+    
+    return healthData.map((day) => {
+      const baseData = {
+        date: formatDate(day.date),
+      };
+      
+      switch (activeMetric) {
+        case 'steps':
+          return {
+            ...baseData,
+            value: day.steps,
+            goal: 10000,
+          };
+        case 'heartRate':
+          return {
+            ...baseData,
+            resting: day.heartRate.resting,
+            average: day.heartRate.average,
+            max: day.heartRate.max,
+          };
+        case 'sleep':
+          return {
+            ...baseData,
+            hours: formatSleepHours(day.sleep.duration),
+            deep: formatSleepHours(day.sleep.deepSleep),
+            rem: formatSleepHours(day.sleep.remSleep),
+            light: formatSleepHours(day.sleep.lightSleep),
+            quality: day.sleep.quality,
+          };
+        case 'weight':
+          return {
+            ...baseData,
+            weight: day.weight,
+            bodyFat: day.bodyFat,
+          };
+        case 'calories':
+          return {
+            ...baseData,
+            intake: day.calories,
+            burned: Math.round(day.steps * 0.04),
+          };
+        default:
+          return baseData;
       }
     });
-
-    // Convert to array format for chart
-    return Object.entries(workoutTypes).map(([name, value]) => ({
-      name,
-      value }));
   };
-
-  // Sort workouts by date (most recent first)
-  const sortedWorkouts = healthData.workouts
-    ? [...healthData.workouts].sort((a, b) => {
-        const dateA = new Date(a.startDate).getTime();
-        const dateB = new Date(b.startDate).getTime();
-        return dateB - dateA;
-      })
-    : [];
-
-  // Generate step data
-  const stepData = generateStepData();
-
-  // Generate heart rate data
-  const heartRateData = generateHeartRateData();
-
-  // Generate workout distribution data
-  const workoutDistributionData = generateWorkoutDistribution();
-
-  // Colors for pie chart
-  const COLORS = ['#3F51B5', '#4CAF50', '#F44336', '#FF9800', '#9C27B0', '#00BCD4', '#FFEB3B', '#795548'];
+  
+  // Get unit label for the selected metric
+  const getUnitLabel = (metric: HealthMetric): string => {
+    switch (metric) {
+      case 'steps':
+        return 'steps';
+      case 'heartRate':
+        return 'bpm';
+      case 'sleep':
+        return 'hours';
+      case 'weight':
+        return 'kg';
+      case 'calories':
+        return 'kcal';
+      default:
+        return '';
+    }
+  };
+  
+  // Get chart color based on metric
+  const getChartColor = (metric: HealthMetric): string => {
+    switch (metric) {
+      case 'steps':
+        return '#4f46e5'; // indigo
+      case 'heartRate':
+        return '#ef4444'; // red
+      case 'sleep':
+        return '#8b5cf6'; // purple
+      case 'weight':
+        return '#10b981'; // emerald
+      case 'calories':
+        return '#f97316'; // orange
+      default:
+        return '#6b7280'; // gray
+    }
+  };
+  
+  // Get chart configuration for the selected metric
+  const getChartConfig = (metric: HealthMetric) => {
+    switch (metric) {
+      case 'heartRate':
+        return {
+          dataKeys: ['resting', 'average', 'max'],
+          colors: ['#22c55e', '#3b82f6', '#ef4444']
+        };
+      case 'sleep':
+        return {
+          dataKeys: ['deep', 'rem', 'light'],
+          colors: ['#4f46e5', '#8b5cf6', '#93c5fd']
+        };
+      case 'calories':
+        return {
+          dataKeys: ['intake', 'burned'],
+          colors: ['#f97316', '#84cc16']
+        };
+      case 'weight':
+        return {
+          dataKeys: ['weight'],
+          colors: ['#10b981']
+        };
+      case 'steps':
+      default:
+        return {
+          dataKeys: ['value'],
+          colors: ['#4f46e5']
+        };
+    }
+  };
+  
+  // Generate insights based on the data
+  const generateInsights = (metric: HealthMetric): string[] => {
+    const insights: string[] = [];
+    
+    switch (metric) {
+      case 'steps':
+        const avgSteps = calculateAverage('steps');
+        if (avgSteps > 10000) {
+          insights.push('Great job! You're exceeding the recommended 10,000 steps per day.');
+        } else if (avgSteps > 7500) {
+          insights.push('You're on the right track with your daily steps. Aim for 10,000 for optimal health benefits.');
+        } else {
+          insights.push('Try to increase your daily steps to at least 7,500-10,000 for better health outcomes.');
+        }
+        break;
+        
+      case 'heartRate':
+        const avgHeartRate = calculateAverage('heartRate');
+        if (avgHeartRate < 65) {
+          insights.push('Your resting heart rate indicates excellent cardiovascular fitness.');
+        } else if (avgHeartRate < 72) {
+          insights.push('Your average heart rate is within a healthy range.');
+        } else {
+          insights.push('Consider more cardio exercise to improve your resting heart rate over time.');
+        }
+        break;
+        
+      case 'sleep':
+        const avgSleep = calculateAverage('sleep') / 60; // Convert to hours
+        if (avgSleep >= 7.5) {
+          insights.push('You're getting the recommended amount of sleep. Keep it up!');
+        } else if (avgSleep >= 6.5) {
+          insights.push('You're slightly below the recommended 7-9 hours of sleep. Try to get to bed earlier.');
+        } else {
+          insights.push('Your sleep duration is below recommendations. Aim for 7-9 hours for optimal recovery and health.');
+        }
+        
+        // Sleep quality insight
+        const latestSleep = getLatestData().sleep;
+        const sleepEfficiency = (latestSleep.duration - latestSleep.awake) / latestSleep.duration;
+        insights.push(`Your sleep efficiency is ${Number(sleepEfficiency) * 100}%, with ${latestSleep.deepSleep / latestSleep.duration * 100}% deep sleep.`);
+        break;
+        
+      case 'weight':
+        // Weight trend
+        const weightChange = healthData[healthData.length - 1].weight - healthData[0].weight;
+        if (Math.abs(weightChange) < 0.5) {
+          insights.push('Your weight has been stable over this period.');
+        } else if (weightChange < 0) {
+          insights.push(`You've lost ${Math.abs(weightChange).toFixed(1)}kg over this period.`);
+        } else {
+          insights.push(`You've gained ${weightChange.toFixed(1)}kg over this period.`);
+        }
+        break;
+        
+      case 'calories':
+        const avgCalories = calculateAverage('calories');
+        const avgStepsCalories = calculateAverage('steps') * 0.04;
+        if (avgCalories > avgStepsCalories + 500) {
+          insights.push('Your caloric intake appears to exceed your activity level. Consider adjusting for your goals.');
+        } else if (avgCalories < avgStepsCalories - 500) {
+          insights.push('Your caloric intake may be too low for your activity level. Ensure adequate nutrition for recovery.');
+        } else {
+          insights.push('Your caloric balance seems appropriate for your activity level.');
+        }
+        break;
+    }
+    
+    return insights;
+  };
+  
+  // Generate chart for current metric
+  const renderMetricChart = () => {
+    const chartData = getChartData();
+    const config = getChartConfig(activeMetric);
+    
+    switch (activeMetric) {
+      case 'heartRate':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {config.dataKeys.map((key, index) => (
+                <Line 
+                  key={key} 
+                  type="monotone" 
+                  dataKey={key} 
+                  stroke={config.colors[index]} 
+                  activeDot={{ r: 8 }} 
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        );
+        
+      case 'sleep':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {config.dataKeys.map((key, index) => (
+                <Area 
+                  key={key} 
+                  type="monotone" 
+                  dataKey={key} 
+                  stackId="1"
+                  stroke={config.colors[index]} 
+                  fill={config.colors[index]} 
+                />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        );
+        
+      case 'calories':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {config.dataKeys.map((key, index) => (
+                <Bar key={key} dataKey={key} fill={config.colors[index]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        );
+        
+      case 'weight':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis yAxisId="left" domain={['dataMin - 1', 'dataMax + 1']} />
+              <YAxis yAxisId="right" orientation="right" domain={[0, 40]} />
+              <Tooltip />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="weight" 
+                stroke={config.colors[0]} 
+                yAxisId="left"
+                activeDot={{ r: 8 }} 
+              />
+              <Line 
+                type="monotone" 
+                dataKey="bodyFat" 
+                stroke="#6b7280" 
+                yAxisId="right"
+                activeDot={{ r: 8 }} 
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        );
+        
+      case 'steps':
+      default:
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip formatter={(value) => [value.toLocaleString(), 'Steps']} />
+              <Legend />
+              <Bar dataKey="value" name="Steps" fill={config.colors[0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+    }
+  };
+  
+  // Render metric icon
+  const renderMetricIcon = (metric: HealthMetric) => {
+    switch (metric) {
+      case 'steps':
+        return <Footprints className="h-5 w-5" />;
+      case 'heartRate':
+        return <Heart className="h-5 w-5" />;
+      case 'sleep':
+        return <Moon className="h-5 w-5" />;
+      case 'weight':
+        return <Scale className="h-5 w-5" />;
+      case 'calories':
+        return <Activity className="h-5 w-5" />;
+      default:
+        return <Activity className="h-5 w-5" />;
+    }
+  };
+  
+  // Get health score based on all metrics
+  const calculateHealthScore = (): number => {
+    // This would be a complex algorithm in a real app
+    // Here's a simplified version
+    const avgSteps = calculateAverage('steps');
+    const avgSleep = calculateAverage('sleep');
+    const avgHeartRate = calculateAverage('heartRate');
+    
+    let score = 0;
+    
+    // Steps score (max 25 points)
+    if (avgSteps >= 10000) score += 25;
+    else if (avgSteps >= 7500) score += 20;
+    else if (avgSteps >= 5000) score += 15;
+    else score += 10;
+    
+    // Sleep score (max 25 points)
+    if (avgSleep >= 480) score += 25; // 8 hours
+    else if (avgSleep >= 420) score += 20; // 7 hours
+    else if (avgSleep >= 360) score += 15; // 6 hours
+    else score += 10;
+    
+    // Heart rate score (max 25 points)
+    if (avgHeartRate < 60) score += 25;
+    else if (avgHeartRate < 70) score += 20;
+    else if (avgHeartRate < 80) score += 15;
+    else score += 10;
+    
+    // Add 25 more points as baseline
+    score += 25;
+    
+    return score;
+  };
 
   return (
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Heart className="mr-2 h-5 w-5" />
-          Health Insights
+          <Activity className="mr-2 h-5 w-5 text-blue-500" />
+          Health Data Visualization
         </CardTitle>
-        <CardDescription>
-          Detailed health metrics from {getSourceName()}
-        </CardDescription>
+        <CardDescription>Track and visualize your health metrics</CardDescription>
       </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="workouts">Workouts</TabsTrigger>
-            <TabsTrigger value="vitals">Vitals</TabsTrigger>
+      <CardContent className="space-y-4">
+        {/* Health Score */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium">Health Score</h3>
+            <p className="text-sm text-gray-500">
+              Based on your activity, sleep, and heart rate
+            </p>
+          </div>
+          <div className="text-3xl font-bold text-blue-600">{calculateHealthScore()}</div>
+        </div>
+        
+        {/* Health Score Progress */}
+        <Progress value={calculateHealthScore()} className="h-2" />
+        
+        <div className="grid grid-cols-2 gap-4 my-4">
+          <div>
+            <div className="text-sm font-medium">Last updated</div>
+            <div className="text-lg">{formatDate(healthData[healthData.length - 1].date)}</div>
+          </div>
+          <div>
+            <div className="text-sm font-medium">Data source</div>
+            <div className="text-lg">Health App</div>
+          </div>
+        </div>
+        
+        {/* Metric Selector */}
+        <Tabs value={activeMetric} onValueChange={(value) => setActiveMetric(value as HealthMetric)}>
+          <TabsList className="grid grid-cols-5">
+            <TabsTrigger value="steps" className="flex items-center justify-center">
+              <Footprints className="h-4 w-4 mr-1 md:mr-2" /> 
+              <span className="hidden md:inline">Steps</span>
+            </TabsTrigger>
+            <TabsTrigger value="heartRate" className="flex items-center justify-center">
+              <Heart className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Heart Rate</span>
+            </TabsTrigger>
+            <TabsTrigger value="sleep" className="flex items-center justify-center">
+              <Moon className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Sleep</span>
+            </TabsTrigger>
+            <TabsTrigger value="weight" className="flex items-center justify-center">
+              <Scale className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Weight</span>
+            </TabsTrigger>
+            <TabsTrigger value="calories" className="flex items-center justify-center">
+              <Activity className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Calories</span>
+            </TabsTrigger>
           </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4 mt-4">
-            {/* Steps */}
-            <div className="bg-slate-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center">
-                  <Footprints className="h-5 w-5 mr-2 text-blue-500" />
-                  <span className="font-medium">Steps</span>
-                </div>
-                <span className="text-xl font-semibold">
-                  {healthData.steps?.toLocaleString() || 'N/A'}
-                </span>
-              </div>
-              <Progress value={calculateStepProgress()} className="h-2" />
-              <div className="flex justify-between mt-1 text-xs text-gray-500">
-                <span>0</span>
-                <span>Goal: 10,000</span>
-              </div>
-            </div>
-
-            {/* Heart Rate */}
-            <div className="bg-slate-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center">
-                  <Heart className="h-5 w-5 mr-2 text-red-500" />
-                  <span className="font-medium">Heart Rate</span>
-                </div>
-                <div className="flex space-x-3">
-                  {healthData.heartRate?.resting && (
-                    <div className="text-center">
-                      <div className="text-xs text-gray-500">Resting</div>
-                      <div className="text-lg font-semibold">{healthData.heartRate.resting}</div>
-                    </div>
-                  )}
-                  {healthData.heartRate?.average && (
-                    <div className="text-center">
-                      <div className="text-xs text-gray-500">Average</div>
-                      <div className="text-lg font-semibold">{healthData.heartRate.average}</div>
-                    </div>
-                  )}
-                  {healthData.heartRate?.max && (
-                    <div className="text-center">
-                      <div className="text-xs text-gray-500">Max</div>
-                      <div className="text-lg font-semibold">{healthData.heartRate.max}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Sleep */}
-            {healthData.sleep && (
-              <div className="bg-slate-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center">
-                    <Moon className="h-5 w-5 mr-2 text-purple-500" />
-                    <span className="font-medium">Sleep</span>
-                  </div>
-                  <div className="flex space-x-3">
-                    {healthData.sleep.duration && (
-                      <div className="text-center">
-                        <div className="text-xs text-gray-500">Duration</div>
-                        <div className="text-lg font-semibold">{formatDuration(healthData.sleep.duration)}</div>
-                      </div>
-                    )}
-                    {healthData.sleep.quality && (
-                      <div className="text-center">
-                        <div className="text-xs text-gray-500">Quality</div>
-                        <div className="text-lg font-semibold capitalize">{healthData.sleep.quality}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Recent Workouts */}
-            {sortedWorkouts.length > 0 && (
-              <div className="bg-slate-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center">
-                    <Dumbbell className="h-5 w-5 mr-2 text-green-500" />
-                    <span className="font-medium">Recent Workouts</span>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => setActiveTab('workouts')}>
-                    View All <ArrowRight className="h-3 w-3 ml-1" />
-                  </Button>
-                </div>
-
-                {sortedWorkouts.slice(0, 2).map((workout, index) => (
-                  <div key={index} className="flex items-center p-2 rounded-md mb-2 hover:bg-slate-100">
-                    <div className="bg-primary/10 p-2 rounded-full mr-3">
-                      <Activity className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium">{workout.type}</div>
-                      <div className="text-xs text-gray-500">
-                        {formatDate(workout.startDate)} • {formatDuration(workout.duration / 60)}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium">{workout.calories} cal</div>
-                      {workout.distance && (
-                        <div className="text-xs text-gray-500">
-                          {(workout.distance / 1000).toFixed(2)} km
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Body Metrics */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Weight */}
-              <div className="bg-slate-50 p-3 rounded-lg">
-                <div className="flex items-center mb-1">
-                  <Scale className="h-4 w-4 mr-1 text-gray-500" />
-                  <div className="text-xs text-gray-500">Weight</div>
-                </div>
-                <div className="font-semibold">
-                  {healthData.weight
-                    ? `${healthData.weight.toFixed(1)} kg`
-                    : 'N/A'
-                  }
-                </div>
-              </div>
-
-              {/* Height */}
-              <div className="bg-slate-50 p-3 rounded-lg">
-                <div className="flex items-center mb-1">
-                  <Ruler className="h-4 w-4 mr-1 text-gray-500" />
-                  <div className="text-xs text-gray-500">Height</div>
-                </div>
-                <div className="font-semibold">
-                  {healthData.height
-                    ? `${healthData.height} cm`
-                    : 'N/A'
-                  }
-                </div>
-              </div>
-
-              {/* Blood Pressure */}
-              {healthData.bloodPressure && (
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <div className="flex items-center mb-1">
-                    <Activity className="h-4 w-4 mr-1 text-gray-500" />
-                    <div className="text-xs text-gray-500">Blood Pressure</div>
-                  </div>
-                  <div className="font-semibold">
-                    {healthData.bloodPressure.systolic && healthData.bloodPressure.diastolic
-                      ? `${healthData.bloodPressure.systolic}/${healthData.bloodPressure.diastolic} mmHg`
-                      : 'N/A'
-                    }
-                  </div>
-                </div>
-              )}
-
-              {/* Oxygen Saturation */}
-              {healthData.oxygenSaturation && (
-                <div className="bg-slate-50 p-3 rounded-lg">
-                  <div className="flex items-center mb-1">
-                    <Wind className="h-4 w-4 mr-1 text-gray-500" />
-                    <div className="text-xs text-gray-500">Oxygen</div>
-                  </div>
-                  <div className="font-semibold">
-                    {`${healthData.oxygenSaturation}%`}
-                  </div>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Activity Tab */}
-          <TabsContent value="activity" className="space-y-4 mt-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">Step Count</h3>
-              <div className="flex space-x-2">
-                <Button
-                  variant={timeRange === 'day' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTimeRange('day')}
-                >
-                  Day
-                </Button>
-                <Button
-                  variant={timeRange === 'week' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTimeRange('week')}
-                >
-                  Week
-                </Button>
-                <Button
-                  variant={timeRange === 'month' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTimeRange('month')}
-                >
-                  Month
-                </Button>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg border">
-              <ResponsiveContainer width="100%" height={250}>
-                <RechartsBarChart data={stepData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey={
-                      timeRange === 'day' ? 'time' :
-                      timeRange === 'week' ? 'day' : 'week'
-                    }
-                  />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="steps" fill="#3F51B5" />
-                </RechartsBarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mt-4">
-              <div className="bg-slate-50 p-3 rounded-lg text-center">
-                <div className="text-xs text-gray-500">Total Steps</div>
-                <div className="text-xl font-bold">{healthData.steps?.toLocaleString() || 'N/A'}</div>
-              </div>
-
-              <div className="bg-slate-50 p-3 rounded-lg text-center">
-                <div className="text-xs text-gray-500">Distance</div>
-                <div className="text-xl font-bold">
-                  {healthData.distance
-                    ? `${(healthData.distance / 1000).toFixed(2)} km`
-                    : 'N/A'
-                  }
-                </div>
-              </div>
-
-              <div className="bg-slate-50 p-3 rounded-lg text-center">
-                <div className="text-xs text-gray-500">Calories</div>
-                <div className="text-xl font-bold">{healthData.calories?.toLocaleString() || 'N/A'}</div>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Workouts Tab */}
-          <TabsContent value="workouts" className="space-y-4 mt-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">Workout History</h3>
-              <Badge variant="outline" className="bg-primary/10 text-primary">
-                {sortedWorkouts.length} Workouts
-              </Badge>
-            </div>
-
-            {sortedWorkouts.length > 0 ? (
-              <div className="space-y-3">
-                {sortedWorkouts.map((workout, index) => (
-                  <div key={index} className="flex items-center p-3 bg-slate-50 rounded-lg">
-                    <div className="bg-primary/10 p-2 rounded-full mr-3">
-                      <Activity className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium">{workout.type}</div>
-                      <div className="text-sm text-gray-500">
-                        {formatDate(workout.startDate)} • {formatDuration(workout.duration / 60)}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium">{workout.calories} cal</div>
-                      {workout.distance && (
-                        <div className="text-sm text-gray-500">
-                          {(workout.distance / 1000).toFixed(2)} km
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                <p>No workout data available</p>
-              </div>
-            )}
-
-            {sortedWorkouts.length > 0 && (
-              <div className="mt-6">
-                <h4 className="text-md font-semibold mb-3">Workout Distribution</h4>
-                <div className="bg-white p-4 rounded-lg border">
-                  <ResponsiveContainer width="100%" height={250}>
-                    <RechartsPieChart>
-                      <Pie
-                        data={workoutDistributionData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {workoutDistributionData.map(( index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Legend />
-                      <Tooltip />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Vitals Tab */}
-          <TabsContent value="vitals" className="space-y-4 mt-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">Heart Rate</h3>
-              <div className="flex space-x-2">
-                <Button
-                  variant={timeRange === 'day' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTimeRange('day')}
-                >
-                  Day
-                </Button>
-                <Button
-                  variant={timeRange === 'week' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTimeRange('week')}
-                >
-                  Week
-                </Button>
-                <Button
-                  variant={timeRange === 'month' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTimeRange('month')}
-                >
-                  Month
-                </Button>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg border">
-              <ResponsiveContainer width="100%" height={250}>
-                <RechartsLineChart data={heartRateData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey={
-                      timeRange === 'day' ? 'time' :
-                      timeRange === 'week' ? 'day' : 'week'
-                    }
-                  />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="heartRate"
-                    stroke="#F44336"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </RechartsLineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mt-4">
-              {healthData.heartRate?.resting && (
-                <div className="bg-slate-50 p-3 rounded-lg text-center">
-                  <div className="text-xs text-gray-500">Resting HR</div>
-                  <div className="text-xl font-bold">{healthData.heartRate.resting} bpm</div>
-                </div>
-              )}
-
-              {healthData.heartRate?.average && (
-                <div className="bg-slate-50 p-3 rounded-lg text-center">
-                  <div className="text-xs text-gray-500">Average HR</div>
-                  <div className="text-xl font-bold">{healthData.heartRate.average} bpm</div>
-                </div>
-              )}
-
-              {healthData.heartRate?.max && (
-                <div className="bg-slate-50 p-3 rounded-lg text-center">
-                  <div className="text-xs text-gray-500">Max HR</div>
-                  <div className="text-xl font-bold">{healthData.heartRate.max} bpm</div>
-                </div>
-              )}
-            </div>
-
-            {/* Other Vitals */}
-            <h3 className="text-lg font-semibold mt-6">Other Vitals</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Blood Pressure */}
-              {healthData.bloodPressure && (
-                <div className="bg-slate-50 p-4 rounded-lg">
-                  <div className="flex items-center mb-2">
-                    <Activity className="h-5 w-5 mr-2 text-red-500" />
-                    <span className="font-medium">Blood Pressure</span>
-                  </div>
-                  <div className="text-xl font-bold">
-                    {healthData.bloodPressure.systolic && healthData.bloodPressure.diastolic
-                      ? `${healthData.bloodPressure.systolic}/${healthData.bloodPressure.diastolic} mmHg`
-                      : 'N/A'
-                    }
-                  </div>
-                </div>
-              )}
-
-              {/* Blood Glucose */}
-              {healthData.bloodGlucose && (
-                <div className="bg-slate-50 p-4 rounded-lg">
-                  <div className="flex items-center mb-2">
-                    <Droplets className="h-5 w-5 mr-2 text-blue-500" />
-                    <span className="font-medium">Blood Glucose</span>
-                  </div>
-                  <div className="text-xl font-bold">
-                    {`${healthData.bloodGlucose} mg/dL`}
-                  </div>
-                </div>
-              )}
-
-              {/* Oxygen Saturation */}
-              {healthData.oxygenSaturation && (
-                <div className="bg-slate-50 p-4 rounded-lg">
-                  <div className="flex items-center mb-2">
-                    <Wind className="h-5 w-5 mr-2 text-blue-500" />
-                    <span className="font-medium">Oxygen Saturation</span>
-                  </div>
-                  <div className="text-xl font-bold">
-                    {`${healthData.oxygenSaturation}%`}
-                  </div>
-                </div>
-              )}
-            </div>
-          </TabsContent>
         </Tabs>
+        
+        {/* Time Range Selector */}
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium flex items-center">
+            {renderMetricIcon(activeMetric)}
+            <span className="ml-2">{activeMetric.charAt(0).toUpperCase() + activeMetric.slice(1)}</span>
+          </h3>
+          
+          <Select value={timeRange} onValueChange={(value) => setTimeRange(value as 'day' | 'week' | 'month')}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Date Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">Today</SelectItem>
+              <SelectItem value="week">Week</SelectItem>
+              <SelectItem value="month">Month</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Current Value */}
+        <div className="grid grid-cols-3 gap-4">
+          <Card className="bg-gray-50">
+            <CardContent className="p-4">
+              <div className="text-sm text-gray-500">Current</div>
+              <div className="text-2xl font-bold">
+                {getLatestMetricValue(activeMetric)} <span className="text-sm font-normal">{getUnitLabel(activeMetric)}</span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gray-50">
+            <CardContent className="p-4">
+              <div className="text-sm text-gray-500">Average</div>
+              <div className="text-2xl font-bold">
+                {
+                  activeMetric === 'sleep' 
+                    ? (calculateAverage(activeMetric) / 60).toFixed(1)
+                    : activeMetric === 'weight'
+                      ? calculateAverage(activeMetric).toFixed(1)
+                      : calculateAverage(activeMetric).toLocaleString()
+                } <span className="text-sm font-normal">{getUnitLabel(activeMetric)}</span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gray-50">
+            <CardContent className="p-4">
+              <div className="text-sm text-gray-500">Goal</div>
+              <div className="text-2xl font-bold">
+                {activeMetric === 'steps' ? '10,000' : 
+                 activeMetric === 'sleep' ? '8.0' :
+                 activeMetric === 'weight' ? '70.0' :
+                 activeMetric === 'heartRate' ? '65' :
+                 '2,200'} <span className="text-sm font-normal">{getUnitLabel(activeMetric)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Chart */}
+        <div className="mt-6">
+          {renderMetricChart()}
+        </div>
+        
+        {/* Insights */}
+        <div className="mt-6 bg-blue-50 p-4 rounded-lg">
+          <h3 className="text-sm font-medium text-blue-800 mb-2">Insights</h3>
+          <ul className="space-y-2">
+            {generateInsights(activeMetric).map((insight, index) => (
+              <li key={index} className="text-sm text-blue-700 flex">
+                <span className="mr-2">•</span>
+                <span>{insight}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        <div className="flex justify-end mt-4">
+          <Button variant="outline" size="sm">Export Data</Button>
+        </div>
       </CardContent>
     </Card>
   );

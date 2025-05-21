@@ -84,6 +84,9 @@ export interface Workout {
   notes?: string;
   rating?: number; // User's rating of the workout (1-5)
   fromPlanId?: string; // Reference to workout plan if part of one
+  title?: string; // Alternative name field used in some components
+  type?: string; // Workout type (e.g., 'strength', 'cardio', etc.)
+  goals?: WorkoutGoal[]; // Goals associated with this workout
 }
 
 // Exercise log for tracking individual exercise performance

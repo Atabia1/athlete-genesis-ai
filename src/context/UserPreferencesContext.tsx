@@ -2,227 +2,145 @@
 /**
  * UserPreferencesContext
  * 
- * This context consolidates user preferences including:
- * - Theme preferences (light, dark, system)
- * - Accessibility settings (high contrast, large text, etc.)
- * 
- * It replaces the separate ThemeContext and AccessibilityContext to reduce
- * context nesting and improve performance.
+ * This context manages user preferences across the application,
+ * including theme, accessibility settings, and UI preferences.
  */
 
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
-// Theme types
-export type Theme = 'light' | 'dark' | 'system';
-
-// Accessibility settings
-export interface AccessibilitySettings {
+// User preferences interface
+interface UserPreferences {
+  // Theme preferences
+  theme: 'light' | 'dark' | 'system';
   highContrast: boolean;
-  largeText: boolean;
-  reduceMotion: boolean;
-  screenReader: boolean;
+  reducedMotion: boolean;
+  
+  // Accessibility preferences
+  fontSize: 'small' | 'medium' | 'large' | 'x-large';
+  
+  // Layout preferences
+  compactMode: boolean;
+  hideSidebar: boolean;
+  
+  // Notification preferences
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  
+  // Feature preferences
+  betaFeatures: boolean;
+  
+  // Dashboard preferences
+  dashboardLayout: string[];
+  
+  // Offline preferences
+  offlineFirst: boolean;
+  automaticSync: boolean;
+  
+  // Language settings
+  language: string;
 }
 
-// State interface
-interface UserPreferencesState {
-  theme: Theme;
-  systemTheme: Theme;
-  resolvedTheme: Theme;
-  accessibilitySettings: AccessibilitySettings;
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
-  updateAccessibilitySetting: (setting: keyof AccessibilitySettings, value: boolean) => void;
-  resetAccessibilitySettings: () => void;
-}
-
-// Default accessibility settings
-const defaultAccessibilitySettings: AccessibilitySettings = {
+// Default preferences
+const defaultPreferences: UserPreferences = {
+  theme: 'system',
   highContrast: false,
-  largeText: false,
-  reduceMotion: false,
-  screenReader: false,
+  reducedMotion: false,
+  fontSize: 'medium',
+  compactMode: false,
+  hideSidebar: false,
+  emailNotifications: true,
+  pushNotifications: true,
+  betaFeatures: false,
+  dashboardLayout: ['workouts', 'nutrition', 'goals', 'progress'],
+  offlineFirst: true,
+  automaticSync: true,
+  language: 'en'
 };
 
-// Create the context
-const UserPreferencesContext = React.createContext<UserPreferencesState | undefined>(undefined);
+// Create context
+interface UserPreferencesContextType {
+  preferences: UserPreferences;
+  setPreference: <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => void;
+  resetPreferences: () => void;
+  isLoading: boolean;
+}
 
-/**
- * UserPreferencesProvider component
- */
-export function UserPreferencesProvider({ children }: { children: ReactNode }): JSX.Element {
-  // Theme state
-  const [theme, setThemeValue] = useLocalStorage<Theme>('theme', 'system');
-  const [systemTheme, setSystemTheme] = useState<Theme>('light');
-  
-  // Accessibility settings state
-  const [accessibilitySettings, setAccessibilitySettings] = useLocalStorage<AccessibilitySettings>(
-    'accessibilitySettings',
-    defaultAccessibilitySettings
+const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
+
+// Provider component
+export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
+  // We load preferences from localStorage
+  const [storedPreferences, setStoredPreferences] = useLocalStorage<UserPreferences>(
+    'user-preferences',
+    defaultPreferences
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
 
-  // Detect system theme
+  // Load preferences once from storage
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    // Set initial system theme
-    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-    
-    // Update system theme when it changes
-    const handler = (e: MediaQueryListEvent): void => {
-      setSystemTheme(e.matches ? 'dark' : 'light');
-    };
-    
-    // Add event listener
-    mediaQuery.addEventListener('change', handler);
-    
-    // Clean up
-    return () => {
-      mediaQuery.removeEventListener('change', handler);
-    };
-  }, []);
-
-  // Apply theme to document
-  useEffect(() => {
-    const resolvedTheme = theme === 'system' ? systemTheme : theme;
-    
-    // Update document class
-    if (resolvedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    if (storedPreferences) {
+      // Merge with defaults to ensure all properties exist
+      setPreferences({ ...defaultPreferences, ...storedPreferences });
     }
-    
-    // Update meta theme-color
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute(
-        'content',
-        resolvedTheme === 'dark' ? '#0f172a' : '#ffffff'
-      );
-    }
-  }, [theme, systemTheme]);
+    setIsLoading(false);
+  }, [storedPreferences]);
 
-  // Apply accessibility settings to document
+  // Set a specific preference
+  const setPreference = <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => {
+    const updatedPreferences = { ...preferences, [key]: value };
+    setPreferences(updatedPreferences);
+    setStoredPreferences(updatedPreferences);
+  };
+
+  // Reset all preferences to defaults
+  const resetPreferences = () => {
+    setPreferences(defaultPreferences);
+    setStoredPreferences(defaultPreferences);
+  };
+
+  // Apply preferences to document - helps with initial render of correct theme
   useEffect(() => {
-    // High contrast
-    if (accessibilitySettings.highContrast) {
+    if (preferences.highContrast) {
       document.documentElement.classList.add('high-contrast');
     } else {
       document.documentElement.classList.remove('high-contrast');
     }
-    
-    // Large text
-    if (accessibilitySettings.largeText) {
-      document.documentElement.classList.add('large-text');
+
+    if (preferences.reducedMotion) {
+      document.documentElement.classList.add('reduced-motion');
     } else {
-      document.documentElement.classList.remove('large-text');
+      document.documentElement.classList.remove('reduced-motion');
     }
-    
-    // Reduce motion
-    if (accessibilitySettings.reduceMotion) {
-      document.documentElement.classList.add('reduce-motion');
-    } else {
-      document.documentElement.classList.remove('reduce-motion');
-    }
-    
-    // Screen reader
-    if (accessibilitySettings.screenReader) {
-      document.documentElement.setAttribute('role', 'application');
-    } else {
-      document.documentElement.removeAttribute('role');
-    }
-  }, [accessibilitySettings]);
 
-  // Set theme
-  const setTheme = (newTheme: Theme): void => {
-    setThemeValue(newTheme);
+    document.documentElement.classList.add(`font-${preferences.fontSize}`);
+
+    return () => {
+      document.documentElement.classList.remove('high-contrast', 'reduced-motion');
+      document.documentElement.classList.remove(`font-${preferences.fontSize}`);
+    };
+  }, [preferences.highContrast, preferences.reducedMotion, preferences.fontSize]);
+
+  const value = {
+    preferences,
+    setPreference,
+    resetPreferences,
+    isLoading
   };
 
-  // Toggle theme
-  const toggleTheme = (): void => {
-    setThemeValue(prevTheme => {
-      if (prevTheme === 'light') return 'dark';
-      if (prevTheme === 'dark') return 'system';
-      return 'light';
-    });
-  };
+  return (
+    <UserPreferencesContext.Provider value={value}>
+      {children}
+    </UserPreferencesContext.Provider>
+  );
+};
 
-  // Update accessibility setting
-  const updateAccessibilitySetting = (
-    setting: keyof AccessibilitySettings,
-    value: boolean
-  ): void => {
-    setAccessibilitySettings(prev => ({
-      ...prev,
-      [setting]: value,
-    }));
-  };
-
-  // Reset accessibility settings
-  const resetAccessibilitySettings = (): void => {
-    setAccessibilitySettings(defaultAccessibilitySettings);
-  };
-
-  // Resolved theme
-  const resolvedTheme = theme === 'system' ? systemTheme : theme;
-
-  // Context value
-  const value: UserPreferencesState = {
-    theme,
-    systemTheme,
-    resolvedTheme,
-    accessibilitySettings,
-    setTheme,
-    toggleTheme,
-    updateAccessibilitySetting,
-    resetAccessibilitySettings,
-  };
-
-  return <UserPreferencesContext.Provider value={value}>{children}</UserPreferencesContext.Provider>;
-}
-
-// Custom hook to use the context
-export function useUserPreferences(): UserPreferencesState {
-  const context = React.useContext(UserPreferencesContext);
-  
+// Hook for using the context
+export const useUserPreferences = (): UserPreferencesContextType => {
+  const context = useContext(UserPreferencesContext);
   if (context === undefined) {
     throw new Error('useUserPreferences must be used within a UserPreferencesProvider');
   }
-  
   return context;
-}
-
-// Selector hook for specific theme data
-export function useTheme(): {
-  theme: Theme;
-  systemTheme: Theme;
-  resolvedTheme: Theme;
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
-} {
-  const context = useUserPreferences();
-  
-  return {
-    theme: context.theme,
-    systemTheme: context.systemTheme,
-    resolvedTheme: context.resolvedTheme,
-    setTheme: context.setTheme,
-    toggleTheme: context.toggleTheme,
-  };
-}
-
-// Selector hook for accessibility settings
-export function useAccessibilitySettings(): {
-  accessibilitySettings: AccessibilitySettings;
-  updateAccessibilitySetting: (setting: keyof AccessibilitySettings, value: boolean) => void;
-  resetAccessibilitySettings: () => void;
-} {
-  const context = useUserPreferences();
-  
-  return {
-    accessibilitySettings: context.accessibilitySettings,
-    updateAccessibilitySetting: context.updateAccessibilitySetting,
-    resetAccessibilitySettings: context.resetAccessibilitySettings,
-  };
-}
+};
