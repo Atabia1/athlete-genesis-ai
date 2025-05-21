@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,9 +7,9 @@ import { usePlan } from '@/context/PlanContext';
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
+import { MealPlan } from './types/mealPlan';
 
-const MealPlanDisplay = () => {
-  const { mealPlan } = usePlan();
+const MealPlanDisplay = ({ mealPlan }: { mealPlan: MealPlan }) => {
   const { isOnline } = useNetworkStatus();
   const [expandedMeal, setExpandedMeal] = useState<string | null>("Breakfast");
 
