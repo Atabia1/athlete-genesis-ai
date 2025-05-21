@@ -32,7 +32,7 @@ const getUnusedImportInfo = (fileName: string) => {
       "BarChart2", "Progress", "AvatarImage", "BarChart", "Bar"
     ],
     "EliteDashboard": [
-      "React", "AreaChart", "Area", "PieChart", "Pie", "Cell"
+      "React"
     ],
     "ExportHealthDataCard": [
       "Mail", "Users", "Shield", "Clock"
@@ -40,8 +40,9 @@ const getUnusedImportInfo = (fileName: string) => {
     "GoalTrackingCard": [
       "CardFooter", "TrendingUp", "Clock", "Award", "ArrowUpRight", "ArrowDownRight", "Minus", "Info"
     ],
-    "HealthDataDisplay": [
-      "React", "Clock", "Calendar", "HealthWorkout"
+    "HealthDataDisplay": [],
+    "HealthDataVisualization": [
+      "useEffect", "Clock", "Calendar", "BarChart3", "LineChart", "PieChart", "HealthWorkout"
     ],
     "HealthInsights": [
       "CardFooter", "TrendingUp", "Activity", "HealthWorkout"
@@ -53,7 +54,8 @@ const getUnusedImportInfo = (fileName: string) => {
       "Badge", "Apple", "Coffee", "Droplets", "TrendingUp", "Calendar", "Clock", "LineChart", 
       "Line", "PieChart", "Pie", "Cell", "RadarChart", "PolarGrid", "PolarAngleAxis", "PolarRadiusAxis",
       "Radar", "ComposedChart", "Area", "ReferenceLine", "Scatter"
-    ]
+    ],
+    "MealPlanDisplay": ["Badge"]
   };
 
   return fileImportMap[fileName] || [];
@@ -65,8 +67,9 @@ const getUnusedVariables = (fileName: string) => {
     "BodyCompositionChart": ["bodyCompositionData", "COLORS"],
     "EliteDashboard": ["user", "index", "entry"],
     "GoalTrackingCard": ["progressData", "categoryData", "formatDate"],
-    "HealthDataVisualization": ["useEffect", "formatTime", "entry"],
-    "MealPlanDisplay": ["Badge", "usePlan"]
+    "HealthDataVisualization": ["formatTime", "entry"],
+    "MealPlanDisplay": ["usePlan"],
+    "NutritionAnalysisChart": ["calorieData"]
   };
 
   return fileVariableMap[fileName] || [];

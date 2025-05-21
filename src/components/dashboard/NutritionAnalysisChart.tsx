@@ -1,49 +1,25 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Utensils, 
-  Apple, 
-  Coffee, 
-  Droplets, 
   Egg, 
   Beef, 
   Wheat, 
-  TrendingUp, 
-  Calendar, 
-  Clock, 
   Download,
   Share2,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
   Info
 } from 'lucide-react';
 import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ComposedChart,
-  Area,
-  ReferenceLine,
-  Scatter
+  BarChart,
+  Bar,
+  Legend
 } from 'recharts';
 import { Progress } from "@/components/ui/progress";
 
@@ -80,7 +56,6 @@ const NutritionAnalysisChart = ({
   const [activeTab, setActiveTab] = useState('macros');
   const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month' | '3months' | 'year'>(timeRange);
   const [macroData, setMacroData] = useState<any[]>([]);
-  const [calorieData, setCalorieData] = useState<any[]>([]);
   const [mealPatternData, setMealPatternData] = useState<any[]>([]);
   const [nutrientQualityData, setNutrientQualityData] = useState<any[]>([]);
   const [hydrationData, setHydrationData] = useState<any[]>([]);
@@ -252,66 +227,8 @@ const NutritionAnalysisChart = ({
     });
   };
   
-  // Format trend indicator
-  const formatTrend = (value: number) => {
-    if (value > 0) {
-      return (
-        <div className="flex items-center text-green-500">
-          <ArrowUpRight className="h-4 w-4 mr-1" />
-          <span>+{value}%</span>
-        </div>
-      );
-    } else if (value < 0) {
-      return (
-        <div className="flex items-center text-red-500">
-          <ArrowDownRight className="h-4 w-4 mr-1" />
-          <span>{value}%</span>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center text-gray-500">
-          <Minus className="h-4 w-4 mr-1" />
-          <span>0%</span>
-        </div>
-      );
-    }
-  };
-  
-  // Calculate macro percentages
-  const calculateMacroPercentages = () => {
-    const { proteinAverage, carbsAverage, fatAverage } = nutritionMetrics;
-    const totalCalories = (proteinAverage * 4) + (carbsAverage * 4) + (fatAverage * 9);
-    
-    const proteinPercentage = Math.round((proteinAverage * 4 / totalCalories) * 100);
-    const carbsPercentage = Math.round((carbsAverage * 4 / totalCalories) * 100);
-    const fatPercentage = Math.round((fatAverage * 9 / totalCalories) * 100);
-    
-    return { proteinPercentage, carbsPercentage, fatPercentage };
-  };
-  
-  // Handle export
-  const handleExport = () => {
-    // In a real app, this would export the data to CSV or PDF
-    console.log('Exporting nutrition data...');
-    alert('Nutrition data exported!');
-  };
-  
-  // Handle sharing
-  const handleShare = () => {
-    // In a real app, this would open a sharing dialog
-    console.log('Sharing nutrition data...');
-    alert('Nutrition data shared!');
-  };
-  
-  // Get macro percentages
-  const { proteinPercentage, carbsPercentage, fatPercentage } = calculateMacroPercentages();
-  
-  // Colors for pie chart
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
-  
   return (
-    <Card className={`overflow-hidden ${className}`}>
+    <Card className={className}>
       <CardHeader className="bg-slate-50 dark:bg-slate-800">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
