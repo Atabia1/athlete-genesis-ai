@@ -1,133 +1,152 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { ArrowRight, UserCircle, Dumbbell, Users } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Check, User, Users, Trophy } from 'lucide-react';
 import OnboardingLayout from './OnboardingLayout';
-import { usePlan, UserType } from '@/context/PlanContext';
+import { usePlan } from '@/context/PlanContext';
 
 /**
- * UserTypeStep: First step in the onboarding process
- *
- * This component allows users to select their user type, which determines
- * the dashboard experience and available features. The selection is saved
- * to the PlanContext and used throughout the application.
- */
-
-/**
- * Available user types with descriptions and icons
- * - Athlete: Sport-specific training with performance focus
- * - Fitness Enthusiast: General fitness and health goals
- * - Coach: Team management and athlete monitoring
- */
-const userTypes = [
-  {
-    id: 'athlete',
-    title: 'Athlete',
-    description: "I actively participate in a specific sport and want to enhance my performance.",
-    icon: Dumbbell,
-  },
-  {
-    id: 'individual',
-    title: 'Fitness Enthusiast',
-    description: "I'm seeking general fitness, weight management, or improved health.",
-    icon: UserCircle,
-  },
-  {
-    id: 'coach',
-    title: 'Coach',
-    description: "I manage a team or individual athletes and need tools to monitor progress.",
-    icon: Users,
-  },
-];
-
-/**
- * UserTypeStep Component
- * Renders the user type selection interface and handles navigation to the next step
+ * User Type Selection Step
+ * 
+ * This component allows users to select their account type during onboarding:
+ * - Individual (personal use)
+ * - Athlete (serious training)
+ * - Coach (managing athletes)
  */
 const UserTypeStep = () => {
-  const { userType, setUserType } = usePlan();
-  const [selectedType, setSelectedType] = useState<UserType>(userType);
   const navigate = useNavigate();
+  const { setUserType } = usePlan();
+  const [selectedType, setSelectedType] = useState<'individual' | 'athlete' | 'coach' | null>(null);
 
-  /**
-   * Saves the selected user type to context and navigates to the appropriate next step
-   * based on the selected user type:
-   * - Athlete: Standard flow starting with fitness goals
-   * - Fitness Enthusiast: Custom flow starting with health assessment
-   * - Coach: Custom flow starting with coaching philosophy
-   */
-  const handleContinue = () => {
+  const handleNext = () => {
     if (selectedType) {
       setUserType(selectedType);
-
-      // Route to different onboarding paths based on user type
-      switch (selectedType) {
-        case 'athlete':
-          // Athletes follow the standard onboarding flow
-          navigate('/onboarding/fitness-goals');
-          break;
-        case 'individual':
-          // Fitness enthusiasts get a lifestyle-focused flow
-          navigate('/onboarding/individual/health-assessment');
-          break;
-        case 'coach':
-          // Coaches get a team-focused flow
-          navigate('/onboarding/coach/philosophy');
-          break;
-        default:
-          navigate('/onboarding/fitness-goals');
-      }
+      navigate('/onboarding/fitness-goals');
     }
   };
 
   return (
-    <OnboardingLayout step={0} totalSteps={7} title="Tell us about yourself">
-      <div className="space-y-4 mb-8">
-        <p className="text-gray-600">
-          Select the option that best describes you. This helps us personalize your experience.
-        </p>
-
-        <div className="grid grid-cols-1 gap-4 mt-6">
-          {userTypes.map((type) => (
-            <div
-              key={type.id}
-              className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                selectedType === type.id
-                  ? 'border-athleteBlue-600 bg-athleteBlue-50'
-                  : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
-              }`}
-              onClick={() => setSelectedType(type.id as UserType)}
-            >
-              <div className="flex items-start">
-                <div className={`p-2 rounded-full mr-4 ${
-                  selectedType === type.id
-                    ? 'bg-athleteBlue-100 text-athleteBlue-600'
-                    : 'bg-gray-100 text-gray-500'
-                }`}>
-                  <type.icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">{type.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{type.description}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <Button
-          onClick={handleContinue}
-          disabled={!selectedType}
-          className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
-        >
-          Continue
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+    <OnboardingLayout
+      step={1}
+      totalSteps={6}
+      title="Welcome to Athlete GPT"
+      subtitle="Let's start by understanding how you'll use the platform"
+      nextDisabled={!selectedType}
+      onNext={handleNext}
+      showPrev={false}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <TypeCard
+          title="Individual"
+          description="Personal fitness tracking and simple workout plans"
+          icon={<User size={36} />}
+          isSelected={selectedType === 'individual'}
+          onClick={() => setSelectedType('individual')}
+          features={[
+            'Basic workout plans',
+            'Simple progress tracking',
+            'General fitness recommendations'
+          ]}
+          color="from-blue-500 to-blue-600"
+        />
+        
+        <TypeCard
+          title="Athlete"
+          description="Serious training programs for competitive goals"
+          icon={<Trophy size={36} />}
+          isSelected={selectedType === 'athlete'}
+          onClick={() => setSelectedType('athlete')}
+          features={[
+            'Sport-specific training',
+            'Performance analytics',
+            'Recovery optimization',
+            'Nutrition planning'
+          ]}
+          color="from-green-500 to-green-600" 
+          recommended
+        />
+        
+        <TypeCard
+          title="Coach"
+          description="Manage multiple athletes and team performance"
+          icon={<Users size={36} />}
+          isSelected={selectedType === 'coach'}
+          onClick={() => setSelectedType('coach')}
+          features={[
+            'Team management',
+            'Multi-athlete planning',
+            'Performance comparisons',
+            'Training templates'
+          ]}
+          color="from-purple-500 to-purple-600"
+        />
       </div>
     </OnboardingLayout>
+  );
+};
+
+// Card component for user types
+interface TypeCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  isSelected: boolean;
+  onClick: () => void;
+  features: string[];
+  color: string;
+  recommended?: boolean;
+}
+
+const TypeCard: React.FC<TypeCardProps> = ({
+  title,
+  description,
+  icon,
+  isSelected,
+  onClick,
+  features,
+  color,
+  recommended = false
+}) => {
+  return (
+    <Card
+      className={`relative cursor-pointer transition-all duration-200 p-6 ${
+        isSelected
+          ? 'border-4 border-athleteBlue-500 shadow-lg shadow-athleteBlue-100 dark:shadow-athleteBlue-900/30 scale-105'
+          : 'border border-gray-200 dark:border-gray-700 hover:border-athleteBlue-300 dark:hover:border-athleteBlue-700'
+      } rounded-xl overflow-hidden`}
+      onClick={onClick}
+    >
+      {recommended && (
+        <div className="absolute top-0 right-0">
+          <div className="bg-gradient-to-r from-athleteBlue-500 to-athleteBlue-600 text-white text-xs font-bold px-3 py-1 transform rotate-0 translate-x-2 -translate-y-0 shadow-md">
+            RECOMMENDED
+          </div>
+        </div>
+      )}
+      
+      <div className={`flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-gradient-to-r ${color} text-white`}>
+        {icon}
+      </div>
+      
+      <h3 className="text-xl font-semibold mb-2 text-athleteBlue-800 dark:text-athleteBlue-200">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-300 mb-4">{description}</p>
+      
+      <ul className="space-y-2">
+        {features.map((feature, index) => (
+          <li key={index} className="flex items-start">
+            <Check className="h-5 w-5 text-athleteBlue-500 mr-2 flex-shrink-0" />
+            <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+          </li>
+        ))}
+      </ul>
+      
+      {isSelected && (
+        <div className="absolute top-3 right-3 bg-athleteBlue-100 dark:bg-athleteBlue-900 p-1 rounded-full">
+          <Check className="h-5 w-5 text-athleteBlue-600 dark:text-athleteBlue-300" />
+        </div>
+      )}
+    </Card>
   );
 };
 
