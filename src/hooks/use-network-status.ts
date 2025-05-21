@@ -1,84 +1,132 @@
 
 /**
- * useNetworkStatus: A hook for detecting and monitoring network connectivity
+ * useNetworkStatus
  * 
- * This hook provides:
- * 1. Current online/offline status
- * 2. Detection of network transitions (e.g., was offline, now online)
- * 3. Network quality information
+ * A hook that tracks the current network status (online/offline)
+ * and provides utility functions for network-related operations.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-interface NetworkStatusResult {
+interface NetworkStatusState {
   isOnline: boolean;
   wasOffline: boolean;
-  networkEffectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
-  lastOnlineAt: Date | null;
-  lastOfflineAt: Date | null;
+  lastOnline: Date | null;
+  lastOffline: Date | null;
+  connectionType: string | null;
+  effectiveType: string | null;
 }
 
-export function useNetworkStatus(): NetworkStatusResult {
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const [wasOffline, setWasOffline] = useState<boolean>(false);
-  const [lastOnlineAt, setLastOnlineAt] = useState<Date | null>(isOnline ? new Date() : null);
-  const [lastOfflineAt, setLastOfflineAt] = useState<Date | null>(isOnline ? null : new Date());
-  const [networkEffectiveType, setNetworkEffectiveType] = useState<'slow-2g' | '2g' | '3g' | '4g' | undefined>(undefined);
-  
-  useEffect(() => {
-    // Handle online event
-    const handleOnline = () => {
-      setWasOffline(true);
-      setIsOnline(true);
-      setLastOnlineAt(new Date());
+export function useNetworkStatus() {
+  const [networkState, setNetworkState] = useState<NetworkStatusState>({
+    isOnline: navigator.onLine,
+    wasOffline: false,
+    lastOnline: navigator.onLine ? new Date() : null,
+    lastOffline: navigator.onLine ? null : new Date(),
+    connectionType: null,
+    effectiveType: null
+  });
+
+  // Update connection details
+  const updateConnectionDetails = useCallback(() => {
+    // @ts-ignore - TS doesn't know about navigator.connection
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    
+    if (connection) {
+      setNetworkState(prev => ({
+        ...prev,
+        connectionType: connection.type || null,
+        effectiveType: connection.effectiveType || null
+      }));
+    }
+  }, []);
+
+  // Handle going online
+  const handleOnline = useCallback(() => {
+    setNetworkState(prev => ({
+      ...prev,
+      isOnline: true,
+      wasOffline: !prev.isOnline,
+      lastOnline: new Date()
+    }));
+    updateConnectionDetails();
+  }, [updateConnectionDetails]);
+
+  // Handle going offline
+  const handleOffline = useCallback(() => {
+    setNetworkState(prev => ({
+      ...prev,
+      isOnline: false,
+      lastOffline: new Date()
+    }));
+  }, []);
+
+  // Check if the network is actually reachable
+  const checkNetworkReachability = useCallback(async (): Promise<boolean> => {
+    if (!navigator.onLine) return false;
+    
+    try {
+      // Try to fetch a small resource to confirm connectivity
+      const response = await fetch('/favicon.ico', {
+        method: 'HEAD',
+        cache: 'no-cache',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       
-      // Reset wasOffline after a delay
-      setTimeout(() => {
-        setWasOffline(false);
-      }, 5000);
-    };
-    
-    // Handle offline event
-    const handleOffline = () => {
-      setIsOnline(false);
-      setLastOfflineAt(new Date());
-    };
-    
-    // Check network connection quality using the Network Information API
-    const checkConnectionQuality = () => {
-      if ('connection' in navigator && navigator.connection) {
-        const connection = navigator.connection as any;
-        if (connection.effectiveType) {
-          setNetworkEffectiveType(connection.effectiveType);
-        }
-      }
-    };
-    
-    // Register events
+      return response.ok;
+    } catch (error) {
+      console.error('Network reachability check failed:', error);
+      return false;
+    }
+  }, []);
+
+  // Set up event listeners for online/offline events
+  useEffect(() => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Initial check of connection quality
-    checkConnectionQuality();
+    // Initial connection details check
+    updateConnectionDetails();
     
-    // Set up periodic checks of connection quality
-    const intervalId = setInterval(checkConnectionQuality, 10000);
-    
-    // Clean up event listeners and intervals
+    // Verify actual connectivity
+    checkNetworkReachability().then(isReachable => {
+      if (!isReachable && networkState.isOnline) {
+        // We're technically "online" but can't reach the server
+        setNetworkState(prev => ({
+          ...prev,
+          isOnline: false,
+          lastOffline: new Date()
+        }));
+      }
+    });
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      clearInterval(intervalId);
     };
-  }, []);
-  
+  }, [handleOnline, handleOffline, updateConnectionDetails, checkNetworkReachability, networkState.isOnline]);
+
+  // Listen for connection changes if available
+  useEffect(() => {
+    // @ts-ignore - TS doesn't know about navigator.connection
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    
+    if (connection) {
+      connection.addEventListener('change', updateConnectionDetails);
+      
+      return () => {
+        connection.removeEventListener('change', updateConnectionDetails);
+      };
+    }
+  }, [updateConnectionDetails]);
+
   return {
-    isOnline,
-    wasOffline,
-    networkEffectiveType,
-    lastOnlineAt,
-    lastOfflineAt,
+    isOnline: networkState.isOnline,
+    wasOffline: networkState.wasOffline,
+    lastOnline: networkState.lastOnline,
+    lastOffline: networkState.lastOffline,
+    connectionType: networkState.connectionType,
+    effectiveType: networkState.effectiveType,
+    checkNetworkReachability
   };
 }
-
-export default useNetworkStatus;

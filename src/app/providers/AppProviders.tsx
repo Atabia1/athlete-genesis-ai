@@ -41,7 +41,7 @@ const defaultQueryClient = new QueryClient({
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       refetchOnWindowFocus: false,
       meta: {
-        onError: (error: Error) => {
+        errorHandler: (error: Error) => {
           console.error('Query error:', error);
         }
       }
@@ -49,7 +49,7 @@ const defaultQueryClient = new QueryClient({
     mutations: {
       retry: 1,
       meta: {
-        onError: (error: Error) => {
+        errorHandler: (error: Error) => {
           console.error('Mutation error:', error);
         }
       }

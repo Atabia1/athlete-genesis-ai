@@ -1,130 +1,160 @@
 
 /**
- * RetryQueueProvider: Context provider for the retry queue system
+ * RetryQueueProvider
  * 
- * This component provides application-wide access to the retry queue functionality,
- * allowing components to add operations to the retry queue, monitor pending operations,
- * and register handlers for operation types.
+ * This provider manages the retry queue for failed network requests.
  */
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  retryQueueService, 
-  RetryOperation, 
-  RetryOperationType, 
-  RetryPriority,
-  RetryStatus
-} from '@/services/retry-queue-service';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { toast } from 'sonner';
 
-// Define the context type
-interface RetryQueueContextType {
-  // Queue operations
-  addToQueue: (type: RetryOperationType, payload: any, priority?: RetryPriority, maxAttempts?: number) => Promise<string>;
-  processQueue: () => Promise<void>;
-  clearQueue: () => Promise<void>;
-  
-  // Queue state
-  pendingOperations: RetryOperation[];
-  pendingCount: number;
-  isProcessing: boolean;
-  
-  // UI state
-  showRetryBanner: boolean;
-  setShowRetryBanner: (show: boolean) => void;
+interface RetryQueueItem {
+  id: string;
+  action: () => Promise<void>;
+  description: string;
+  createdAt: Date;
+  retryCount: number;
 }
 
-// Create the context
+interface RetryQueueContextType {
+  queueItems: RetryQueueItem[];
+  addToQueue: (item: Omit<RetryQueueItem, 'id' | 'createdAt' | 'retryCount'>) => void;
+  removeFromQueue: (id: string) => void;
+  retryItem: (id: string) => void;
+  retryAll: () => void;
+  clearQueue: () => void;
+  isProcessing: boolean;
+}
+
 const RetryQueueContext = createContext<RetryQueueContextType | undefined>(undefined);
 
-// Props for the provider component
 interface RetryQueueProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-/**
- * RetryQueueProvider component
- */
-export const RetryQueueProvider: React.FC<RetryQueueProviderProps> = ({ children }) => {
-  const { isOnline, wasOffline } = useNetworkStatus();
-  const [pendingOperations, setPendingOperations] = useState<RetryOperation[]>([]);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [showRetryBanner, setShowRetryBanner] = useState<boolean>(false);
-  
-  // Initialize the retry queue service
-  useEffect(() => {
-    retryQueueService.initialize();
-    
-    // Subscribe to queue changes
-    const unsubscribe = retryQueueService.subscribeToQueueChanges((operations) => {
-      setPendingOperations(operations);
-      setIsProcessing(operations.some(op => op.status === RetryStatus.IN_PROGRESS));
-      
-      // Show the banner if there are pending operations
-      if (operations.length > 0) {
-        setShowRetryBanner(true);
-      } else {
-        setShowRetryBanner(false);
-      }
-    });
-    
-    // Clean up subscription on unmount
-    return () => {
-      unsubscribe();
-    };
+export function RetryQueueProvider({ children }: RetryQueueProviderProps) {
+  const [queueItems, setQueueItems] = useState<RetryQueueItem[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { isOnline } = useNetworkStatus();
+
+  // Generate unique ID for queue items
+  const generateId = useCallback(() => {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }, []);
-  
-  // Handle online/offline status changes
-  useEffect(() => {
-    if (isOnline && wasOffline && pendingOperations.length > 0) {
-      // We just came back online and have pending operations
-      toast("Connection restored", {
-        description: `Retrying ${pendingOperations.length} pending operation${pendingOperations.length === 1 ? '' : 's'}...`,
-      });
+
+  // Add item to retry queue
+  const addToQueue = useCallback(({ action, description }: Omit<RetryQueueItem, 'id' | 'createdAt' | 'retryCount'>) => {
+    setQueueItems((prevItems) => [
+      ...prevItems,
+      {
+        id: generateId(),
+        action,
+        description,
+        createdAt: new Date(),
+        retryCount: 0
+      }
+    ]);
+  }, [generateId]);
+
+  // Remove item from retry queue
+  const removeFromQueue = useCallback((id: string) => {
+    setQueueItems((prevItems) => prevItems.filter(item => item.id !== id));
+  }, []);
+
+  // Retry a specific item
+  const retryItem = useCallback(async (id: string) => {
+    if (!isOnline) return;
+
+    setIsProcessing(true);
+    
+    try {
+      const item = queueItems.find(item => item.id === id);
       
-      // Process the queue
-      retryQueueService.processQueue();
+      if (item) {
+        await item.action();
+        removeFromQueue(id);
+      }
+    } catch (error) {
+      console.error('Failed to retry item:', error);
+      
+      setQueueItems(prevItems => 
+        prevItems.map(item => 
+          item.id === id 
+            ? { ...item, retryCount: item.retryCount + 1 } 
+            : item
+        )
+      );
+    } finally {
+      setIsProcessing(false);
     }
-  }, [isOnline, wasOffline, pendingOperations.length]);
-  
-  // Context value
-  const value: RetryQueueContextType = {
-    // Queue operations
-    addToQueue: async (type, payload, priority, maxAttempts) => {
-      return retryQueueService.addToQueue(type, payload, priority, maxAttempts);
-    },
-    processQueue: async () => {
-      return retryQueueService.processQueue();
-    },
-    clearQueue: async () => {
-      return retryQueueService.clearQueue();
-    },
+  }, [isOnline, queueItems, removeFromQueue]);
+
+  // Retry all items in the queue
+  const retryAll = useCallback(async () => {
+    if (!isOnline || queueItems.length === 0) return;
     
-    // Queue state
-    pendingOperations,
-    pendingCount: pendingOperations.length,
-    isProcessing,
+    setIsProcessing(true);
     
-    // UI state
-    showRetryBanner,
-    setShowRetryBanner
-  };
-  
+    const successfulItems: string[] = [];
+    
+    for (const item of queueItems) {
+      try {
+        await item.action();
+        successfulItems.push(item.id);
+      } catch (error) {
+        console.error(`Failed to retry item ${item.id}:`, error);
+        
+        setQueueItems(prevItems => 
+          prevItems.map(qItem => 
+            qItem.id === item.id 
+              ? { ...qItem, retryCount: qItem.retryCount + 1 } 
+              : qItem
+          )
+        );
+      }
+    }
+    
+    // Remove successful items
+    setQueueItems(prevItems => 
+      prevItems.filter(item => !successfulItems.includes(item.id))
+    );
+    
+    setIsProcessing(false);
+  }, [isOnline, queueItems]);
+
+  // Clear the entire queue
+  const clearQueue = useCallback(() => {
+    setQueueItems([]);
+  }, []);
+
+  // Auto-retry when coming back online
+  useEffect(() => {
+    if (isOnline && queueItems.length > 0) {
+      retryAll();
+    }
+  }, [isOnline, queueItems.length, retryAll]);
+
   return (
-    <RetryQueueContext.Provider value={value}>
+    <RetryQueueContext.Provider value={{
+      queueItems,
+      addToQueue,
+      removeFromQueue,
+      retryItem,
+      retryAll,
+      clearQueue,
+      isProcessing
+    }}>
       {children}
     </RetryQueueContext.Provider>
   );
-};
+}
 
-/**
- * Custom hook to access the RetryQueueContext
- */
-export const useRetryQueueContext = (): RetryQueueContextType => {
+export function useRetryQueueContext() {
   const context = useContext(RetryQueueContext);
+  
   if (context === undefined) {
     throw new Error('useRetryQueueContext must be used within a RetryQueueProvider');
   }
+  
   return context;
-};
+}
