@@ -1,3 +1,4 @@
+
 /**
  * Clean Unused Imports Script
  * 
@@ -19,6 +20,7 @@ const dashboardComponentsPath = path.resolve(__dirname, '../components/dashboard
 const filesToClean = [
   'BodyCompositionChart.tsx',
   'CoachDashboard.tsx',
+  'DashboardCustomizationPanel.tsx',
   'EliteDashboard.tsx',
   'ExportHealthDataCard.tsx',
   'GoalTrackingCard.tsx',
@@ -28,7 +30,9 @@ const filesToClean = [
   'HealthTrends.tsx',
   'NutritionAnalysisChart.tsx',
   'MealPlanDisplay.tsx',
-  'OfflineWorkoutsDisplay.tsx'
+  'OfflineWorkoutsDisplay.tsx',
+  'PersonalizedRecommendations.tsx',
+  'ProAthleteDashboard.tsx'
 ];
 
 /**

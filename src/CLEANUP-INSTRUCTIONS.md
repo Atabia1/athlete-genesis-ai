@@ -20,48 +20,44 @@ node src/scripts/runCleanup.js
 
 This script will automatically remove unused imports and variables from all dashboard components.
 
-2. **For specific components with type issues:**
+2. **What the script fixes:**
 
-We've already fixed:
-- `NutritionAnalysisChart.tsx` - Fixed Bar property access and type casting for string methods
-- `OfflineWorkoutsDisplay.tsx` - Added ConnectionQuality type and fixed related errors
-- `EliteDashboard.tsx` - Cleaned unused imports
-- `MealPlanDisplay.tsx` - Cleaned unused imports
-
-3. **Remaining issues:**
-
-After running the cleanup script, you may want to review the following files for any remaining issues:
-- `HealthInsights.tsx`
-- `HealthTrends.tsx`
-- `BodyCompositionChart.tsx`
-- `GoalTrackingCard.tsx`
-- `HealthDataVisualization.tsx`
+- Removes unused imports from all components
+- Removes unused variables from components 
+- Fixes type errors in NutritionAnalysisChart.tsx including:
+  - Adding missing state variables and handlers
+  - Fixing Bar property access in BarChart
+  - Correcting type handling for string methods
+- Fixes OfflineWorkoutsDisplay.tsx issues:
+  - Adds missing type definitions
+  - Corrects ConnectionQuality type handling
+  - Properly types function parameters
+- Fixes array access issues in BodyCompositionChart.tsx and GoalTrackingCard.tsx
+- Adds missing data declarations in affected components
+- Corrects badge variant in PersonalizedRecommendations.tsx
+- Fixes arithmetic operations in HealthDataVisualization.tsx
 
 ## Understanding the Cleanup Process
 
-The cleanup is performed by the `cleanUnusedImports.ts` script, which:
-1. Identifies unused imports and variables in each component
+The cleanup is performed by two main scripts:
+1. `src/utils/cleanImports.ts` - Core utility that contains the cleaning logic
+2. `src/scripts/cleanUnusedImports.ts` - Script that applies the cleaning to files
+3. `src/scripts/runCleanup.js` - Node.js wrapper to easily run the TypeScript script
+
+The process:
+1. Identifies unused imports and variables based on predefined lists
 2. Removes them from the source files
-3. Ensures type safety and fixes basic typing issues
+3. Applies component-specific fixes for type errors and other issues
+4. Saves the cleaned files back to disk
 
-## Manual Cleanup (if needed)
+## Manual Review
 
-If you prefer to clean the files manually, you can follow this pattern:
+After running the script, it's recommended to:
+1. Review the console output for any reported errors
+2. Check that the components still render correctly
+3. Verify that TypeScript no longer reports errors for the cleaned files
 
-```typescript
-// Remove unused imports
-import { OnlyKeep, WhatYouNeed } from 'some-package';
-
-// Remove unused variables
-const component = () => {
-  // Only declare variables you actually use
-  const usedVariable = 'value';
-  
-  return (
-    // Component JSX
-  );
-};
-```
+If any issues persist, you may need to manually fix specific components.
 
 ## Additional Resources
 
