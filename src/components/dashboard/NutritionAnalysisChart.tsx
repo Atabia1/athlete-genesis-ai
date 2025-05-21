@@ -5,19 +5,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { 
   Utensils, 
-  BarChart2,
   Download,
   Share,
   Info
 } from 'lucide-react';
 import { 
-  BarChart,
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer, 
-  Legend as RechartsLegend
+  Legend as RechartsLegend,
+  BarChart
 } from 'recharts';
 
 /**
@@ -27,8 +26,7 @@ import {
  * their nutritional patterns and make informed dietary choices.
  */
 const NutritionAnalysisChart = () => {
-  // Define state and other necessary variables
-  const [ setCalorieData] = useState([]); 
+  // Define variables needed for the component
   const proteinPercentage = 30;
   const carbsPercentage = 45;
   const fatPercentage = 25;
@@ -40,13 +38,6 @@ const NutritionAnalysisChart = () => {
   const handleShare = () => {
     console.log('Share feature not implemented yet');
   };
-
-  // Sample data for macro distribution
-  const macroDistribution = [
-    { name: 'Protein', value: proteinPercentage, color: '#3b82f6' },
-    { name: 'Carbohydrates', value: carbsPercentage, color: '#10b981' },
-    { name: 'Fat', value: fatPercentage, color: '#f59e0b' }
-  ];
 
   // Sample data for daily calorie intake
   const dailyCalorieData = [
@@ -124,14 +115,11 @@ const NutritionAnalysisChart = () => {
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                     }}
                   />
-                  {/* Use correct typing for Bar component */}
-                  {BarChart && 
-                    <BarChart.Bar
-                      dataKey="calories"
-                      fill={chartColors.calories}
-                      radius={[4, 4, 0, 0]}
-                    />
-                  }
+                  <BarChart.Bar
+                    dataKey="calories"
+                    fill={chartColors.calories}
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -162,7 +150,10 @@ const NutritionAnalysisChart = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip 
-                    formatter={(value, name) => [`${value}g`, name.charAt(0).toUpperCase() + name.slice(1)]}
+                    formatter={(value, name) => {
+                      const nameStr = typeof name === 'string' ? name : String(name);
+                      return [`${value}g`, nameStr.charAt(0).toUpperCase() + nameStr.slice(1)];
+                    }}
                     contentStyle={{ 
                       backgroundColor: 'white',
                       borderRadius: '0.375rem',
@@ -170,14 +161,9 @@ const NutritionAnalysisChart = () => {
                     }}
                   />
                   <RechartsLegend />
-                  {/* Use correct typing for Bar components */}
-                  {BarChart && (
-                    <>
-                      <BarChart.Bar dataKey="protein" stackId="a" fill={chartColors.protein} name="Protein" />
-                      <BarChart.Bar dataKey="carbs" stackId="a" fill={chartColors.carbs} name="Carbs" />
-                      <BarChart.Bar dataKey="fat" stackId="a" fill={chartColors.fat} name="Fat" />
-                    </>
-                  )}
+                  <BarChart.Bar dataKey="protein" stackId="a" fill={chartColors.protein} name="Protein" />
+                  <BarChart.Bar dataKey="carbs" stackId="a" fill={chartColors.carbs} name="Carbs" />
+                  <BarChart.Bar dataKey="fat" stackId="a" fill={chartColors.fat} name="Fat" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

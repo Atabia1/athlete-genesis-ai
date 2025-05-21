@@ -1,656 +1,360 @@
+
 /**
- * OfflineWorkoutsDisplay: Component for displaying and managing offline workouts
- *
- * This component provides a user interface for:
- * 1. Viewing available offline workout templates
- * 2. Accessing previously saved workout plans
- * 3. Saving the current workout plan for offline use
- * 4. Managing saved workouts (viewing, selecting, deleting)
- *
- * It's designed to work seamlessly with the OfflineWorkoutsContext to provide
- * users with workout content even when they have no internet connection.
+ * Offline Workouts Display Component
+ * 
+ * This component displays workouts that are available offline
+ * and provides functionality to sync them when back online.
  */
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
-import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
-import {
-  Wifi,
-  WifiOff,
-  Download,
-  Dumbbell,
-  ChevronDown,
-  ChevronUp,
-  Trash2,
-  Check,
-  Info,
-  HardDrive,
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { 
+  Wifi, 
+  WifiOff, 
+  Download, 
+  CheckCircle, 
+  Clock, 
   AlertTriangle,
-  WifiLow,
-  Zap,
-  RefreshCw,
-  Lock
+  Dumbbell
 } from 'lucide-react';
-import { useOfflineWorkouts, WorkoutTemplate, WorkoutDayTemplate } from '@/context/OfflineWorkoutsContext';
-import { useNetworkStatus, ConnectionQuality } from '@/hooks/use-network-status';
-import { usePlan } from '@/context/PlanContext';
-import { toast } from '@/components/ui/use-toast';
-import { dbService } from '@/services/indexeddb-service';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Workout, WorkoutGoal } from '@/types/workout';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 
+// Define ConnectionQuality type 
 type ConnectionQuality = 'offline' | 'poor' | 'good' | 'excellent' | 'captive-portal' | 'unknown';
 
-const OfflineWorkoutsDisplay = () => {
-  const {
-    offlineWorkouts,
-    savedWorkouts,
-    currentOfflineWorkout,
-    isLoading,
-    saveCurrentPlanForOffline,
-    selectOfflineWorkout,
-    deleteSavedWorkout,
-    deleteMultipleSavedWorkouts,
-    clearAllSavedWorkouts
-  } = useOfflineWorkouts();
+interface OfflineWorkoutsDisplayProps {
+  /** Cached workouts available offline */
+  offlineWorkouts: Workout[];
+  
+  /** Whether the component is loading data */
+  isLoading?: boolean;
+  
+  /** Optional custom height for the component */
+  maxHeight?: string;
+  
+  /** Function to sync workouts when back online */
+  syncWorkouts?: () => Promise<void>;
+  
+  /** Function to remove a workout from offline storage */
+  removeOfflineWorkout?: (id: string) => void;
+}
 
-  const { isOnline, checkNetworkReachability } = useNetworkStatus();
-  const { workoutPlan, setWorkoutPlan } = usePlan();
-
-  const [expandedDay, setExpandedDay] = useState<string | null>(null);
-  const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null);
-  const [selectedWorkouts, setSelectedWorkouts] = useState<string[]>([]);
-  const [storageSize, setStorageSize] = useState<number | null>(null);
-  const [dbInfo, setDbInfo] = useState<{ name: string; version: number | null; objectStores: string[] } | null>(null);
-
-  // Get database information
-  useEffect(() => {
-    const getDatabaseInfo = async () => {
-      try {
-        const info = await dbService.getDatabaseInfo();
-        setStorageSize(info.size);
-        setDbInfo({
-          name: info.name,
-          version: info.version,
-          objectStores: info.objectStores
-        });
-      } catch (error) {
-        console.error('Error getting database info:', error);
+/**
+ * OfflineWorkoutsDisplay Component
+ */
+const OfflineWorkoutsDisplay = ({
+  offlineWorkouts = [],
+  isLoading = false,
+  maxHeight = "500px",
+  syncWorkouts,
+  removeOfflineWorkout
+}: OfflineWorkoutsDisplayProps) => {
+  const { isOnline } = useNetworkStatus();
+  const [syncing, setSyncing] = useState<Record<string, boolean>>({});
+  const [syncSuccess, setSyncSuccess] = useState<Record<string, boolean>>({});
+  const [syncError, setSyncError] = useState<Record<string, boolean>>({});
+  const [showAll, setShowAll] = useState(false);
+  
+  // For UI display - simulate connection quality
+  const displayConnectionQuality: ConnectionQuality = isOnline ? 'good' : 'offline';
+  
+  // Handle sync of a single workout
+  const handleSyncWorkout = async (workoutId: string) => {
+    if (!isOnline) return;
+    
+    try {
+      setSyncing(prev => ({ ...prev, [workoutId]: true }));
+      
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // If we have a syncWorkouts function from props, call it
+      if (syncWorkouts) {
+        await syncWorkouts();
       }
-    };
-
-    getDatabaseInfo();
-  }, []);
-
-  /**
-   * Toggle the expanded state of a workout day
-   */
-  const toggleDay = (day: string) => {
-    if (expandedDay === day) {
-      setExpandedDay(null);
-    } else {
-      setExpandedDay(day);
-    }
-  };
-
-  /**
-   * Handle saving the current workout plan for offline use
-   */
-  const handleSaveForOffline = async () => {
-    try {
-      await saveCurrentPlanForOffline();
-      // Refresh database info after saving
-      await refreshDatabaseInfo();
+      
+      setSyncSuccess(prev => ({ ...prev, [workoutId]: true }));
+      setSyncing(prev => ({ ...prev, [workoutId]: false }));
+      
+      // Remove from local storage after successful sync
+      if (removeOfflineWorkout) {
+        setTimeout(() => {
+          removeOfflineWorkout(workoutId);
+          setSyncSuccess(prev => ({ ...prev, [workoutId]: false }));
+        }, 2000);
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save workout for offline use",
-        variant: "destructive" });
+      console.error('Error syncing workout:', error);
+      setSyncError(prev => ({ ...prev, [workoutId]: true }));
+      setSyncing(prev => ({ ...prev, [workoutId]: false }));
+      
+      // Clear error after timeout
+      setTimeout(() => {
+        setSyncError(prev => ({ ...prev, [workoutId]: false }));
+      }, 3000);
     }
   };
-
-  /**
-   * Handle selecting an offline workout
-   */
-  const handleSelectWorkout = (workout: WorkoutTemplate) => {
-    selectOfflineWorkout(workout.id);
-    setWorkoutPlan(workout);
-    toast({
-      title: "Workout Selected",
-      description: `Now using: ${workout.name}` });
+  
+  // Get display status for a workout
+  const getWorkoutStatus = (workout: Workout) => {
+    if (syncSuccess[workout.id]) {
+      return "Synced successfully";
+    }
+    if (syncError[workout.id]) {
+      return "Sync failed";
+    }
+    if (syncing[workout.id]) {
+      return "Syncing...";
+    }
+    return "Stored offline";
   };
-
-  /**
-   * Refresh database information
-   */
-  const refreshDatabaseInfo = async () => {
-    try {
-      const info = await dbService.getDatabaseInfo();
-      setStorageSize(info.size);
-      setDbInfo({
-        name: info.name,
-        version: info.version,
-        objectStores: info.objectStores
-      });
-    } catch (error) {
-      console.error('Error refreshing database info:', error);
+  
+  // Get badge variant based on workout status
+  const getStatusBadgeVariant = (workout: Workout): "outline" | "secondary" | "destructive" => {
+    if (syncSuccess[workout.id]) {
+      return "outline"; // success
+    }
+    if (syncError[workout.id]) {
+      return "destructive"; // error
+    }
+    return "secondary"; // default
+  };
+  
+  // Get icon based on workout status
+  const getStatusIcon = (workout: Workout) => {
+    if (syncSuccess[workout.id]) {
+      return <CheckCircle className="h-3.5 w-3.5 text-green-500 ml-1" />;
+    }
+    if (syncError[workout.id]) {
+      return <AlertTriangle className="h-3.5 w-3.5 text-red-500 ml-1" />;
+    }
+    if (syncing[workout.id]) {
+      return <Clock className="h-3.5 w-3.5 text-blue-500 animate-pulse ml-1" />;
+    }
+    return <Download className="h-3.5 w-3.5 ml-1" />;
+  };
+  
+  // Format date string for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
+  // Get connection status text and color
+  const getConnectionInfo = () => {
+    // Handle connection quality display
+    switch (displayConnectionQuality) {
+      case 'offline':
+        return {
+          text: 'You are offline',
+          description: 'Workouts will sync automatically when your connection is restored',
+          color: 'text-red-500',
+          bgColor: 'bg-red-50',
+          borderColor: 'border-red-100',
+          icon: <WifiOff className="h-5 w-5 text-red-500" />
+        };
+      case 'poor':
+        return {
+          text: 'Poor connection',
+          description: 'Syncing may be slower than usual',
+          color: 'text-amber-500',
+          bgColor: 'bg-amber-50',
+          borderColor: 'border-amber-100',
+          icon: <Wifi className="h-5 w-5 text-amber-500" />
+        };
+      case 'good':
+      case 'excellent':
+        return {
+          text: 'Connected',
+          description: 'Your workouts can be synced to the cloud',
+          color: 'text-green-500',
+          bgColor: 'bg-green-50',
+          borderColor: 'border-green-100',
+          icon: <Wifi className="h-5 w-5 text-green-500" />
+        };
+      case 'captive-portal':
+        return {
+          text: 'Captive portal detected',
+          description: 'You need to sign in to this network before syncing',
+          color: 'text-blue-500',
+          bgColor: 'bg-blue-50',
+          borderColor: 'border-blue-100',
+          icon: <AlertTriangle className="h-5 w-5 text-blue-500" />
+        };
+      default:
+        return {
+          text: 'Connection status unknown',
+          description: 'Check your network connection',
+          color: 'text-gray-500',
+          bgColor: 'bg-gray-50',
+          borderColor: 'border-gray-100',
+          icon: <Wifi className="h-5 w-5 text-gray-500" />
+        };
     }
   };
-
-  /**
-   * Handle deleting a saved workout
-   */
-  const handleDeleteWorkout = async () => {
-    if (!workoutToDelete) return;
-
-    await deleteSavedWorkout(workoutToDelete);
-    setWorkoutToDelete(null);
-
-    // Refresh database info after deletion
-    await refreshDatabaseInfo();
-  };
-
-  /**
-   * Handle clearing all saved workouts
-   */
-  const handleClearAllWorkouts = async () => {
-    await clearAllSavedWorkouts();
-
-    // Refresh database info after clearing
-    await refreshDatabaseInfo();
-
-    // Clear selected workouts
-    setSelectedWorkouts([]);
-  };
-
-  /**
-   * Handle deleting multiple selected workouts
-   */
-  const handleDeleteSelectedWorkouts = async () => {
-    if (selectedWorkouts.length === 0) return;
-
-    await deleteMultipleSavedWorkouts(selectedWorkouts);
-
-    // Refresh database info after deletion
-    await refreshDatabaseInfo();
-
-    // Clear selection
-    setSelectedWorkouts([]);
-  };
-
-  /**
-   * Toggle workout selection
-   */
-  const toggleWorkoutSelection = (id: string) => {
-    if (selectedWorkouts.includes(id)) {
-      setSelectedWorkouts(selectedWorkouts.filter(workoutId => workoutId !== id));
-    } else {
-      setSelectedWorkouts([...selectedWorkouts, id]);
-    }
-  };
-
-  /**
-   * Toggle selection of all saved workouts
-   */
-  const toggleSelectAll = () => {
-    if (selectedWorkouts.length === savedWorkouts.length) {
-      // If all are selected, deselect all
-      setSelectedWorkouts([]);
-    } else {
-      // Otherwise, select all
-      setSelectedWorkouts(savedWorkouts.map(workout => workout.id));
-    }
-  };
-
-  /**
-   * Render a workout day with exercises
-   */
-  const renderWorkoutDay = (day: WorkoutDayTemplate) => {
+  
+  const connectionInfo = getConnectionInfo();
+  const displayedWorkouts = showAll ? offlineWorkouts : offlineWorkouts.slice(0, 3);
+  
+  // Format workout goals for display
+  const formatGoals = (goals: WorkoutGoal[]) => {
+    if (!goals || goals.length === 0) return null;
+    
     return (
-      <div key={day.day} className="border rounded-lg overflow-hidden mb-4">
-        <div
-          className="flex justify-between items-center p-4 cursor-pointer bg-gray-50"
-          onClick={() => toggleDay(day.day)}
-        >
-          <div>
-            <h3 className="font-medium">{day.day}</h3>
-            <p className="text-sm text-gray-600">{day.focus}</p>
-          </div>
-          <div className="flex items-center">
-            <span className="text-xs bg-athleteBlue-100 text-athleteBlue-800 px-2 py-1 rounded-full mr-2">
-              {day.duration}
-            </span>
-            {expandedDay === day.day ? (
-              <ChevronUp className="h-5 w-5 text-gray-400" />
-            ) : (
-              <ChevronDown className="h-5 w-5 text-gray-400" />
-            )}
-          </div>
-        </div>
-
-        {expandedDay === day.day && (
-          <div className="p-4 border-t">
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Warm-up</h4>
-              <p className="text-sm">{day.warmup}</p>
-            </div>
-
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Exercises</h4>
-              <div className="space-y-3">
-                {day.exercises.map((exercise, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start p-3 rounded-md border bg-white border-gray-200"
-                  >
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <h5 className="font-medium">{exercise.name}</h5>
-                        <div className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
-                          {exercise.sets} × {exercise.reps}
-                        </div>
-                      </div>
-
-                      <div className="mt-1 text-sm text-gray-600">
-                        Rest: {exercise.rest}
-                      </div>
-
-                      {exercise.notes && (
-                        <div className="mt-2 flex items-start text-xs text-gray-500">
-                          <Info className="h-3 w-3 mr-1 mt-0.5" />
-                          <span>{exercise.notes}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+      <div className="mt-3 space-y-2">
+        <h4 className="text-xs font-medium text-gray-500">Workout Goals:</h4>
+        <div className="space-y-2">
+          {goals.map((goal: any, index: number) => (
+            <div key={index} className="flex items-center">
+              <div className="w-full">
+                <div className="flex justify-between items-center text-xs">
+                  <span>{goal.name}</span>
+                  <span className="font-medium">{goal.progress}%</span>
+                </div>
+                <Progress value={goal.progress} className="h-1 mt-1" />
               </div>
             </div>
-
-            <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Cool-down</h4>
-              <p className="text-sm">{day.cooldown}</p>
-            </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     );
   };
-
-  /**
-   * Format a date string for display
-   */
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch (error) {
-      return '';
-    }
-  };
-
-  /**
-   * Get the appropriate icon based on connection quality
-   */
-  const getConnectionIcon = (quality: ConnectionQuality) => {
-    switch (quality) {
-      case 'excellent':
-        return <Zap className="h-5 w-5 mr-2 text-green-600" />;
-      case 'good':
-        return <Wifi className="h-5 w-5 mr-2 text-green-600" />;
-      case 'poor':
-        return <WifiLow className="h-5 w-5 mr-2 text-yellow-600" />;
-      case 'captive-portal':
-        return <Lock className="h-5 w-5 mr-2 text-purple-600" />;
-      case 'offline':
-        return <WifiOff className="h-5 w-5 mr-2 text-orange-600" />;
-      default:
-        return <AlertTriangle className="h-5 w-5 mr-2 text-gray-600" />;
-    }
-  };
-
-  /**
-   * Render a workout card for selection
-   */
-  const renderWorkoutCard = (workout: WorkoutTemplate, isSaved: boolean = false) => {
-    const isSelected = selectedWorkouts.includes(workout.id);
-
-    return (
-      <Card
-        key={workout.id}
-        className={`mb-4 relative ${isSelected ? 'border-athleteBlue-400 bg-athleteBlue-50' : ''}`}
-      >
-        {!isOnline && <OfflineContentBadge contentType="workout" position="top-right" />}
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div className="flex items-start">
-              {isSaved && (
-                <div
-                  className="mr-3 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleWorkoutSelection(workout.id);
-                  }}
-                >
-                  <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-athleteBlue-500 border-athleteBlue-500' : 'border-gray-300'}`}>
-                    {isSelected && <Check className="h-3 w-3 text-white" />}
-                  </div>
-                </div>
-              )}
-              <div>
-                <CardTitle>{workout.name}</CardTitle>
-                <CardDescription>{workout.description}</CardDescription>
-                {workout.createdAt && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    Saved on {formatDate(workout.createdAt)}
-                  </div>
-                )}
-              </div>
-            </div>
-            <Badge className="bg-athleteBlue-100 text-athleteBlue-800">
-              {workout.level}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {workout.goals.map((goal, index) => (
-              <Badge key={index} variant="outline" className="bg-gray-50">
-                {goal}
-              </Badge>
-            ))}
-          </div>
-          <div className="text-sm text-gray-600">
-            <p><strong>Equipment:</strong> {workout.equipment.join(', ')}</p>
-            <p><strong>Workout Days:</strong> {workout.weeklyPlan.length}</p>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => handleSelectWorkout(workout)}
-          >
-            <Dumbbell className="mr-2 h-4 w-4" />
-            Use This Workout
-          </Button>
-
-          {isSaved && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => setWorkoutToDelete(workout.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Saved Workout</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this saved workout? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setWorkoutToDelete(null)}>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteWorkout} className="bg-red-500 hover:bg-red-600">
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-        </CardFooter>
-      </Card>
-    );
-  };
-
+  
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <WifiOff className="h-5 w-5 mr-2 text-athleteBlue-600" />
-            Offline Workouts
-          </CardTitle>
+          <CardTitle>Offline Workouts</CardTitle>
+          <CardDescription>Workouts available when offline</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex justify-center items-center py-8">
-            <p>Loading offline workouts...</p>
-          </div>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
         </CardContent>
       </Card>
     );
   }
-
+  
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="flex items-center">
-              {getConnectionIcon(connectionQuality)}
-              Offline Workouts
-            </CardTitle>
-            <CardDescription>
-              {isOnline
-                ? "Access these workouts when you don't have an internet connection"
-                : "You're currently offline. Using locally saved workouts."}
-            </CardDescription>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Dumbbell className="h-5 w-5 mr-2 text-primary" />
+            <div>
+              <CardTitle>Offline Workouts</CardTitle>
+              <CardDescription>Workouts available when offline</CardDescription>
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            {!isOnline && (
-              <OfflineIndicator
-                variant="badge"
-                message="You are currently offline. All changes will be saved locally."
-              />
-            )}
-            {isOnline && workoutPlan && connectionQuality !== 'captive-portal' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveForOffline}
-                className="text-athleteBlue-600 border-athleteBlue-200 hover:bg-athleteBlue-50"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Save Current Plan Offline
-              </Button>
-            )}
-
-            {connectionQuality === 'captive-portal' && (
-              <div className="text-purple-600 text-sm flex items-center">
-                <Lock className="h-4 w-4 mr-1" />
-                <span>WiFi login required</span>
-              </div>
-            )}
-          </div>
+          <Badge variant={isOnline ? "outline" : "secondary"} className="ml-2">
+            {isOnline ? "Online" : "Offline"}
+          </Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="current">Current</TabsTrigger>
-            <TabsTrigger value="saved">Saved ({savedWorkouts.length})</TabsTrigger>
-            <TabsTrigger value="templates">Templates ({offlineWorkouts.length})</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="current" className="mt-4">
-            {currentOfflineWorkout ? (
-              <div>
-                <div className="mb-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h2 className="text-xl font-bold">{currentOfflineWorkout.name}</h2>
-                    {!isOnline && (
-                      <OfflineIndicator
-                        variant="badge"
-                        featureSpecific={true}
-                        featureName="This workout"
-                      />
-                    )}
-                  </div>
-                  <p className="text-gray-600">{currentOfflineWorkout.description}</p>
-
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <Badge className="bg-athleteBlue-100 text-athleteBlue-800">
-                      {currentOfflineWorkout.level}
-                    </Badge>
-                    {currentOfflineWorkout.goals.map((goal, index) => (
-                      <Badge key={index} variant="outline" className="bg-gray-50">
-                        {goal}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium mb-3">Weekly Plan</h3>
-                  {currentOfflineWorkout.weeklyPlan.map(renderWorkoutDay)}
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Dumbbell className="h-12 w-12 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-700">No Workout Selected</h3>
-                <p className="text-gray-500 mt-2 max-w-md">
-                  Select a workout from the "Saved" or "Templates" tab to view it here.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="saved" className="mt-4">
-            {savedWorkouts.length > 0 ? (
-              <div>
-                {/* Storage usage indicator */}
-                {storageSize && dbInfo && (
-                  <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <div className="flex items-center">
-                          <HardDrive className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-sm text-gray-600">Storage used: {(storageSize / (1024 * 1024)).toFixed(2)} MB</span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          Database: {dbInfo.name} (v{dbInfo.version || 'unknown'})
-                        </div>
+      <CardContent className="space-y-4">
+        <Alert className={`${connectionInfo.bgColor} border ${connectionInfo.borderColor}`}>
+          <div className="flex items-center">
+            {connectionInfo.icon}
+            <div className="ml-3">
+              <AlertTitle className={connectionInfo.color}>{connectionInfo.text}</AlertTitle>
+              <AlertDescription>{connectionInfo.description}</AlertDescription>
+            </div>
+          </div>
+        </Alert>
+        
+        {offlineWorkouts.length === 0 ? (
+          <div className="text-center py-8">
+            <Download className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <h3 className="font-medium text-gray-600">No Offline Workouts</h3>
+            <p className="text-gray-500 text-sm mt-1 max-w-xs mx-auto">
+              When you save workouts for offline use, they will appear here
+            </p>
+          </div>
+        ) : (
+          <>
+            <ScrollArea className={`h-[${maxHeight}]`} type="always">
+              <div className="space-y-4 pr-4">
+                {displayedWorkouts.map(workout => (
+                  <div 
+                    key={workout.id} 
+                    className={`border rounded-lg p-4 ${
+                      syncSuccess[workout.id] ? 'bg-green-50 border-green-100' : 
+                      syncError[workout.id] ? 'bg-red-50 border-red-100' : 
+                      'bg-white border-gray-200'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{workout.title}</h3>
+                        <p className="text-gray-500 text-sm mt-0.5">{formatDate(workout.date)}</p>
                       </div>
-                      <div className="flex space-x-2">
+                      <Badge variant={getStatusBadgeVariant(workout)} className="flex items-center">
+                        <span>{getWorkoutStatus(workout)}</span>
+                        {getStatusIcon(workout)}
+                      </Badge>
+                    </div>
+                    
+                    <div className="mt-3 text-sm">
+                      <p><span className="font-medium">Duration:</span> {workout.duration}</p>
+                      <p><span className="font-medium">Type:</span> {workout.type}</p>
+                    </div>
+                    
+                    {formatGoals(workout.goals)}
+                    
+                    {!syncSuccess[workout.id] && (
+                      <div className="mt-4 flex justify-end">
                         <Button
-                          variant="outline"
                           size="sm"
-                          onClick={toggleSelectAll}
-                          className="text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                          variant="outline"
+                          onClick={() => handleSyncWorkout(workout.id)}
+                          disabled={!isOnline || syncing[workout.id]}
+                          className={syncing[workout.id] ? 'opacity-70' : ''}
                         >
-                          {selectedWorkouts.length === savedWorkouts.length ? (
+                          {syncing[workout.id] ? (
                             <>
-                              <Check className="h-3 w-3 mr-1" />
-                              Deselect All
+                              <Clock className="mr-1 h-4 w-4 animate-spin" />
+                              Syncing...
                             </>
                           ) : (
-                            <>Select All</>
+                            <>
+                              <Download className="mr-1 h-4 w-4" />
+                              Sync Now
+                            </>
                           )}
                         </Button>
-
-                        {selectedWorkouts.length > 0 && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <Trash2 className="h-3 w-3 mr-1" />
-                                Delete Selected ({selectedWorkouts.length})
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Selected Workouts</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete {selectedWorkouts.length} selected workout{selectedWorkouts.length !== 1 ? 's' : ''}? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDeleteSelectedWorkouts} className="bg-red-500 hover:bg-red-600">
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Clear All
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Clear All Saved Workouts</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete all saved workouts? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleClearAllWorkouts} className="bg-red-500 hover:bg-red-600">
-                                Clear All
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
-
-                {savedWorkouts.map(workout => renderWorkoutCard(workout, true))}
+                ))}
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Download className="h-12 w-12 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-700">No Saved Workouts</h3>
-                <p className="text-gray-500 mt-2 max-w-md">
-                  {isOnline
-                    ? "Save your current workout plan for offline access by clicking the 'Save Current Plan Offline' button."
-                    : "You don't have any saved workouts. Connect to the internet to save workouts for offline use."}
-                </p>
-              </div>
+            </ScrollArea>
+            
+            {offlineWorkouts.length > 3 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full mt-2"
+                onClick={() => setShowAll(!showAll)}
+              >
+                {showAll ? 'Show Less' : `Show All (${offlineWorkouts.length})`}
+              </Button>
             )}
-          </TabsContent>
-
-          <TabsContent value="templates" className="mt-4">
-            <div>
-              {offlineWorkouts.map(workout => renderWorkoutCard(workout))}
-            </div>
-          </TabsContent>
-        </Tabs>
+          </>
+        )}
       </CardContent>
     </Card>
   );
