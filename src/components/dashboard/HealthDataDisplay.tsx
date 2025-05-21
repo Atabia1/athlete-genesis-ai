@@ -1,10 +1,10 @@
+
 /**
  * Health Data Display Component
  * 
  * Shows health metrics from connected devices and apps in a user-friendly format
  */
 
-import React from 'react';
 import { 
   Card, 
   CardContent, 
@@ -13,7 +13,6 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-// Removed unused imports: Clock, Calendar, and HealthWorkout
 
 const HealthDataDisplay = () => {
   // Mock data for demonstration
