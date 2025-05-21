@@ -16,7 +16,7 @@ const EliteDashboard = () => {
       <Card className="col-span-1 md:col-span-2 lg:col-span-3">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-2xl font-bold">
-            Welcome, User!
+            Welcome!
           </CardTitle>
           <Avatar>
             <AvatarFallback>AG</AvatarFallback>

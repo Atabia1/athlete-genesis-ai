@@ -51,12 +51,40 @@ const getUnusedImportInfo = (fileName: string) => {
     ],
     "NutritionAnalysisChart": [
       "Badge", "Apple", "Coffee", "Droplets", "TrendingUp", "Calendar", "Clock", "LineChart", 
-      "Line", "PieChart", "Pie", "Cell", "RadarChart", "PolarGrid", "PolarAngleAxis"
+      "Line", "PieChart", "Pie", "Cell", "RadarChart", "PolarGrid", "PolarAngleAxis", "PolarRadiusAxis",
+      "Radar", "ComposedChart", "Area", "ReferenceLine", "Scatter"
     ]
   };
 
   return fileImportMap[fileName] || [];
 };
 
+// Clean up unused variables in a component
+const getUnusedVariables = (fileName: string) => {
+  const fileVariableMap: Record<string, string[]> = {
+    "BodyCompositionChart": ["bodyCompositionData", "COLORS"],
+    "EliteDashboard": ["user", "index", "entry"],
+    "GoalTrackingCard": ["progressData", "categoryData", "formatDate"],
+    "HealthDataVisualization": ["useEffect", "formatTime", "entry"],
+    "MealPlanDisplay": ["Badge", "usePlan"]
+  };
+
+  return fileVariableMap[fileName] || [];
+};
+
+// Function to help with fixing imports in specific files
+const fixImportsInFile = (fileName: string) => {
+  const unusedImports = getUnusedImportInfo(fileName);
+  const unusedVariables = getUnusedVariables(fileName);
+  
+  console.log(`\nFix imports in ${fileName}:`);
+  if (unusedImports.length > 0) {
+    console.log(`Remove these unused imports: ${unusedImports.join(', ')}`);
+  }
+  if (unusedVariables.length > 0) {
+    console.log(`Remove these unused variables: ${unusedVariables.join(', ')}`);
+  }
+};
+
 export default logUnusedImports;
-export { getUnusedImportInfo };
+export { getUnusedImportInfo, getUnusedVariables, fixImportsInFile };
