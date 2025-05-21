@@ -5,18 +5,17 @@
  * This file provides global mock implementations for testing.
  */
 
-// Define jest and expect on globalThis for TypeScript
+// Define types for globalThis extensions
 declare global {
   namespace NodeJS {
     interface Global {
-      expect: any;
+      expect: jest.Expect;
     }
   }
-  const expect: jest.Expect;
 }
 
 // Mock implementation for toBeInTheDocument
-if (global.expect) {
+if (typeof global.expect !== 'undefined') {
   global.expect.extend({
     toBeInTheDocument(received: any) {
       const pass = received !== null;

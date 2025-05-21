@@ -13,14 +13,4 @@ declare namespace jest {
   }
 }
 
-declare global {
-  namespace NodeJS {
-    interface Global {
-      expect: jest.Expect;
-    }
-  }
-  
-  const expect: jest.Expect;
-}
-
 export {};

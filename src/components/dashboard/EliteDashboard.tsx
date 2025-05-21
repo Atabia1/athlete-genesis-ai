@@ -140,8 +140,8 @@ const EliteDashboard = () => {
     <div className="space-y-6">
       {/* Top row widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <WelcomeWidget userName="Elite Athlete" tier="Elite AI" />
-        <WorkoutWidget premium={true} />
+        <WelcomeWidget userName={user?.first_name || "Athlete"} />
+        <WorkoutWidget />
       </div>
 
       {/* AI Insights row */}
