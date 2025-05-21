@@ -5,7 +5,7 @@
  * imported from connected health apps.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -43,7 +43,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
-import { HealthData, HealthWorkout } from '@/integrations/health-apps/types';
+import { HealthData } from '@/integrations/health-apps/types';
 
 interface HealthDataVisualizationProps {
   /** Health data to visualize */
@@ -127,8 +127,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
         const value = Math.floor(Math.random() * 1000) + 100;
         data.push({
           time: `${hour}:00`,
-          steps: value,
-        });
+          steps: value });
       }
     } else if (timeRange === 'week') {
       // Daily data for the current week
@@ -140,8 +139,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
         const value = i === 0 ? (healthData.steps || 0) : Math.floor(Math.random() * 5000) + 3000;
         data.push({
           day: dayName,
-          steps: value,
-        });
+          steps: value });
       }
     } else if (timeRange === 'month') {
       // Weekly data for the current month
@@ -150,8 +148,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
         const value = i === 0 ? (healthData.steps || 0) : Math.floor(Math.random() * 30000) + 20000;
         data.push({
           week: `Week ${weekNum}`,
-          steps: value,
-        });
+          steps: value });
       }
     }
 
@@ -170,8 +167,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
         const value = Math.floor(Math.random() * 30) + 60;
         data.push({
           time: `${hour}:00`,
-          heartRate: value,
-        });
+          heartRate: value });
       }
     } else if (timeRange === 'week') {
       // Daily data for the current week
@@ -185,8 +181,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
           : Math.floor(Math.random() * 20) + 65;
         data.push({
           day: dayName,
-          heartRate: value,
-        });
+          heartRate: value });
       }
     } else if (timeRange === 'month') {
       // Weekly data for the current month
@@ -197,8 +192,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
           : Math.floor(Math.random() * 15) + 70;
         data.push({
           week: `Week ${weekNum}`,
-          heartRate: value,
-        });
+          heartRate: value });
       }
     }
 
@@ -228,8 +222,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
     // Convert to array format for chart
     return Object.entries(workoutTypes).map(([name, value]) => ({
       name,
-      value,
-    }));
+      value }));
   };
 
   // Sort workouts by date (most recent first)
@@ -572,7 +565,7 @@ const HealthDataVisualization = ({ healthData, className = '' }: HealthDataVisua
                         dataKey="value"
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       >
-                        {workoutDistributionData.map((entry, index) => (
+                        {workoutDistributionData.map(( index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>

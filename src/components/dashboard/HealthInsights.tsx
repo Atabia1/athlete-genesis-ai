@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,7 +26,7 @@ import {
   ArrowRight,
   BarChart3
 } from 'lucide-react';
-import { HealthData, HealthWorkout } from '@/integrations/health-apps/types';
+import { HealthData } from '@/integrations/health-apps/types';
 
 interface HealthInsightsProps {
   /** Health data to analyze */
@@ -82,8 +82,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
           description: 'Great job! You\'ve reached your daily step goal of 10,000 steps.',
           icon: <Award className="h-5 w-5 text-green-500" />,
           type: 'positive',
-          metric: `${data.steps.toLocaleString()} steps`,
-        });
+          metric: `${data.steps.toLocaleString()} steps` });
       } else if (data.steps < 5000) {
         insights.push({
           id: 'low-step-count',
@@ -94,9 +93,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
           metric: `${data.steps.toLocaleString()} steps`,
           action: {
             label: 'View Step Tracking Tips',
-            href: '/resources/step-tracking',
-          },
-        });
+            href: '/resources/step-tracking' } });
       }
     }
     
@@ -109,8 +106,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
           description: 'Your resting heart rate is below 60 BPM, which is often associated with good cardiovascular fitness.',
           icon: <Heart className="h-5 w-5 text-green-500" />,
           type: 'positive',
-          metric: `${data.heartRate.resting} BPM`,
-        });
+          metric: `${data.heartRate.resting} BPM` });
       } else if (data.heartRate.resting && data.heartRate.resting > 100) {
         insights.push({
           id: 'high-resting-heart-rate',
@@ -121,9 +117,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
           metric: `${data.heartRate.resting} BPM`,
           action: {
             label: 'Learn About Heart Rate',
-            href: '/resources/heart-rate',
-          },
-        });
+            href: '/resources/heart-rate' } });
       }
     }
     
@@ -138,8 +132,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
           description: 'You\'re getting the recommended 7-9 hours of sleep, which is great for recovery and overall health.',
           icon: <Moon className="h-5 w-5 text-purple-500" />,
           type: 'positive',
-          metric: `${sleepHours.toFixed(1)} hours`,
-        });
+          metric: `${sleepHours.toFixed(1)} hours` });
       } else if (sleepHours < 7) {
         insights.push({
           id: 'insufficient-sleep',
@@ -150,9 +143,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
           metric: `${sleepHours.toFixed(1)} hours`,
           action: {
             label: 'Sleep Improvement Tips',
-            href: '/resources/sleep',
-          },
-        });
+            href: '/resources/sleep' } });
       }
     }
     
@@ -174,8 +165,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
           description: `You've completed ${recentWorkouts.length} workouts in the last 7 days. Great job staying active!`,
           icon: <Dumbbell className="h-5 w-5 text-green-500" />,
           type: 'positive',
-          metric: `${recentWorkouts.length} workouts`,
-        });
+          metric: `${recentWorkouts.length} workouts` });
       }
       
       // Check for workout variety
@@ -188,8 +178,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
           description: 'You\'re mixing up your workouts with different types of activities, which is great for overall fitness.',
           icon: <ThumbsUp className="h-5 w-5 text-green-500" />,
           type: 'positive',
-          metric: `${workoutTypes.size} different types`,
-        });
+          metric: `${workoutTypes.size} different types` });
       }
     } else {
       insights.push({
@@ -200,9 +189,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
         type: 'neutral',
         action: {
           label: 'Browse Workout Plans',
-          href: '/workouts',
-        },
-      });
+          href: '/workouts' } });
     }
     
     // Weight insights
@@ -215,8 +202,7 @@ const HealthInsights = ({ healthData, className = '' }: HealthInsightsProps) => 
         description: 'You\'re successfully tracking your weight, which is helpful for monitoring progress over time.',
         icon: <BarChart3 className="h-5 w-5 text-blue-500" />,
         type: 'neutral',
-        metric: `${data.weight.toFixed(1)} kg`,
-      });
+        metric: `${data.weight.toFixed(1)} kg` });
     }
     
     return insights;

@@ -28,7 +28,7 @@ import {
  */
 const NutritionAnalysisChart = () => {
   // Define state and other necessary variables
-  const [calorieData, setCalorieData] = useState([]); 
+  const [ setCalorieData] = useState([]); 
   const proteinPercentage = 30;
   const carbsPercentage = 45;
   const fatPercentage = 25;

@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   LineChart, 
@@ -35,7 +35,6 @@ import {
   Legend
 } from 'recharts';
 import { HealthData } from '@/integrations/health-apps/types';
-import { healthSyncService } from '@/services/health-sync-service';
 
 interface HealthTrendsProps {
   /** Initial health data */
@@ -138,8 +137,7 @@ const HealthTrends = ({ initialHealthData, className = '' }: HealthTrendsProps) 
       const randomFactor = 0.8 + Math.random() * 0.4; // Random factor between 0.8 and 1.2
       
       const entry: TrendData = {
-        date: dateStr,
-      };
+        date: dateStr };
       
       // Add steps data
       if (initialHealthData.steps !== undefined) {
@@ -226,8 +224,7 @@ const HealthTrends = ({ initialHealthData, className = '' }: HealthTrendsProps) 
       current: currentAvg,
       previous: previousAvg,
       change: Math.abs(change),
-      trend,
-    });
+      trend });
   };
   
   // Format value based on the active metric

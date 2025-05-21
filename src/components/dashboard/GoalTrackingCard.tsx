@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,8 +111,8 @@ const GoalTrackingCard = ({
 }: GoalTrackingCardProps) => {
   const [activeTab, setActiveTab] = useState('active');
   const [goals, setGoals] = useState<Goal[]>(initialGoals || []);
-  const [progressData, setProgressData] = useState<any[]>([]);
-  const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [ setProgressData] = useState<any[]>([]);
+  const [ setCategoryData] = useState<any[]>([]);
   
   // Generate mock data for visualization
   useEffect(() => {
@@ -223,7 +223,7 @@ const GoalTrackingCard = ({
     // In a real app, this would process actual goal progress data
     // For demo purposes, we'll generate mock data
     
-    const progressData = [];
+    
     
     // Generate 12 weeks of data
     for (let i = 0; i < 12; i++) {

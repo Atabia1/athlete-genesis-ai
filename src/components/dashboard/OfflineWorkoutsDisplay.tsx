@@ -49,8 +49,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 type ConnectionQuality = 'offline' | 'poor' | 'good' | 'excellent' | 'captive-portal' | 'unknown';
 
@@ -118,8 +117,7 @@ const OfflineWorkoutsDisplay = () => {
       toast({
         title: "Error",
         description: "Failed to save workout for offline use",
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
@@ -131,8 +129,7 @@ const OfflineWorkoutsDisplay = () => {
     setWorkoutPlan(workout);
     toast({
       title: "Workout Selected",
-      description: `Now using: ${workout.name}`,
-    });
+      description: `Now using: ${workout.name}` });
   };
 
   /**

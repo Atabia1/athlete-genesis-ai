@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Scale, 
@@ -53,7 +52,7 @@ const BodyCompositionChart = ({ healthData, className = '' }: BodyCompositionCha
   const [weightData, setWeightData] = useState<any[]>([]);
   const [bmiData, setBmiData] = useState<any[]>([]);
   const [bodyFatData, setBodyFatData] = useState<any[]>([]);
-  const [bodyCompositionData, setBodyCompositionData] = useState<any[]>([]);
+  const [ setBodyCompositionData] = useState<any[]>([]);
   
   useEffect(() => {
     // Generate body composition data for visualization
@@ -133,20 +132,17 @@ const BodyCompositionChart = ({ healthData, className = '' }: BodyCompositionCha
       // Add to weight data
       weightHistory.push({
         date: dateLabel,
-        weight: parseFloat(weight.toFixed(1)),
-      });
+        weight: parseFloat(weight.toFixed(1)) });
       
       // Add to BMI data
       bmiHistory.push({
         date: dateLabel,
-        bmi: parseFloat(bmi.toFixed(1)),
-      });
+        bmi: parseFloat(bmi.toFixed(1)) });
       
       // Add to body fat data
       bodyFatHistory.push({
         date: dateLabel,
-        bodyFat: parseFloat(bodyFat.toFixed(1)),
-      });
+        bodyFat: parseFloat(bodyFat.toFixed(1)) });
       
       // Add to composition data (only for selected points to avoid overcrowding)
       if (i % 3 === 0 || i === 0) {
@@ -154,8 +150,7 @@ const BodyCompositionChart = ({ healthData, className = '' }: BodyCompositionCha
           date: dateLabel,
           weight: parseFloat(weight.toFixed(1)),
           bmi: parseFloat(bmi.toFixed(1)),
-          bodyFat: parseFloat(bodyFat.toFixed(1)),
-        });
+          bodyFat: parseFloat(bodyFat.toFixed(1)) });
       }
     }
     
@@ -206,7 +201,7 @@ const BodyCompositionChart = ({ healthData, className = '' }: BodyCompositionCha
   const bodyCompositionPieData = generateBodyCompositionPieData();
   
   // Colors for pie chart
-  const COLORS = bodyCompositionPieData.map(item => item.color);
+  
   
   return (
     <Card className={`overflow-hidden ${className}`}>
