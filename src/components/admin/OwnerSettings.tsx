@@ -1,4 +1,3 @@
-
 /**
  * Owner Settings Component
  *
@@ -20,11 +19,6 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Shield, AlertTriangle, CheckCircle2, Tag, CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-
-// Define custom fields interface to extend the default profile
-interface CustomProfileFields {
-  isOwner: boolean;
-}
 
 /**
  * Owner Settings Component
@@ -56,11 +50,11 @@ const OwnerSettings = () => {
       setError(null);
       setSuccess(false);
 
-      // Update the user's profile in Supabase using metadata field instead
+      // Update the user's profile in Supabase using a custom field
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          metadata: { isOwner: true }
+          is_owner: true // Using a direct field instead of metadata
         })
         .eq('id', user.id);
 
@@ -95,11 +89,11 @@ const OwnerSettings = () => {
       setError(null);
       setSuccess(false);
 
-      // Update the user's profile in Supabase using metadata
+      // Update the user's profile in Supabase using a direct field
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          metadata: { isOwner: false }
+          is_owner: false // Using a direct field instead of metadata
         })
         .eq('id', user.id);
 

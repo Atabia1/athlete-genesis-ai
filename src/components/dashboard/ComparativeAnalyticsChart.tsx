@@ -1,45 +1,23 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   BarChart2, 
-  TrendingUp, 
-  Calendar, 
-  Clock, 
-  Activity, 
-  Heart, 
-  Scale, 
-  Users,
-  ArrowRight,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
-  Info,
   Download,
   Share2,
-  ChevronDown
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
 import { 
-  LineChart, 
-  Line, 
   BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend,
-  ComposedChart,
-  Area,
-  ReferenceLine,
-  ReferenceArea,
-  Scatter,
-  ScatterChart,
-  ZAxis,
-  Brush
+  Bar
 } from 'recharts';
 import {
   Select,
@@ -79,9 +57,6 @@ const ComparativeAnalyticsChart = ({
   const [activeTab, setActiveTab] = useState('before-after');
   const [selectedMetric, setSelectedMetric] = useState('weight');
   const [beforeAfterData, setBeforeAfterData] = useState<any[]>([]);
-  const [benchmarkData, setBenchmarkData] = useState<any[]>([]);
-  const [peerGroupData, setPeerGroupData] = useState<any[]>([]);
-  const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [comparisonPeriod, setComparisonPeriod] = useState<'1month' | '3months' | '6months' | '1year'>('3months');
   
   // Generate mock data for visualization
@@ -96,15 +71,6 @@ const ComparativeAnalyticsChart = ({
     
     // Generate before/after data
     generateBeforeAfterData();
-    
-    // Generate benchmark data
-    generateBenchmarkData();
-    
-    // Generate peer group data
-    generatePeerGroupData();
-    
-    // Generate historical data
-    generateHistoricalData();
   };
   
   // Generate before/after data
@@ -151,33 +117,23 @@ const ComparativeAnalyticsChart = ({
     // Generate data based on selected metric
     let beforeValue = 0;
     let afterValue = 0;
-    let unit = '';
-    let improvement = 0;
     
     switch (selectedMetric) {
       case 'weight':
         beforeValue = 82;
         afterValue = 78;
-        unit = 'kg';
-        improvement = ((beforeValue - afterValue) / beforeValue) * 100;
         break;
       case 'restingHeartRate':
         beforeValue = 72;
         afterValue = 65;
-        unit = 'bpm';
-        improvement = ((beforeValue - afterValue) / beforeValue) * 100;
         break;
       case 'steps':
         beforeValue = 7500;
         afterValue = 9200;
-        unit = 'steps/day';
-        improvement = ((afterValue - beforeValue) / beforeValue) * 100;
         break;
       case 'sleep':
         beforeValue = 6.5;
         afterValue = 7.2;
-        unit = 'hours/night';
-        improvement = ((afterValue - beforeValue) / beforeValue) * 100;
         break;
     }
     
@@ -196,181 +152,6 @@ const ComparativeAnalyticsChart = ({
     );
     
     setBeforeAfterData(beforeAfterData);
-  };
-  
-  // Generate benchmark data
-  const generateBenchmarkData = () => {
-    const benchmarkData = [];
-    
-    // Generate data based on selected metric
-    let yourValue = 0;
-    let averageValue = 0;
-    let topValue = 0;
-    let unit = '';
-    
-    switch (selectedMetric) {
-      case 'weight':
-        yourValue = 78;
-        averageValue = 80;
-        topValue = 75;
-        unit = 'kg';
-        break;
-      case 'restingHeartRate':
-        yourValue = 65;
-        averageValue = 70;
-        topValue = 60;
-        unit = 'bpm';
-        break;
-      case 'steps':
-        yourValue = 9200;
-        averageValue = 8000;
-        topValue = 12000;
-        unit = 'steps/day';
-        break;
-      case 'sleep':
-        yourValue = 7.2;
-        averageValue = 6.8;
-        topValue = 8.0;
-        unit = 'hours/night';
-        break;
-    }
-    
-    // Add to benchmark data
-    benchmarkData.push(
-      {
-        category: 'You',
-        value: yourValue,
-        fill: '#3b82f6'
-      },
-      {
-        category: 'Average',
-        value: averageValue,
-        fill: '#94a3b8'
-      },
-      {
-        category: 'Top 10%',
-        value: topValue,
-        fill: '#10b981'
-      }
-    );
-    
-    setBenchmarkData(benchmarkData);
-  };
-  
-  // Generate peer group data
-  const generatePeerGroupData = () => {
-    const peerGroupData = [];
-    
-    // Generate 20 peer data points
-    for (let i = 0; i < 20; i++) {
-      let value = 0;
-      let performance = 0;
-      
-      switch (selectedMetric) {
-        case 'weight':
-          value = 70 + Math.random() * 20;
-          performance = 50 + Math.random() * 50;
-          break;
-        case 'restingHeartRate':
-          value = 55 + Math.random() * 25;
-          performance = 50 + Math.random() * 50;
-          break;
-        case 'steps':
-          value = 6000 + Math.random() * 8000;
-          performance = 50 + Math.random() * 50;
-          break;
-        case 'sleep':
-          value = 5.5 + Math.random() * 3;
-          performance = 50 + Math.random() * 50;
-          break;
-      }
-      
-      peerGroupData.push({
-        id: i,
-        value,
-        performance,
-        name: `Peer ${i + 1}`
-      });
-    }
-    
-    // Add your data point
-    let yourValue = 0;
-    let yourPerformance = 75;
-    
-    switch (selectedMetric) {
-      case 'weight':
-        yourValue = 78;
-        break;
-      case 'restingHeartRate':
-        yourValue = 65;
-        break;
-      case 'steps':
-        yourValue = 9200;
-        break;
-      case 'sleep':
-        yourValue = 7.2;
-        break;
-    }
-    
-    peerGroupData.push({
-      id: 'you',
-      value: yourValue,
-      performance: yourPerformance,
-      name: 'You'
-    });
-    
-    setPeerGroupData(peerGroupData);
-  };
-  
-  // Generate historical data
-  const generateHistoricalData = () => {
-    const historicalData = [];
-    
-    // Generate 12 months of data
-    const today = new Date();
-    
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(today.getMonth() - i);
-      
-      let currentValue = 0;
-      let previousYearValue = 0;
-      
-      switch (selectedMetric) {
-        case 'weight':
-          // Current year: downward trend
-          currentValue = 85 - (i * 0.6) + (Math.random() * 2 - 1);
-          // Previous year: slight downward trend
-          previousYearValue = 87 - (i * 0.2) + (Math.random() * 2 - 1);
-          break;
-        case 'restingHeartRate':
-          // Current year: downward trend (good)
-          currentValue = 75 - (i * 0.8) + (Math.random() * 4 - 2);
-          // Previous year: stable
-          previousYearValue = 74 + (Math.random() * 4 - 2);
-          break;
-        case 'steps':
-          // Current year: upward trend
-          currentValue = 7000 + (i * 200) + (Math.random() * 1000 - 500);
-          // Previous year: stable
-          previousYearValue = 7500 + (Math.random() * 1000 - 500);
-          break;
-        case 'sleep':
-          // Current year: upward trend
-          currentValue = 6.5 + (i * 0.06) + (Math.random() * 0.4 - 0.2);
-          // Previous year: stable
-          previousYearValue = 6.7 + (Math.random() * 0.4 - 0.2);
-          break;
-      }
-      
-      historicalData.push({
-        date: date.toLocaleDateString([], { month: 'short' }),
-        current: currentValue,
-        previous: previousYearValue
-      });
-    }
-    
-    setHistoricalData(historicalData);
   };
   
   // Format date range for display
@@ -398,7 +179,7 @@ const ComparativeAnalyticsChart = ({
   
   // Get improvement text
   const getImprovementText = () => {
-    if (beforeAfterData.length < 2) return '';
+    if (beforeAfterData.length < 2) return { value: '0.0', isPositive: true };
     
     const before = beforeAfterData[0].value;
     const after = beforeAfterData[1].value;
