@@ -1,303 +1,270 @@
-import { useState, useEffect } from 'react';
+
+import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  CreditCard, 
-  Calendar, 
-  User, 
-  Mail, 
-  Lock, 
-  CheckCircle, 
-  AlertCircle, 
-  Loader2,
-  Shield
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { usePlan, SubscriptionTier } from '@/context/PlanContext';
-import { 
-  initializePayment, 
-  verifyTransaction, 
-  getSubscriptionDetails, 
-  calculateYearlySavings,
-  SubscriptionPeriod
-} from '@/utils/paystack';
-
-/**
- * PaystackPaymentForm: Component for processing payments with Paystack
- * 
- * This component provides a form for collecting payment information and
- * processing payments using the Paystack payment gateway.
- */
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { AlertCircle, CheckCircle, CreditCard, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { SubscriptionTier } from '@/context/PlanContext';
+import { SUBSCRIPTION_PRICES } from '@/utils/paystack';
+import { useAuth } from '@/hooks/use-auth';
+import PaystackButton from '@/components/payment/PaystackWrapper';
 
 interface PaystackPaymentFormProps {
   selectedTier: SubscriptionTier;
-  onSuccess?: (reference: string) => void;
-  onCancel?: () => void;
+  onSuccess: (reference: string) => void;
+  onCancel: () => void;
 }
 
-export const PaystackPaymentForm = ({
-  selectedTier,
-  onSuccess,
-  onCancel
-}: PaystackPaymentFormProps) => {
-  const navigate = useNavigate();
-  const { setSubscriptionTier } = usePlan();
-  
-  // Form state
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [period, setPeriod] = useState<SubscriptionPeriod>('monthly');
-  const [isLoading, setIsLoading] = useState(false);
+/**
+ * PaystackPaymentForm: Component for processing payments via Paystack
+ */
+const PaystackPaymentForm = ({ selectedTier, onSuccess, onCancel }: PaystackPaymentFormProps) => {
+  const { user } = useAuth ? useAuth() : { user: null };
+  const [email, setEmail] = useState(user?.email || '');
+  const [period, setPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [name, setName] = useState(user?.displayName || '');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  
-  // Get subscription details
-  const subscriptionDetails = getSubscriptionDetails(selectedTier, period);
-  const savings = calculateYearlySavings(selectedTier);
-  
-  // Load Paystack script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v1/inline.js';
-    script.async = true;
-    document.body.appendChild(script);
-    
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-  
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountApplied, setDiscountApplied] = useState(false);
+
+  const navigate = useNavigate();
+
+  // Calculate amount based on tier and period
+  const amount = period === 'yearly'
+    ? SUBSCRIPTION_PRICES[selectedTier].yearly / 100 // Convert to dollars
+    : SUBSCRIPTION_PRICES[selectedTier].monthly / 100; // Convert to dollars
+
+  // Calculate yearly savings
+  const yearlySavings = period === 'yearly' ? {
+    amount: (SUBSCRIPTION_PRICES[selectedTier].monthly * 12 - SUBSCRIPTION_PRICES[selectedTier].yearly) / 100,
+    percentage: Math.round(((SUBSCRIPTION_PRICES[selectedTier].monthly * 12 - SUBSCRIPTION_PRICES[selectedTier].yearly) / (SUBSCRIPTION_PRICES[selectedTier].monthly * 12)) * 100)
+  } : null;
+
+  const handleApplyDiscount = () => {
+    if (!discountCode) return;
+
+    setLoading(true);
+    // Mock discount application
+    setTimeout(() => {
+      setDiscountApplied(true);
+      setLoading(false);
+    }, 1000);
+  };
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !name) {
-      setError('Please fill in all required fields');
+    if (!email) {
+      setError('Email is required');
       return;
     }
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Initialize payment
-      const { authorizationUrl, reference } = await initializePayment(
-        email,
-        selectedTier,
-        period,
-        { customer_name: name }
-      );
-      
-      // Store reference in localStorage for verification after redirect
-      localStorage.setItem('paymentReference', reference);
-      localStorage.setItem('selectedTier', selectedTier);
-      localStorage.setItem('subscriptionPeriod', period);
-      
-      // Redirect to Paystack payment page
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Payment initialization error:', error);
-      setError('Failed to initialize payment. Please try again.');
-      setIsLoading(false);
-    }
+
+    // Instead of real Paystack processing, we'll simulate it
+    setLoading(true);
+    setTimeout(() => {
+      const reference = `demo_${Date.now()}`;
+      onSuccess(reference);
+      setLoading(false);
+    }, 2000);
   };
-  
-  // Handle payment verification
-  const handleVerifyPayment = async (reference: string) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const transaction = await verifyTransaction(reference);
-      
-      if (transaction.status === 'success') {
-        // Update subscription tier
-        setSubscriptionTier(selectedTier);
-        
-        // Show success message
-        setSuccess('Payment successful! Your subscription has been activated.');
-        
-        // Call onSuccess callback
-        if (onSuccess) {
-          onSuccess(reference);
-        }
-        
-        // Redirect to dashboard after a delay
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 3000);
-      } else {
-        setError('Payment verification failed. Please contact support.');
-      }
-    } catch (error) {
-      console.error('Payment verification error:', error);
-      setError('Failed to verify payment. Please contact support.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
+
+  // Since we're using Paystack, we need to create a key for testing
+  const paystackPublicKey = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  // In a real app, we'd use:
+  // const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-5 w-5" />
-          Payment Details
-        </CardTitle>
-        <CardDescription>
-          Subscribe to {subscriptionDetails.name} plan
-        </CardDescription>
+        <CardTitle>Complete Payment</CardTitle>
+        <CardDescription>Process your subscription payment securely with Paystack</CardDescription>
       </CardHeader>
-      
       <CardContent>
-        {error && (
-          <Alert className="mb-4 bg-red-50 border-red-200 text-red-800">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Payment Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        {success && (
-          <Alert className="mb-4 bg-green-50 border-green-200 text-green-800">
-            <CheckCircle className="h-4 w-4" />
-            <AlertTitle>Payment Successful</AlertTitle>
-            <AlertDescription>{success}</AlertDescription>
-          </Alert>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="name"
-                placeholder="John Doe"
-                className="pl-10"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-          </div>
+        <Tabs defaultValue="card" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="card">Card Payment</TabsTrigger>
+            <TabsTrigger value="bank">Bank Transfer</TabsTrigger>
+          </TabsList>
           
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                className="pl-10"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Billing Period</Label>
-            <RadioGroup
-              value={period}
-              onValueChange={(value) => setPeriod(value as SubscriptionPeriod)}
-              className="flex flex-col space-y-1"
-            >
-              <div className="flex items-center justify-between space-x-2 rounded-md border p-3">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="monthly" id="monthly" />
-                  <Label htmlFor="monthly" className="font-normal">
-                    Monthly
-                  </Label>
+          <TabsContent value="card">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input 
+                    id="name" 
+                    placeholder="John Doe" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                  />
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">${subscriptionDetails.price.toFixed(2)}/month</p>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="you@example.com" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label>Billing Period</Label>
+                  <RadioGroup 
+                    defaultValue={period} 
+                    onValueChange={(value) => setPeriod(value as 'monthly' | 'yearly')} 
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    <div className={`flex items-center justify-between rounded-lg border p-4 ${period === 'monthly' ? 'border-primary bg-primary/5' : 'border-muted'}`}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="monthly" id="monthly" />
+                        <Label htmlFor="monthly" className="cursor-pointer font-medium">
+                          Monthly
+                        </Label>
+                      </div>
+                      <span className="font-bold">${(SUBSCRIPTION_PRICES[selectedTier].monthly / 100).toFixed(2)}/mo</span>
+                    </div>
+                    
+                    <div className={`relative flex items-center justify-between rounded-lg border p-4 ${period === 'yearly' ? 'border-primary bg-primary/5' : 'border-muted'}`}>
+                      {period === 'yearly' && yearlySavings && (
+                        <div className="absolute -top-3 right-4 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                          Save {yearlySavings.percentage}%
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yearly" id="yearly" />
+                        <Label htmlFor="yearly" className="cursor-pointer font-medium">
+                          Yearly
+                        </Label>
+                      </div>
+                      <span className="font-bold">${(SUBSCRIPTION_PRICES[selectedTier].yearly / 100).toFixed(2)}/yr</span>
+                    </div>
+                  </RadioGroup>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="discountCode">Discount Code</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      id="discountCode" 
+                      placeholder="Enter code" 
+                      value={discountCode} 
+                      onChange={(e) => setDiscountCode(e.target.value)} 
+                      disabled={discountApplied} 
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      variant={discountApplied ? "outline" : "secondary"} 
+                      onClick={handleApplyDiscount} 
+                      disabled={!discountCode || loading || discountApplied}
+                    >
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : discountApplied ? (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      ) : null}
+                      {discountApplied ? 'Applied' : 'Apply'}
+                    </Button>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between space-x-2 rounded-md border p-3 bg-gray-50">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yearly" id="yearly" />
-                  <div>
-                    <Label htmlFor="yearly" className="font-normal">
-                      Yearly
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Save {savings.percentage}% compared to monthly
-                    </p>
-                  </div>
+              {/* Summary */}
+              <div className="rounded-md border p-4 bg-gray-50 space-y-3">
+                <h4 className="font-medium">Order Summary</h4>
+                <div className="flex justify-between text-sm">
+                  <span>Subscription ({period})</span>
+                  <span>${amount.toFixed(2)}</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">${subscriptionDetails.price.toFixed(2)}/year</p>
-                  <p className="text-xs text-green-600">Save ${savings.amount.toFixed(2)}</p>
+                {discountApplied && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount (DEMO10)</span>
+                    <span>-$10.00</span>
+                  </div>
+                )}
+                <div className="border-t pt-2 flex justify-between font-medium">
+                  <span>Total</span>
+                  <span>${discountApplied ? (amount - 10).toFixed(2) : amount.toFixed(2)}</span>
                 </div>
               </div>
-            </RadioGroup>
-          </div>
+            </form>
+          </TabsContent>
           
-          <div className="rounded-md border p-4 bg-gray-50">
-            <div className="flex justify-between mb-2">
-              <span className="text-sm font-medium">Subscription</span>
-              <span className="text-sm">{subscriptionDetails.name}</span>
+          <TabsContent value="bank">
+            <div className="space-y-4">
+              <Alert>
+                <AlertDescription>
+                  To pay via bank transfer, please use the following details and send your proof of payment to support@athletegpt.com
+                </AlertDescription>
+              </Alert>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Bank Name:</span>
+                  <span>Demo Bank</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Account Name:</span>
+                  <span>AthleteGPT Inc</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Account Number:</span>
+                  <span>0123456789</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Reference:</span>
+                  <span>{`ATHLETE-${Date.now().toString().slice(-6)}`}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between mb-2">
-              <span className="text-sm font-medium">Billing Period</span>
-              <span className="text-sm">{period === 'yearly' ? 'Yearly' : 'Monthly'}</span>
-            </div>
-            <Separator className="my-2" />
-            <div className="flex justify-between font-medium">
-              <span>Total</span>
-              <span>${subscriptionDetails.price.toFixed(2)}/{period === 'yearly' ? 'year' : 'month'}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Shield className="h-4 w-4" />
-            <span>Your payment is secured by Paystack</span>
-          </div>
-        </form>
+          </TabsContent>
+        </Tabs>
       </CardContent>
-      
       <CardFooter className="flex flex-col gap-4">
-        <Button 
-          className="w-full" 
-          onClick={handleSubmit}
-          disabled={isLoading || !email || !name}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              Pay ${subscriptionDetails.price.toFixed(2)}
-            </>
-          )}
-        </Button>
+        <PaystackButton
+          text="Complete Payment"
+          email={email || 'demo@example.com'}
+          amount={amount * 100} // Convert to kobo
+          reference={`ref-${Date.now()}`}
+          publicKey={paystackPublicKey}
+          className="w-full bg-gradient-to-r from-athleteBlue-600 to-athleteBlue-700 hover:from-athleteBlue-700 hover:to-athleteBlue-800 text-white"
+          metadata={{
+            subscribedPlan: selectedTier,
+            billingPeriod: period
+          }}
+          disabled={!email}
+          onSuccess={(response) => onSuccess(response.reference)}
+          onClose={onCancel}
+        />
         
         <Button 
           variant="outline" 
-          className="w-full" 
-          onClick={() => {
-            if (onCancel) {
-              onCancel();
-            } else {
-              navigate('/pricing');
-            }
-          }}
-          disabled={isLoading}
+          onClick={() => navigate('/onboarding/plan-generation')}
+          type="button" 
+          className="w-full"
         >
-          Cancel
+          Back to Plan Generation
         </Button>
+        
+        <p className="text-xs text-center text-gray-500">
+          By proceeding with the payment, you agree to our Terms of Service and Privacy Policy.
+        </p>
       </CardFooter>
     </Card>
   );

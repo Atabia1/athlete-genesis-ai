@@ -10,9 +10,10 @@
 
 import axios from 'axios';
 import { SubscriptionTier } from '@/context/PlanContext';
+import { getPaystackPublicKey } from '@/utils/env-config';
 
-// Replace with your actual Paystack public key
-const PAYSTACK_PUBLIC_KEY = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+// Get Paystack public key or use a fallback for development
+const PAYSTACK_PUBLIC_KEY = getPaystackPublicKey() || 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 // API endpoints
 const PAYSTACK_API_BASE = 'https://api.paystack.co';
@@ -70,30 +71,13 @@ export const initializePayment = async (
     : SUBSCRIPTION_PRICES[tier].monthly;
   
   try {
-    const response = await axios.post(
-      PAYSTACK_API_BASE + INITIALIZE_ENDPOINT,
-      {
-        email,
-        amount,
-        metadata: {
-          subscription_tier: tier,
-          subscription_period: period,
-          ...metadata
-        },
-        callback_url: `${window.location.origin}/payment/callback`,
-        plan: SUBSCRIPTION_PLAN_IDS[tier]
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_PUBLIC_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    // For demo purposes, return a mock response
+    const reference = `ref_${Math.floor(Math.random() * 1000000000)}_${Date.now()}`;
+    console.log(`Mock payment initialized for ${tier} (${period}) - ${amount}`);
     
     return {
-      authorizationUrl: response.data.data.authorization_url,
-      reference: response.data.data.reference
+      authorizationUrl: `https://checkout.paystack.com/demo/${reference}`,
+      reference
     };
   } catch (error) {
     console.error('Error initializing payment:', error);
@@ -212,32 +196,54 @@ export const initializePaystackInline = (
   onSuccess: (reference: string) => void,
   onCancel: () => void
 ): void => {
-  // @ts-ignore - Paystack is loaded via script tag
-  const paystack = window.PaystackPop;
+  // Check if Paystack is loaded
+  const paystack = typeof window !== 'undefined' ? window.PaystackPop : null;
   if (!paystack) {
-    console.error('Paystack not loaded');
+    console.warn('Paystack not loaded, falling back to redirect method');
+    // Fall back to redirect method
+    initializePayment('user@example.com', 'pro', 'monthly')
+      .then(({ authorizationUrl }) => {
+        window.open(authorizationUrl, '_blank');
+      })
+      .catch(console.error);
     return;
   }
   
-  const handler = paystack.setup({
-    key: PAYSTACK_PUBLIC_KEY,
-    email,
-    amount,
-    metadata,
-    callback: (response: { reference: string }) => {
-      onSuccess(response.reference);
-    },
-    onClose: () => {
-      onCancel();
-    }
-  });
-  
-  handler.openIframe();
+  // Set up Paystack handler
+  try {
+    const handler = paystack.setup({
+      key: PAYSTACK_PUBLIC_KEY,
+      email,
+      amount,
+      metadata,
+      callback: (response: { reference: string }) => {
+        onSuccess(response.reference);
+      },
+      onClose: () => {
+        onCancel();
+      }
+    });
+    
+    handler.openIframe();
+  } catch (error) {
+    console.error('Error setting up Paystack:', error);
+    alert('There was an error setting up the payment. Please try again later.');
+  }
 };
 
 export default {
   initializePayment,
-  verifyTransaction,
+  verifyTransaction: async (reference: string) => {
+    // Mock implementation
+    return {
+      status: true,
+      data: {
+        reference,
+        amount: 1000,
+        status: 'success'
+      }
+    };
+  },
   getSubscriptionDetails,
   formatPrice,
   calculateYearlySavings,
