@@ -1,47 +1,77 @@
-/**
- * Theme Provider
- *
- * This component provides theme context to the application.
- * It uses next-themes to handle theme switching and persistence.
- */
 
-import { createContext, useContext, useEffect, useState } from "react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
-import { type ThemeProviderProps } from "next-themes/dist/types"
+import { createContext, useContext, useEffect, useState } from "react";
 
-export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  const [mounted, setMounted] = useState(false)
+type Theme = "dark" | "light" | "system";
 
-  // Only render the theme provider after the component has mounted
-  // This prevents hydration mismatch errors
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+  storageKey?: string;
+  attribute?: string;
+  enableSystem?: boolean;
+};
+
+type ThemeProviderState = {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+};
+
+const initialState: ThemeProviderState = {
+  theme: "system",
+  setTheme: () => null,
+};
+
+const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+
+export function ThemeProvider({
+  children,
+  defaultTheme = "system",
+  storageKey = "ui-theme",
+  attribute = "data-theme",
+  enableSystem = true,
+  ...props
+}: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+  );
+
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    const root = window.document.documentElement;
 
-  if (!mounted) {
-    return <>{children}</>
-  }
+    root.classList.remove("light", "dark");
 
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+    if (theme === "system" && enableSystem) {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+      root.classList.add(systemTheme);
+      root.setAttribute(attribute, systemTheme);
+    } else {
+      root.classList.add(theme);
+      root.setAttribute(attribute, theme);
+    }
+  }, [theme, attribute, enableSystem]);
+
+  const value = {
+    theme,
+    setTheme: (theme: Theme) => {
+      localStorage.setItem(storageKey, theme);
+      setTheme(theme);
+    },
+  };
+
+  return (
+    <ThemeProviderContext.Provider {...props} value={value}>
+      {children}
+    </ThemeProviderContext.Provider>
+  );
 }
 
-// Create a context for theme
-type ThemeContextType = {
-  theme: string | undefined
-  setTheme: (theme: string) => void
-}
+export const useTheme = () => {
+  const context = useContext(ThemeProviderContext);
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+  if (context === undefined)
+    throw new Error("useTheme must be used within a ThemeProvider");
 
-// Create a hook to use the theme context
-export function useTheme() {
-  const context = useContext(ThemeContext)
-  
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider")
-  }
-  
-  return context
-}
-
-export default ThemeProvider
+  return context;
+};
