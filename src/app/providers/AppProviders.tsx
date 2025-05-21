@@ -22,6 +22,9 @@ import { FeatureAccessProvider } from '@/context/FeatureAccessContext';
 import RetryQueueBanner from '@/components/ui/retry-queue-banner';
 import { SyncBanner } from '@/components/ui/sync-banner';
 import { OfflineModeIndicator } from '@/components/ui/offline-mode-indicator';
+import { ThemeProvider } from '@/components/theme-provider';
+import { SyncProvider } from '@/context/SyncProvider';
+import { RetryQueueProvider } from '@/context/RetryQueueProvider';
 
 // Loading component for suspense
 const Loading = () => (
@@ -81,23 +84,29 @@ export function AppProviders({
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <UserPreferencesProvider>
-            <Toaster />
-            <Sonner />
-            <SkipToContent />
-            <UserProvider>
-              <PlanProvider>
-                <FeatureAccessProvider>
-                  <OfflineSyncProvider>
-                    {children}
-                    <RetryQueueBanner />
-                    <SyncBanner />
-                    <OfflineModeIndicator position="bottom" />
-                  </OfflineSyncProvider>
-                </FeatureAccessProvider>
-              </PlanProvider>
-            </UserProvider>
-          </UserPreferencesProvider>
+          <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+            <UserPreferencesProvider>
+              <Toaster />
+              <Sonner />
+              <SkipToContent />
+              <UserProvider>
+                <PlanProvider>
+                  <FeatureAccessProvider>
+                    <RetryQueueProvider>
+                      <SyncProvider>
+                        <OfflineSyncProvider>
+                          {children}
+                          <RetryQueueBanner />
+                          <SyncBanner />
+                          <OfflineModeIndicator position="bottom" />
+                        </OfflineSyncProvider>
+                      </SyncProvider>
+                    </RetryQueueProvider>
+                  </FeatureAccessProvider>
+                </PlanProvider>
+              </UserProvider>
+            </UserPreferencesProvider>
+          </ThemeProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </GlobalErrorBoundary>
