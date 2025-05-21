@@ -1,3 +1,4 @@
+
 /**
  * SyncBanner Component
  * 
@@ -9,7 +10,7 @@
  */
 
 import React from 'react';
-import { useSync } from '@/context/SyncContext';
+import { useSync } from '@/context/SyncProvider';
 import { SyncIndicator } from '@/components/ui/sync-indicator';
 import { cn } from '@/lib/utils';
 
