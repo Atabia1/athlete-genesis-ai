@@ -1,3 +1,4 @@
+
 /**
  * Owner Settings Component
  *
@@ -17,7 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Shield, Key, AlertTriangle, CheckCircle2, Tag, CreditCard } from 'lucide-react';
+import { Shield, AlertTriangle, CheckCircle2, Tag, CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -50,10 +51,13 @@ const OwnerSettings = () => {
       setError(null);
       setSuccess(false);
 
-      // Update the user's profile in Supabase
+      // Update the user's profile in Supabase using a custom field
+      // Note: We're using user_type as the field to mark the owner since is_owner doesn't exist
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ isOwner: true })
+        .update({ 
+          user_type: 'owner' // Using user_type field instead of is_owner
+        })
         .eq('id', user.id);
 
       if (updateError) {
@@ -87,10 +91,12 @@ const OwnerSettings = () => {
       setError(null);
       setSuccess(false);
 
-      // Update the user's profile in Supabase
+      // Update the user's profile in Supabase using user_type
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ isOwner: false })
+        .update({ 
+          user_type: 'individual' // Reset to individual type
+        })
         .eq('id', user.id);
 
       if (updateError) {

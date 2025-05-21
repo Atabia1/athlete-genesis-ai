@@ -2,19 +2,17 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Utensils, ChevronDown, ChevronUp, Coffee, Sun, Sunset } from 'lucide-react';
-import { usePlan } from '@/context/PlanContext';
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
+import { MealPlan } from './types/mealPlan';
 
-const MealPlanDisplay = () => {
-  const { mealPlan } = usePlan();
+const MealPlanDisplay = ({ mealPlan }: { mealPlan: MealPlan }) => {
   const { isOnline } = useNetworkStatus();
   const [expandedMeal, setExpandedMeal] = useState<string | null>("Breakfast");
 
-  if (!mealPlan) {
+  if (!mealPlan || !mealPlan.meals) {
     return (
       <Card className="border-athleteGreen-200 shadow-sm">
         <CardHeader className="pb-2">
@@ -70,26 +68,26 @@ const MealPlanDisplay = () => {
 
           <TabsContent value="mealPlan" className="mt-4">
             <div className="space-y-4">
-              {mealPlan.mealPlan.map((meal: any) => {
-                const MealIcon = getMealIcon(meal.meal);
+              {mealPlan.meals.map((meal) => {
+                const MealIcon = getMealIcon(meal.type);
 
                 return (
-                  <div key={meal.meal} className="border rounded-lg overflow-hidden">
+                  <div key={meal.type} className="border rounded-lg overflow-hidden">
                     <div
                       className="flex justify-between items-center p-4 cursor-pointer bg-gray-50"
-                      onClick={() => toggleMeal(meal.meal)}
+                      onClick={() => toggleMeal(meal.type)}
                     >
                       <div className="flex items-center">
                         <div className="bg-athleteGreen-100 p-2 rounded-full mr-3">
                           <MealIcon className="h-4 w-4 text-athleteGreen-600" />
                         </div>
                         <div>
-                          <h3 className="font-medium">{meal.meal}</h3>
+                          <h3 className="font-medium">{meal.type}</h3>
                           <p className="text-xs text-gray-500">{meal.time}</p>
                         </div>
                       </div>
                       <div>
-                        {expandedMeal === meal.meal ? (
+                        {expandedMeal === meal.type ? (
                           <ChevronUp className="h-5 w-5 text-gray-400" />
                         ) : (
                           <ChevronDown className="h-5 w-5 text-gray-400" />
@@ -97,43 +95,33 @@ const MealPlanDisplay = () => {
                       </div>
                     </div>
 
-                    {expandedMeal === meal.meal && (
+                    {expandedMeal === meal.type && (
                       <div className="p-4 border-t">
-                        <h4 className="text-sm font-medium text-gray-500 mb-3">Options</h4>
+                        <h4 className="text-sm font-medium text-gray-500 mb-3">Items</h4>
                         <div className="space-y-4">
-                          {meal.options.map((option: any, index: number) => (
+                          {meal.items.map((item, index) => (
                             <div key={index} className="border rounded-md p-3">
-                              <h5 className="font-medium mb-2">{option.name}</h5>
-
-                              <div className="mt-2">
-                                <h6 className="text-xs font-medium text-gray-500 mb-1">Ingredients:</h6>
-                                <div className="flex flex-wrap gap-1 mb-3">
-                                  {option.ingredients.map((ingredient: string, i: number) => (
-                                    <Badge key={i} variant="outline" className="bg-gray-50">
-                                      {ingredient}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
+                              <h5 className="font-medium mb-2">{item.name}</h5>
 
                               <div className="grid grid-cols-4 gap-2 text-center mt-3">
                                 <div className="bg-gray-50 rounded p-2">
                                   <p className="text-xs text-gray-500">Calories</p>
-                                  <p className="font-medium">{option.macros.calories}</p>
+                                  <p className="font-medium">{item.calories}</p>
                                 </div>
                                 <div className="bg-blue-50 rounded p-2">
                                   <p className="text-xs text-gray-500">Protein</p>
-                                  <p className="font-medium">{option.macros.protein}</p>
+                                  <p className="font-medium">{item.protein}g</p>
                                 </div>
                                 <div className="bg-green-50 rounded p-2">
                                   <p className="text-xs text-gray-500">Carbs</p>
-                                  <p className="font-medium">{option.macros.carbs}</p>
+                                  <p className="font-medium">{item.carbs}g</p>
                                 </div>
                                 <div className="bg-yellow-50 rounded p-2">
                                   <p className="text-xs text-gray-500">Fats</p>
-                                  <p className="font-medium">{option.macros.fats}</p>
+                                  <p className="font-medium">{item.fat}g</p>
                                 </div>
                               </div>
+                              <p className="text-sm text-gray-600 mt-2">Serving: {item.serving}</p>
                             </div>
                           ))}
                         </div>
@@ -157,15 +145,15 @@ const MealPlanDisplay = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-blue-50 rounded-lg p-3 text-center">
                     <p className="text-xs text-gray-500 mb-1">Protein</p>
-                    <p className="font-bold text-blue-700">{mealPlan.macroBreakdown.protein}</p>
+                    <p className="font-bold text-blue-700">{mealPlan.macroBreakdown.protein}g</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-3 text-center">
                     <p className="text-xs text-gray-500 mb-1">Carbs</p>
-                    <p className="font-bold text-green-700">{mealPlan.macroBreakdown.carbs}</p>
+                    <p className="font-bold text-green-700">{mealPlan.macroBreakdown.carbs}g</p>
                   </div>
                   <div className="bg-yellow-50 rounded-lg p-3 text-center">
                     <p className="text-xs text-gray-500 mb-1">Fats</p>
-                    <p className="font-bold text-yellow-700">{mealPlan.macroBreakdown.fats}</p>
+                    <p className="font-bold text-yellow-700">{mealPlan.macroBreakdown.fat}g</p>
                   </div>
                 </div>
               </div>
@@ -175,10 +163,12 @@ const MealPlanDisplay = () => {
                 <p className="text-sm text-gray-700">{mealPlan.hydrationGuidelines}</p>
               </div>
 
-              <div>
-                <h3 className="font-medium mb-2">Supplement Recommendations</h3>
-                <p className="text-sm text-gray-700">{mealPlan.supplementRecommendations}</p>
-              </div>
+              {mealPlan.supplementRecommendations && (
+                <div>
+                  <h3 className="font-medium mb-2">Supplement Recommendations</h3>
+                  <p className="text-sm text-gray-700">{mealPlan.supplementRecommendations}</p>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

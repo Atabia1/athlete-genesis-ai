@@ -1,94 +1,67 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-/* Import accessibility styles */
-@import './styles/high-contrast.css';
-@import './styles/reduced-motion.css';
-@import './styles/confetti.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --athleteBlue-50: #f0f7ff;
+  --athleteBlue-100: #e0f0ff;
+  --athleteBlue-200: #c0e0ff;
+  --athleteBlue-300: #80c0ff;
+  --athleteBlue-400: #4090ff;
+  --athleteBlue-500: #2070ff;
+  --athleteBlue-600: #1060e0;
+  --athleteBlue-700: #0050c0;
+  --athleteBlue-800: #0040a0;
+  --athleteBlue-900: #003080;
+  --athleteGreen-500: #10b981;
+  --athleteGreen-600: #059669;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 224 76% 48%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 160 75% 40%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 160 75% 40%;
-    --accent-foreground: 0 0% 100%;
-
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 224 76% 48%;
-
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 224 76% 48%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 160 75% 40%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 160 75% 40%;
-    --accent-foreground: 0 0% 100%;
-
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224 76% 48%;
-
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
   }
 }
 
@@ -96,41 +69,28 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-sans;
-  }
-
-  /* Focus styles for keyboard navigation */
-  :focus {
-    outline: none;
-  }
-
-  .focus-visible :focus-visible,
-  .focus-visible [data-focus-visible-added] {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
+    @apply bg-background text-foreground;
   }
 }
 
 @layer components {
-  .hero-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  .athleteBlue-gradient {
+    background: linear-gradient(135deg, var(--athleteBlue-500), var(--athleteBlue-700));
   }
-
-  .feature-card {
-    @apply bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300;
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
   }
+}
 
-  .btn-primary {
-    @apply bg-athleteBlue-600 hover:bg-athleteBlue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-
-  .btn-secondary {
-    @apply bg-athleteGreen-600 hover:bg-athleteGreen-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200;
-  }
-
-  .btn-outline {
-    @apply border border-athleteBlue-600 text-athleteBlue-600 hover:bg-athleteBlue-50 font-medium py-2 px-4 rounded-md transition-colors duration-200;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

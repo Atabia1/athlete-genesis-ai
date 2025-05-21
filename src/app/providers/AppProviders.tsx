@@ -1,3 +1,4 @@
+
 /**
  * AppProviders
  *
@@ -5,7 +6,7 @@
  * It reduces the nesting of providers and improves the readability of the code.
  */
 
-import React, { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
@@ -21,6 +22,8 @@ import { FeatureAccessProvider } from '@/context/FeatureAccessContext';
 import RetryQueueBanner from '@/components/ui/retry-queue-banner';
 import { SyncBanner } from '@/components/ui/sync-banner';
 import { OfflineModeIndicator } from '@/components/ui/offline-mode-indicator';
+import { RetryQueueProvider } from '@/context/RetryQueueProvider';
+import { SyncProvider } from '@/context/SyncProvider';
 
 // Loading component for suspense
 const Loading = () => (
@@ -35,16 +38,20 @@ const defaultQueryClient = new QueryClient({
     queries: {
       retry: 3,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       refetchOnWindowFocus: false,
-      onError: (error) => {
-        console.error('Query error:', error);
+      meta: {
+        errorHandler: (error: Error) => {
+          console.error('Query error:', error);
+        }
       }
     },
     mutations: {
       retry: 1,
-      onError: (error) => {
-        console.error('Mutation error:', error);
+      meta: {
+        errorHandler: (error: Error) => {
+          console.error('Mutation error:', error);
+        }
       }
     }
   }
@@ -84,10 +91,14 @@ export function AppProviders({
               <PlanProvider>
                 <FeatureAccessProvider>
                   <OfflineSyncProvider>
-                    {children}
-                    <RetryQueueBanner />
-                    <SyncBanner />
-                    <OfflineModeIndicator position="bottom" />
+                    <RetryQueueProvider>
+                      <SyncProvider>
+                        {children}
+                        <RetryQueueBanner />
+                        <SyncBanner />
+                        <OfflineModeIndicator position="bottom" />
+                      </SyncProvider>
+                    </RetryQueueProvider>
                   </OfflineSyncProvider>
                 </FeatureAccessProvider>
               </PlanProvider>

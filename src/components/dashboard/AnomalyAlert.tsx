@@ -1,3 +1,4 @@
+
 /**
  * Anomaly Alert Component
  * 
@@ -117,12 +118,12 @@ const getAnomalyIcon = (type: AnomalyType) => {
  * @param severity Anomaly severity
  * @returns Alert variant
  */
-const getAlertVariant = (severity: AnomalySeverity): 'default' | 'destructive' | 'warning' => {
+const getAlertVariant = (severity: AnomalySeverity): "default" | "destructive" => {
   switch (severity) {
     case AnomalySeverity.HIGH:
       return 'destructive';
     case AnomalySeverity.MEDIUM:
-      return 'warning';
+    case AnomalySeverity.LOW:
     default:
       return 'default';
   }

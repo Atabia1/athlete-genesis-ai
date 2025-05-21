@@ -16,7 +16,7 @@ import {
   RetryStatus, 
   RetryOperationType 
 } from '@/services/retry-queue-service';
-import { useRetryQueueContext } from '@/context/RetryQueueContext';
+import { useRetryQueueContext } from '@/context/RetryQueueProvider';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -34,7 +34,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 /**
  * RetryQueueBanner component
@@ -72,8 +72,7 @@ const RetryQueueBanner: React.FC = () => {
   // Handle retry button click
   const handleRetry = async () => {
     if (!isOnline) {
-      toast({
-        title: "You're offline",
+      toast("You're offline", {
         description: "Please connect to the internet to retry operations.",
         variant: "destructive",
       });

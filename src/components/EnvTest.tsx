@@ -1,46 +1,43 @@
-/**
- * Environment Test Component
- *
- * This component displays the current environment configuration.
- * It's used to verify that the environment configuration is working correctly.
- */
 
-import React from 'react';
-import { config } from '@/utils/env-config';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// Simple component to test environment variables
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function EnvTest() {
+const EnvTest = () => {
+  const [envVars, setEnvVars] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const vars: Record<string, string> = {};
+    // Get all environment variables that start with VITE_
+    Object.keys(import.meta.env).forEach(key => {
+      if (key.startsWith('VITE_')) {
+        vars[key] = import.meta.env[key];
+      }
+    });
+    setEnvVars(vars);
+  }, []);
+
   return (
-    <Card className="w-full max-w-3xl mx-auto my-8">
+    <Card>
       <CardHeader>
-        <CardTitle>Environment Configuration</CardTitle>
-        <CardDescription>
-          This component displays the current environment configuration.
-        </CardDescription>
+        <CardTitle>Environment Variables</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="font-semibold">API Base URL:</div>
-          <div>{config.API_BASE_URL}</div>
-          
-          <div className="font-semibold">Environment:</div>
-          <div>{config.NODE_ENV}</div>
-          
-          <div className="font-semibold">Offline Mode Enabled:</div>
-          <div>{config.ENABLE_OFFLINE_MODE ? 'Yes' : 'No'}</div>
-          
-          <div className="font-semibold">Analytics Enabled:</div>
-          <div>{config.ENABLE_ANALYTICS ? 'Yes' : 'No'}</div>
-          
-          <div className="font-semibold">Supabase URL:</div>
-          <div>{config.SUPABASE_URL || 'Not configured'}</div>
-          
-          <div className="font-semibold">Paystack Public Key:</div>
-          <div>{config.PAYSTACK_PUBLIC_KEY ? 'Configured' : 'Not configured'}</div>
+        <div className="grid gap-2">
+          {Object.keys(envVars).length === 0 ? (
+            <p>No environment variables found starting with VITE_</p>
+          ) : (
+            Object.entries(envVars).map(([key, value]) => (
+              <div key={key} className="flex justify-between">
+                <span className="font-medium">{key}:</span>
+                <span>{value}</span>
+              </div>
+            ))
+          )}
         </div>
       </CardContent>
     </Card>
   );
-}
+};
 
 export default EnvTest;

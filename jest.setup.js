@@ -1,5 +1,6 @@
+
 // jest.setup.js
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/extend-expect';
 import { toHaveNoViolations } from 'jest-axe';
 
 // Add jest-axe matchers

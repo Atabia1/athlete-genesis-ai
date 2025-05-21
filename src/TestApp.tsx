@@ -1,11 +1,15 @@
-import React from 'react';
+
+// Using the React namespace when rendering JSX
+import { Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import Index from './pages/Index';
 
 const TestApp = () => {
   return (
-    <div className="p-8 bg-blue-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-blue-800">Test App</h1>
-      <p className="mt-4 text-gray-700">This is a test component to check if React is rendering correctly.</p>
-    </div>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+    </Routes>
   );
 };
 

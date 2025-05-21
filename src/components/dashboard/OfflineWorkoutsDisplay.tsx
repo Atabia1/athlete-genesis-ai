@@ -52,6 +52,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+type ConnectionQuality = 'offline' | 'poor' | 'good' | 'excellent' | 'captive-portal' | 'unknown';
+
 const OfflineWorkoutsDisplay = () => {
   const {
     offlineWorkouts,
@@ -62,11 +64,10 @@ const OfflineWorkoutsDisplay = () => {
     selectOfflineWorkout,
     deleteSavedWorkout,
     deleteMultipleSavedWorkouts,
-    clearAllSavedWorkouts,
-    saveMultipleWorkouts
+    clearAllSavedWorkouts
   } = useOfflineWorkouts();
 
-  const { isOnline, connectionQuality, checkConnection } = useNetworkStatus();
+  const { isOnline, checkNetworkReachability } = useNetworkStatus();
   const { workoutPlan, setWorkoutPlan } = usePlan();
 
   const [expandedDay, setExpandedDay] = useState<string | null>(null);

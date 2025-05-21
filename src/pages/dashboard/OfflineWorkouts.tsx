@@ -1,3 +1,4 @@
+
 /**
  * OfflineWorkouts: Page for managing and accessing offline workouts
  *
@@ -12,14 +13,20 @@
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import OfflineWorkoutsDisplay from "@/components/dashboard/OfflineWorkoutsDisplay";
-import { useNetworkStatus, ConnectionQuality } from "@/hooks/use-network-status";
+import { useNetworkStatus } from "@/hooks/use-network-status";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { WifiOff, Info, Wifi, WifiLow, Zap, AlertTriangle, RefreshCw, Lock, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
+// Define connection quality type
+type ConnectionQuality = 'offline' | 'poor' | 'good' | 'excellent' | 'captive-portal' | 'unknown';
+
 const OfflineWorkouts = () => {
-  const { isOnline, connectionQuality, checkConnection } = useNetworkStatus();
+  const { isOnline, checkNetworkReachability } = useNetworkStatus();
+  const [connectionQuality, setConnectionQuality] = useState<ConnectionQuality>(
+    isOnline ? 'good' : 'offline'
+  );
 
   /**
    * Get the appropriate alert based on connection quality
@@ -100,7 +107,28 @@ const OfflineWorkouts = () => {
   const handleCheckConnection = async () => {
     setIsChecking(true);
     try {
-      await checkConnection();
+      const result = await checkNetworkReachability();
+      // Update connection quality based on reachability result
+      if (result) {
+        // Simple quality determination based on navigator.connection if available
+        if (navigator.connection) {
+          const conn = navigator.connection as any;
+          if (conn.effectiveType === '4g') {
+            setConnectionQuality('excellent');
+          } else if (conn.effectiveType === '3g') {
+            setConnectionQuality('good');
+          } else {
+            setConnectionQuality('poor');
+          }
+        } else {
+          setConnectionQuality('good');
+        }
+      } else {
+        setConnectionQuality('offline');
+      }
+    } catch (error) {
+      console.error("Error checking connection:", error);
+      setConnectionQuality('unknown');
     } finally {
       setIsChecking(false);
     }

@@ -1,450 +1,259 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Utensils, 
-  Apple, 
-  Coffee, 
-  Droplets, 
-  Egg, 
-  Beef, 
-  Wheat, 
-  TrendingUp, 
-  Calendar, 
-  Clock, 
+  BarChart2,
   Download,
-  Share2,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
+  Share,
   Info
 } from 'lucide-react';
 import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
+  BarChart,
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ComposedChart,
-  Area,
-  ReferenceLine,
-  Scatter
+  ResponsiveContainer, 
+  Legend as RechartsLegend
 } from 'recharts';
-import { Progress } from "@/components/ui/progress";
-
-interface NutritionAnalysisChartProps {
-  /** Optional className for styling */
-  className?: string;
-  /** Time range for data display */
-  timeRange?: 'week' | 'month' | '3months' | 'year';
-  /** Callback when time range changes */
-  onTimeRangeChange?: (range: 'week' | 'month' | '3months' | 'year') => void;
-  /** Whether to enable export functionality */
-  enableExport?: boolean;
-  /** Whether to enable sharing functionality */
-  enableSharing?: boolean;
-}
 
 /**
  * Nutrition Analysis Chart Component
  * 
- * Provides detailed visualization of nutrition data including:
- * - Macronutrient breakdown and trends
- * - Calorie tracking
- * - Meal pattern analysis
- * - Nutrient quality scoring
- * - Hydration tracking
+ * Displays various nutritional data visualizations to help users understand
+ * their nutritional patterns and make informed dietary choices.
  */
-const NutritionAnalysisChart = ({ 
-  className = '',
-  timeRange = 'week',
-  onTimeRangeChange,
-  enableExport = false,
-  enableSharing = false
-}: NutritionAnalysisChartProps) => {
-  const [activeTab, setActiveTab] = useState('macros');
-  const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month' | '3months' | 'year'>(timeRange);
-  const [macroData, setMacroData] = useState<any[]>([]);
-  const [calorieData, setCalorieData] = useState<any[]>([]);
-  const [mealPatternData, setMealPatternData] = useState<any[]>([]);
-  const [nutrientQualityData, setNutrientQualityData] = useState<any[]>([]);
-  const [hydrationData, setHydrationData] = useState<any[]>([]);
-  const [nutritionMetrics, setNutritionMetrics] = useState({
-    calorieAverage: 0,
-    proteinAverage: 0,
-    carbsAverage: 0,
-    fatAverage: 0,
-    waterAverage: 0,
-    nutrientScore: 0
-  });
+const NutritionAnalysisChart = () => {
+  // Define state and other necessary variables
+  const [calorieData, setCalorieData] = useState([]); 
+  const proteinPercentage = 30;
+  const carbsPercentage = 45;
+  const fatPercentage = 25;
   
-  // Handle time range change
-  const handleTimeRangeChange = (range: 'week' | 'month' | '3months' | 'year') => {
-    setSelectedTimeRange(range);
-    if (onTimeRangeChange) {
-      onTimeRangeChange(range);
-    }
-  };
-  
-  // Generate mock data for visualization
-  useEffect(() => {
-    generateNutritionData();
-  }, [selectedTimeRange]);
-  
-  // Generate nutrition data for visualization
-  const generateNutritionData = () => {
-    // In a real app, this would process actual nutrition data
-    // For demo purposes, we'll generate mock data
-    
-    // Determine number of data points based on time range
-    let dataPoints = 7; // week
-    let interval = 'day';
-    
-    if (selectedTimeRange === 'month') {
-      dataPoints = 30;
-      interval = 'day';
-    } else if (selectedTimeRange === '3months') {
-      dataPoints = 12;
-      interval = 'week';
-    } else if (selectedTimeRange === 'year') {
-      dataPoints = 12;
-      interval = 'month';
-    }
-    
-    // Generate macro data
-    const macroTrendData = [];
-    const calorieTrendData = [];
-    const hydrationTrendData = [];
-    
-    // Target values
-    const calorieTarget = 2400;
-    const proteinTarget = 180;
-    const carbsTarget = 240;
-    const fatTarget = 80;
-    const waterTarget = 3.0;
-    
-    // Running totals for averages
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalCarbs = 0;
-    let totalFat = 0;
-    let totalWater = 0;
-    
-    // Generate data points
-    for (let i = 0; i < dataPoints; i++) {
-      // Format label based on interval
-      let label = '';
-      if (interval === 'day') {
-        label = `Day ${i + 1}`;
-      } else if (interval === 'week') {
-        label = `Week ${i + 1}`;
-      } else {
-        label = `Month ${i + 1}`;
-      }
-      
-      // Generate protein data with slight variations
-      const baseProtein = 170 + (Math.random() * 40 - 20);
-      const protein = Math.max(100, Math.min(220, baseProtein));
-      
-      // Generate carbs data with slight variations
-      const baseCarbs = 230 + (Math.random() * 60 - 30);
-      const carbs = Math.max(150, Math.min(300, baseCarbs));
-      
-      // Generate fat data with slight variations
-      const baseFat = 75 + (Math.random() * 20 - 10);
-      const fat = Math.max(50, Math.min(100, baseFat));
-      
-      // Calculate calories
-      const calories = (protein * 4) + (carbs * 4) + (fat * 9);
-      
-      // Generate water intake with slight variations
-      const baseWater = 2.8 + (Math.random() * 0.8 - 0.4);
-      const water = Math.max(1.5, Math.min(4.0, baseWater));
-      
-      // Add to running totals
-      totalCalories += calories;
-      totalProtein += protein;
-      totalCarbs += carbs;
-      totalFat += fat;
-      totalWater += water;
-      
-      // Add to macro data
-      macroTrendData.push({
-        date: label,
-        protein,
-        carbs,
-        fat,
-        proteinTarget,
-        carbsTarget,
-        fatTarget
-      });
-      
-      // Add to calorie data
-      calorieTrendData.push({
-        date: label,
-        calories,
-        target: calorieTarget
-      });
-      
-      // Add to hydration data
-      hydrationTrendData.push({
-        date: label,
-        water,
-        target: waterTarget
-      });
-    }
-    
-    // Calculate averages
-    const calorieAverage = Math.round(totalCalories / dataPoints);
-    const proteinAverage = Math.round(totalProtein / dataPoints);
-    const carbsAverage = Math.round(totalCarbs / dataPoints);
-    const fatAverage = Math.round(totalFat / dataPoints);
-    const waterAverage = parseFloat((totalWater / dataPoints).toFixed(1));
-    
-    // Generate meal pattern data
-    const mealPatternData = [
-      { name: 'Breakfast', value: 25, color: '#3b82f6' },
-      { name: 'Lunch', value: 30, color: '#10b981' },
-      { name: 'Dinner', value: 35, color: '#f59e0b' },
-      { name: 'Snacks', value: 10, color: '#8b5cf6' }
-    ];
-    
-    // Generate nutrient quality data
-    const nutrientQualityData = [
-      { nutrient: 'Protein', score: 85 },
-      { nutrient: 'Fiber', score: 70 },
-      { nutrient: 'Vitamins', score: 75 },
-      { nutrient: 'Minerals', score: 80 },
-      { nutrient: 'Healthy Fats', score: 65 },
-      { nutrient: 'Antioxidants', score: 60 }
-    ];
-    
-    // Set data
-    setMacroData(macroTrendData);
-    setCalorieData(calorieTrendData);
-    setMealPatternData(mealPatternData);
-    setNutrientQualityData(nutrientQualityData);
-    setHydrationData(hydrationTrendData);
-    
-    // Calculate nutrition metrics
-    setNutritionMetrics({
-      calorieAverage,
-      proteinAverage,
-      carbsAverage,
-      fatAverage,
-      waterAverage,
-      nutrientScore: 75
-    });
-  };
-  
-  // Format trend indicator
-  const formatTrend = (value: number) => {
-    if (value > 0) {
-      return (
-        <div className="flex items-center text-green-500">
-          <ArrowUpRight className="h-4 w-4 mr-1" />
-          <span>+{value}%</span>
-        </div>
-      );
-    } else if (value < 0) {
-      return (
-        <div className="flex items-center text-red-500">
-          <ArrowDownRight className="h-4 w-4 mr-1" />
-          <span>{value}%</span>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center text-gray-500">
-          <Minus className="h-4 w-4 mr-1" />
-          <span>0%</span>
-        </div>
-      );
-    }
-  };
-  
-  // Calculate macro percentages
-  const calculateMacroPercentages = () => {
-    const { proteinAverage, carbsAverage, fatAverage } = nutritionMetrics;
-    const totalCalories = (proteinAverage * 4) + (carbsAverage * 4) + (fatAverage * 9);
-    
-    const proteinPercentage = Math.round((proteinAverage * 4 / totalCalories) * 100);
-    const carbsPercentage = Math.round((carbsAverage * 4 / totalCalories) * 100);
-    const fatPercentage = Math.round((fatAverage * 9 / totalCalories) * 100);
-    
-    return { proteinPercentage, carbsPercentage, fatPercentage };
-  };
-  
-  // Handle export
   const handleExport = () => {
-    // In a real app, this would export the data to CSV or PDF
-    console.log('Exporting nutrition data...');
-    alert('Nutrition data exported!');
+    console.log('Export feature not implemented yet');
   };
   
-  // Handle sharing
   const handleShare = () => {
-    // In a real app, this would open a sharing dialog
-    console.log('Sharing nutrition data...');
-    alert('Nutrition data shared!');
+    console.log('Share feature not implemented yet');
   };
-  
-  // Get macro percentages
-  const { proteinPercentage, carbsPercentage, fatPercentage } = calculateMacroPercentages();
-  
-  // Colors for pie chart
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
-  
+
+  // Sample data for macro distribution
+  const macroDistribution = [
+    { name: 'Protein', value: proteinPercentage, color: '#3b82f6' },
+    { name: 'Carbohydrates', value: carbsPercentage, color: '#10b981' },
+    { name: 'Fat', value: fatPercentage, color: '#f59e0b' }
+  ];
+
+  // Sample data for daily calorie intake
+  const dailyCalorieData = [
+    { name: 'Mon', calories: 2100 },
+    { name: 'Tue', calories: 2300 },
+    { name: 'Wed', calories: 1950 },
+    { name: 'Thu', calories: 2200 },
+    { name: 'Fri', calories: 2400 },
+    { name: 'Sat', calories: 2050 },
+    { name: 'Sun', calories: 1850 }
+  ];
+
+  // Sample data for macronutrient breakdown
+  const macroData = [
+    { name: 'Mon', protein: 120, carbs: 220, fat: 65 },
+    { name: 'Tue', protein: 135, carbs: 240, fat: 72 },
+    { name: 'Wed', protein: 115, carbs: 180, fat: 62 },
+    { name: 'Thu', protein: 125, carbs: 220, fat: 70 },
+    { name: 'Fri', protein: 140, carbs: 250, fat: 75 },
+    { name: 'Sat', protein: 110, carbs: 190, fat: 60 },
+    { name: 'Sun', protein: 100, carbs: 170, fat: 55 }
+  ];
+
+  // Chart colors
+  const chartColors = {
+    protein: '#3b82f6',
+    carbs: '#10b981',
+    fat: '#f59e0b',
+    calories: '#8b5cf6'
+  };
+
   return (
-    <Card className={`overflow-hidden ${className}`}>
-      <CardHeader className="bg-slate-50 dark:bg-slate-800">
-        <div className="flex justify-between items-center">
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Utensils className="h-5 w-5 mr-2 text-green-600" />
-            <CardTitle className="text-xl">Nutrition Analysis</CardTitle>
+            <Utensils className="h-5 w-5 mr-2 text-primary" />
+            <CardTitle>Nutrition Analysis</CardTitle>
           </div>
-          <div className="flex space-x-1">
-            <Button 
-              variant={selectedTimeRange === 'week' ? 'secondary' : 'ghost'} 
-              size="sm"
-              onClick={() => handleTimeRangeChange('week')}
-            >
-              Week
+          <div className="flex space-x-2">
+            <Button size="sm" variant="outline" onClick={handleExport}>
+              <Download className="h-4 w-4 mr-1" />
+              Export
             </Button>
-            <Button 
-              variant={selectedTimeRange === 'month' ? 'secondary' : 'ghost'} 
-              size="sm"
-              onClick={() => handleTimeRangeChange('month')}
-            >
-              Month
-            </Button>
-            <Button 
-              variant={selectedTimeRange === '3months' ? 'secondary' : 'ghost'} 
-              size="sm"
-              onClick={() => handleTimeRangeChange('3months')}
-            >
-              3M
-            </Button>
-            <Button 
-              variant={selectedTimeRange === 'year' ? 'secondary' : 'ghost'} 
-              size="sm"
-              onClick={() => handleTimeRangeChange('year')}
-            >
-              Year
+            <Button size="sm" variant="outline" onClick={handleShare}>
+              <Share className="h-4 w-4 mr-1" />
+              Share
             </Button>
           </div>
         </div>
         <CardDescription>
-          Track your nutrition metrics and dietary patterns
+          Analyze your nutritional patterns and macronutrient balance
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-            <TabsTrigger 
-              value="macros" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Macros
-            </TabsTrigger>
-            <TabsTrigger 
-              value="calories" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Calories
-            </TabsTrigger>
-            <TabsTrigger 
-              value="meals" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Meal Patterns
-            </TabsTrigger>
-            <TabsTrigger 
-              value="quality" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Nutrient Quality
-            </TabsTrigger>
-            <TabsTrigger 
-              value="hydration" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Hydration
-            </TabsTrigger>
+      <CardContent>
+        <Tabs defaultValue="calories" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="calories">Calories</TabsTrigger>
+            <TabsTrigger value="macros">Macronutrients</TabsTrigger>
+            <TabsTrigger value="distribution">Distribution</TabsTrigger>
           </TabsList>
-          
-          {/* Macros Tab */}
-          <TabsContent value="macros" className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-                <div className="flex items-center mb-1">
-                  <Egg className="h-4 w-4 mr-1 text-blue-500" />
-                  <div className="text-sm text-gray-500">Protein</div>
-                </div>
-                <div className="text-2xl font-bold">{nutritionMetrics.proteinAverage}g</div>
-                <div className="text-xs text-gray-500 mt-1">{proteinPercentage}% of total calories</div>
-                <Progress value={(nutritionMetrics.proteinAverage / 180) * 100} className="h-1.5 mt-2" />
-              </div>
-              
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-                <div className="flex items-center mb-1">
-                  <Wheat className="h-4 w-4 mr-1 text-green-500" />
-                  <div className="text-sm text-gray-500">Carbs</div>
-                </div>
-                <div className="text-2xl font-bold">{nutritionMetrics.carbsAverage}g</div>
-                <div className="text-xs text-gray-500 mt-1">{carbsPercentage}% of total calories</div>
-                <Progress value={(nutritionMetrics.carbsAverage / 240) * 100} className="h-1.5 mt-2" />
-              </div>
-              
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-                <div className="flex items-center mb-1">
-                  <Beef className="h-4 w-4 mr-1 text-amber-500" />
-                  <div className="text-sm text-gray-500">Fat</div>
-                </div>
-                <div className="text-2xl font-bold">{nutritionMetrics.fatAverage}g</div>
-                <div className="text-xs text-gray-500 mt-1">{fatPercentage}% of total calories</div>
-                <Progress value={(nutritionMetrics.fatAverage / 80) * 100} className="h-1.5 mt-2" />
-              </div>
-            </div>
-            
-            <div className="h-[300px] mb-6">
+
+          <TabsContent value="calories" className="space-y-4 pt-4">
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={macroData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
+                <BarChart data={dailyCalorieData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`${value}g`, '']} />
-                  <Legend />
-                  <Bar dataKey="protein" name="Protein" fill="#3b82f6" />
-                  <Bar dataKey="carbs" name="Carbs" fill="#10b981" />
-                  <Bar dataKey="fat" name="Fat" fill="#f59e0b" />
+                  <Tooltip 
+                    formatter={(value) => [`${value} kcal`, 'Calories']}
+                    contentStyle={{ 
+                      backgroundColor: 'white',
+                      borderRadius: '0.375rem',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }}
+                  />
+                  {/* Use correct typing for Bar component */}
+                  {BarChart && 
+                    <BarChart.Bar
+                      dataKey="calories"
+                      fill={chartColors.calories}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  }
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-medium text-sm">Daily Average</h3>
+                  <p className="text-2xl font-bold">2,121 kcal</p>
+                </div>
+                <div>
+                  <h3 className="font-medium text-sm">Target</h3>
+                  <p className="text-2xl font-bold">2,200 kcal</p>
+                </div>
+                <div>
+                  <h3 className="font-medium text-sm">Weekly Total</h3>
+                  <p className="text-2xl font-bold">14,850 kcal</p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="macros" className="space-y-4 pt-4">
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={macroData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value, name) => [`${value}g`, name.charAt(0).toUpperCase() + name.slice(1)]}
+                    contentStyle={{ 
+                      backgroundColor: 'white',
+                      borderRadius: '0.375rem',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }}
+                  />
+                  <RechartsLegend />
+                  {/* Use correct typing for Bar components */}
+                  {BarChart && (
+                    <>
+                      <BarChart.Bar dataKey="protein" stackId="a" fill={chartColors.protein} name="Protein" />
+                      <BarChart.Bar dataKey="carbs" stackId="a" fill={chartColors.carbs} name="Carbs" />
+                      <BarChart.Bar dataKey="fat" stackId="a" fill={chartColors.fat} name="Fat" />
+                    </>
+                  )}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div className="text-center">
+                  <div className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1"></div>
+                  <h3 className="font-medium text-sm inline">Protein</h3>
+                  <p className="text-xl font-bold">121g</p>
+                </div>
+                <div className="text-center">
+                  <div className="inline-block w-3 h-3 rounded-full bg-green-500 mr-1"></div>
+                  <h3 className="font-medium text-sm inline">Carbs</h3>
+                  <p className="text-xl font-bold">210g</p>
+                </div>
+                <div className="text-center">
+                  <div className="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-1"></div>
+                  <h3 className="font-medium text-sm inline">Fat</h3>
+                  <p className="text-xl font-bold">65g</p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="distribution" className="space-y-4 pt-4">
+            <div className="flex justify-center items-center h-80">
+              <div className="w-full max-w-md">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <span>Protein: {proteinPercentage}%</span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Target: 30%</span>
+                  </div>
+                </div>
+                <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500" style={{ width: `${proteinPercentage}%` }}></div>
+                </div>
+
+                <div className="flex justify-between items-center mb-2 mt-6">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span>Carbs: {carbsPercentage}%</span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Target: 45%</span>
+                  </div>
+                </div>
+                <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-green-500" style={{ width: `${carbsPercentage}%` }}></div>
+                </div>
+
+                <div className="flex justify-between items-center mb-2 mt-6">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                    <span>Fat: {fatPercentage}%</span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Target: 25%</span>
+                  </div>
+                </div>
+                <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-yellow-500" style={{ width: `${fatPercentage}%` }}></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-lg">
               <div className="flex items-start">
                 <Info className="h-5 w-5 mr-2 text-blue-500 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Macronutrient Balance</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Your current macronutrient distribution is {proteinPercentage}% protein, {carbsPercentage}% carbs, and {fatPercentage}% fat. 
-                    This is close to the recommended distribution for your goals. Consider slightly increasing protein intake for optimal muscle recovery.
+                  <h3 className="font-medium">Macro Distribution</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Your current macronutrient ratio is {proteinPercentage}/{carbsPercentage}/{fatPercentage} (protein/carbs/fat), which is aligned with your fitness goals.
                   </p>
                 </div>
               </div>
@@ -452,24 +261,6 @@ const NutritionAnalysisChart = ({
           </TabsContent>
         </Tabs>
       </CardContent>
-      {(enableExport || enableSharing) && (
-        <CardFooter className="bg-slate-50 dark:bg-slate-800 border-t p-4">
-          <div className="flex justify-end space-x-2 w-full">
-            {enableExport && (
-              <Button variant="outline" size="sm" onClick={handleExport}>
-                <Download className="h-4 w-4 mr-1" />
-                Export
-              </Button>
-            )}
-            {enableSharing && (
-              <Button variant="outline" size="sm" onClick={handleShare}>
-                <Share2 className="h-4 w-4 mr-1" />
-                Share
-              </Button>
-            )}
-          </div>
-        </CardFooter>
-      )}
     </Card>
   );
 };
