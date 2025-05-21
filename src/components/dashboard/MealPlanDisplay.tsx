@@ -6,8 +6,6 @@ import { Utensils, ChevronDown, ChevronUp, Coffee, Sun, Sunset } from 'lucide-re
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
-import { Button } from "@/components/ui/button"; 
-import { Badge } from "@/components/ui/badge";
 import { MealPlan } from './types/mealPlan';
 
 const MealPlanDisplay = ({ mealPlan }: { mealPlan: MealPlan }) => {

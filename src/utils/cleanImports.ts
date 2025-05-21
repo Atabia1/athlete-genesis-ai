@@ -47,9 +47,9 @@ const unusedImportsMap: ComponentImportMap = {
     "Badge", "Apple", "Coffee", "Droplets", "TrendingUp", "Calendar", "Clock",
     "LineChart", "Line", "PieChart", "Pie", "Cell", "RadarChart", "PolarGrid",
     "PolarAngleAxis", "PolarRadiusAxis", "Radar", "ComposedChart", "Area",
-    "ReferenceLine", "Scatter"
+    "ReferenceLine", "Scatter", "ChevronRight"
   ],
-  "MealPlanDisplay": ["Badge"],
+  "MealPlanDisplay": ["Button", "Badge"],
   "OfflineWorkoutsDisplay": ["RefreshCw"]
 };
 
@@ -59,10 +59,11 @@ const unusedVariablesMap: ComponentVariableMap = {
   "EliteDashboard": ["user", "index", "entry"],
   "GoalTrackingCard": ["progressData", "categoryData", "formatDate"],
   "HealthDataVisualization": ["formatTime", "entry"],
+  "HealthInsights": [],
   "NutritionAnalysisChart": [
-    "calorieData", "mealPatternData", "nutrientQualityData", "hydrationData"
+    "calorieData", "setCalorieData", "macroDistribution", "mealPatternData", "nutrientQualityData", "hydrationData"
   ],
-  "OfflineWorkoutsDisplay": ["saveMultipleWorkouts", "checkConnection"]
+  "OfflineWorkoutsDisplay": ["saveMultipleWorkouts"]
 };
 
 // Missing variables to add (for fixing type errors)
