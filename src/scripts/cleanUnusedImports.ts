@@ -1,15 +1,15 @@
-
 /**
  * Clean Unused Imports Script
  * 
- * This script can be used to automate the cleaning of unused imports in the project.
+ * This script automates the cleaning of unused imports and variables in dashboard components.
+ * It fixes TypeScript errors and removes unnecessary code.
  * 
  * Usage:
  * 1. Run the script: npx ts-node src/scripts/cleanUnusedImports.ts
- * 2. Follow the prompts to clean specific files or all files at once
+ * 2. Follow the prompts or use arguments to clean specific files
  */
 
-import { getUnusedImportInfo, getUnusedVariables } from '../utils/cleanImports';
+import { cleanComponentContent } from '../utils/cleanImports';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -27,78 +27,97 @@ const filesToClean = [
   'HealthInsights.tsx',
   'HealthTrends.tsx',
   'NutritionAnalysisChart.tsx',
+  'MealPlanDisplay.tsx',
+  'OfflineWorkoutsDisplay.tsx'
 ];
 
 /**
  * Clean a single file
  */
-const cleanFile = (filename: string) => {
+const cleanFile = (filename: string): boolean => {
   const filePath = path.join(dashboardComponentsPath, filename);
   
   if (!fs.existsSync(filePath)) {
     console.error(`File not found: ${filePath}`);
-    return;
+    return false;
   }
-  
-  let content = fs.readFileSync(filePath, 'utf-8');
   
   // Get component name without extension
   const componentName = path.basename(filename, path.extname(filename));
   
-  // Get unused imports and variables
-  const unusedImports = getUnusedImportInfo(componentName);
-  const unusedVariables = getUnusedVariables(componentName);
+  try {
+    console.log(`Cleaning ${filename}...`);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    
+    // Clean the content using our utility
+    const cleanedContent = cleanComponentContent(content, componentName);
+    
+    // Only write if changes were made
+    if (cleanedContent !== content) {
+      fs.writeFileSync(filePath, cleanedContent, 'utf-8');
+      console.log(`✅ Cleaned ${filename}`);
+      return true;
+    } else {
+      console.log(`ℹ️ No changes needed for ${filename}`);
+      return true;
+    }
+  } catch (error) {
+    console.error(`❌ Error cleaning ${filename}:`, error);
+    return false;
+  }
+};
+
+/**
+ * Clean a specific file based on TypeScript errors
+ */
+const cleanComponentWithErrors = (componentName: string): boolean => {
+  const filename = `${componentName}.tsx`;
+  return cleanFile(filename);
+};
+
+/**
+ * Run the cleaning on all files with known issues
+ */
+const cleanAllFiles = (): boolean => {
+  let allSuccess = true;
+  let successCount = 0;
   
-  if (unusedImports.length === 0 && unusedVariables.length === 0) {
-    console.log(`No unused imports or variables found in ${filename}`);
-    return;
+  console.log('Starting cleanup of unused imports and variables for all files...');
+  
+  for (const file of filesToClean) {
+    const success = cleanFile(file);
+    if (success) successCount++;
+    allSuccess = allSuccess && success;
   }
   
-  console.log(`Cleaning ${filename}...`);
+  console.log(`\nCleanup complete! Successfully cleaned ${successCount}/${filesToClean.length} files.`);
   
-  // Remove unused imports
-  for (const importName of unusedImports) {
-    const importRegex = new RegExp(`\\b${importName}\\b\\s*,?|,\\s*\\b${importName}\\b`, 'g');
-    content = content.replace(importRegex, '');
-    
-    // Clean up double commas or trailing commas in import statements
-    content = content.replace(/,\s*,/g, ',');
-    content = content.replace(/,\s*}/g, ' }');
-    content = content.replace(/,\s*from/g, ' from');
-    
-    console.log(`Removed import: ${importName}`);
+  if (successCount < filesToClean.length) {
+    console.log(`⚠️ ${filesToClean.length - successCount} files could not be cleaned. Check the errors above.`);
   }
   
-  // Remove unused variables
-  for (const variableName of unusedVariables) {
-    const variableRegex = new RegExp(`\\bconst\\s+${variableName}\\b[^;]*;|\\b${variableName}\\b\\s*,?|,\\s*\\b${variableName}\\b`, 'g');
-    content = content.replace(variableRegex, '');
-    
-    // Clean up double commas or trailing commas in variable declarations
-    content = content.replace(/,\s*,/g, ',');
-    content = content.replace(/,\s*}/g, ' }');
-    content = content.replace(/,\s*=\s*/g, ' = ');
-    
-    console.log(`Removed variable: ${variableName}`);
-  }
-  
-  // Write back the cleaned file
-  fs.writeFileSync(filePath, content, 'utf-8');
-  console.log(`Finished cleaning ${filename}`);
+  return allSuccess;
 };
 
 /**
  * Main function
  */
 const main = () => {
-  console.log('Starting cleanup of unused imports and variables...');
+  console.log('=== TypeScript Unused Imports and Variables Cleaner ===');
   
-  for (const file of filesToClean) {
-    cleanFile(file);
+  const args = process.argv.slice(2);
+  
+  if (args.length > 0) {
+    // If component name was provided, clean just that component
+    const componentName = args[0];
+    cleanComponentWithErrors(componentName);
+  } else {
+    // Otherwise clean all files
+    cleanAllFiles();
   }
   
-  console.log('\nCleanup complete!');
-  console.log('Note: This script performs basic cleanup. Manual review may still be needed for complex cases.');
+  console.log('\nNote: Manual review is recommended to ensure all changes are correct.');
+  console.log('Run ESLint or TypeScript compilation to verify all issues are resolved.');
 };
 
 // Run the script

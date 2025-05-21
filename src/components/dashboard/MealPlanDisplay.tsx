@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -5,13 +6,15 @@ import { Utensils, ChevronDown, ChevronUp, Coffee, Sun, Sunset } from 'lucide-re
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
+import { Button } from "@/components/ui/button"; 
+import { Badge } from "@/components/ui/badge";
 import { MealPlan } from './types/mealPlan';
 
 const MealPlanDisplay = ({ mealPlan }: { mealPlan: MealPlan }) => {
   const { isOnline } = useNetworkStatus();
   const [expandedMeal, setExpandedMeal] = useState<string | null>("Breakfast");
 
-  if (!mealPlan) {
+  if (!mealPlan || !mealPlan.meals) {
     return (
       <Card className="border-athleteGreen-200 shadow-sm">
         <CardHeader className="pb-2">
