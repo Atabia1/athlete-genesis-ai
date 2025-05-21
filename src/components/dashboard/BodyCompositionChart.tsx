@@ -1,522 +1,241 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { 
-  Scale, 
-  Ruler, 
-  Activity, 
-  ArrowRight,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Info,
-  BarChart3,
-  LineChart,
-  PieChart
-} from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Scale, ChevronRight } from 'lucide-react';
 import { 
   LineChart as RechartsLineChart, 
   Line, 
-  BarChart as RechartsBarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  Legend,
-  ComposedChart,
-  Area
+  ResponsiveContainer, 
+  Legend, 
+  PieChart, 
+  Pie, 
+  Cell 
 } from 'recharts';
-import { HealthData } from '@/integrations/health-apps/types';
 
-interface BodyCompositionChartProps {
-  /** Health data to visualize */
-  healthData: HealthData;
-  /** Optional className for styling */
-  className?: string;
-}
+// Sample body composition data
+const bodyCompData = [
+  { date: '2023-01-01', weight: 82, bodyFat: 24, muscle: 58, water: 55 },
+  { date: '2023-02-01', weight: 81, bodyFat: 23, muscle: 58.5, water: 55.5 },
+  { date: '2023-03-01', weight: 80, bodyFat: 22.5, muscle: 59, water: 56 },
+  { date: '2023-04-01', weight: 78.5, bodyFat: 21.5, muscle: 59.5, water: 56.5 },
+  { date: '2023-05-01', weight: 77, bodyFat: 20, muscle: 60, water: 57 },
+  { date: '2023-06-01', weight: 76.5, bodyFat: 19, muscle: 60.5, water: 57.5 }
+];
+
+// Sample body composition breakdown for current date
+const currentBreakdown = [
+  { name: 'Body Fat', value: 19, color: '#f97316' },
+  { name: 'Muscle Mass', value: 45, color: '#3b82f6' },
+  { name: 'Water', value: 31, color: '#06b6d4' },
+  { name: 'Other', value: 5, color: '#94a3b8' }
+];
+
+// Define dataset for the charts
+const datasets = [
+  { label: 'Weight (kg)', key: 'weight', color: '#6366f1' },
+  { label: 'Body Fat (%)', key: 'bodyFat', color: '#f97316' },
+  { label: 'Muscle Mass (kg)', key: 'muscle', color: '#3b82f6' },
+  { label: 'Water (%)', key: 'water', color: '#06b6d4' }
+];
 
 /**
- * Body Composition Chart Component
+ * BodyCompositionChart Component
  * 
- * Visualizes body composition metrics including weight, BMI, and body fat percentage
+ * Visualizes user's body composition data over time
  */
-const BodyCompositionChart = ({ healthData, className = '' }: BodyCompositionChartProps) => {
-  const [activeTab, setActiveTab] = useState('weight');
-  const [timeRange, setTimeRange] = useState<'month' | '3months' | 'year'>('month');
-  const [weightData, setWeightData] = useState<any[]>([]);
-  const [bmiData, setBmiData] = useState<any[]>([]);
-  const [bodyFatData, setBodyFatData] = useState<any[]>([]);
-  const [ setBodyCompositionData] = useState<any[]>([]);
+const BodyCompositionChart = ({ className = '' }) => {
+  const [timeRange, setTimeRange] = useState('6months');
+  const [activeTab, setActiveTab] = useState('trends');
   
-  useEffect(() => {
-    // Generate body composition data for visualization
-    generateBodyCompositionData();
-  }, [healthData, timeRange]);
-  
-  // Generate mock body composition data for visualization
-  const generateBodyCompositionData = () => {
-    // Get date ranges based on selected time range
-    const today = new Date();
-    let days = 30;
-    let interval = 1;
-    
-    if (timeRange === '3months') {
-      days = 90;
-      interval = 3;
-    } else if (timeRange === 'year') {
-      days = 365;
-      interval = 7;
-    }
-    
-    // Generate weight data
-    const weightHistory = [];
-    const bmiHistory = [];
-    const bodyFatHistory = [];
-    const compositionHistory = [];
-    
-    // Current weight from health data or default
-    const currentWeight = healthData.weight || 70;
-    
-    // Calculate BMI if height is available
-    const height = healthData.height || 170;
-    const heightInMeters = height / 100;
-    const currentBmi = currentWeight / (heightInMeters * heightInMeters);
-    
-    // Generate random body fat percentage (for demo)
-    const currentBodyFat = Math.floor(Math.random() * 10) + 15; // 15-25%
-    
-    // Generate data points
-    for (let i = Math.floor(days / interval); i >= 0; i--) {
-      const date = new Date();
-      date.setDate(today.getDate() - (i * interval));
-      
-      // Format date label
-      let dateLabel = '';
-      if (timeRange === 'month') {
-        dateLabel = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-      } else if (timeRange === '3months') {
-        dateLabel = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-      } else {
-        dateLabel = date.toLocaleDateString([], { month: 'short' });
-      }
-      
-      // Generate weight with small variations
-      // Use actual data for the most recent point if available
-      let weight = 0;
-      let bmi = 0;
-      let bodyFat = 0;
-      
-      if (i === 0 && healthData.weight) {
-        weight = healthData.weight;
-        bmi = currentBmi;
-        bodyFat = currentBodyFat;
-      } else {
-        // Generate random variations for historical data
-        const variation = (Math.random() * 2 - 1) * 0.5; // -0.5 to +0.5 kg
-        weight = currentWeight - (i * 0.1) + variation; // Slight downward trend
-        
-        // Calculate BMI
-        bmi = weight / (heightInMeters * heightInMeters);
-        
-        // Generate body fat with small variations
-        const fatVariation = (Math.random() * 2 - 1) * 0.3; // -0.3 to +0.3 %
-        bodyFat = currentBodyFat - (i * 0.05) + fatVariation; // Slight downward trend
-      }
-      
-      // Add to weight data
-      weightHistory.push({
-        date: dateLabel,
-        weight: parseFloat(weight.toFixed(1)) });
-      
-      // Add to BMI data
-      bmiHistory.push({
-        date: dateLabel,
-        bmi: parseFloat(bmi.toFixed(1)) });
-      
-      // Add to body fat data
-      bodyFatHistory.push({
-        date: dateLabel,
-        bodyFat: parseFloat(bodyFat.toFixed(1)) });
-      
-      // Add to composition data (only for selected points to avoid overcrowding)
-      if (i % 3 === 0 || i === 0) {
-        compositionHistory.push({
-          date: dateLabel,
-          weight: parseFloat(weight.toFixed(1)),
-          bmi: parseFloat(bmi.toFixed(1)),
-          bodyFat: parseFloat(bodyFat.toFixed(1)) });
-      }
-    }
-    
-    setWeightData(weightHistory);
-    setBmiData(bmiHistory);
-    setBodyFatData(bodyFatHistory);
-    setBodyCompositionData(compositionHistory);
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
   
-  // Calculate BMI category
-  const getBmiCategory = (bmi: number) => {
-    if (bmi < 18.5) return { category: 'Underweight', color: 'text-blue-500' };
-    if (bmi < 25) return { category: 'Normal', color: 'text-green-500' };
-    if (bmi < 30) return { category: 'Overweight', color: 'text-yellow-500' };
-    return { category: 'Obese', color: 'text-red-500' };
+  // Get starting values for comparisons
+  const startValues = bodyCompData[0];
+  const currentValues = bodyCompData[bodyCompData.length - 1];
+  
+  // Calculate changes
+  const calculateChange = (metric: keyof typeof startValues) => {
+    const change = currentValues[metric] - startValues[metric];
+    return {
+      value: Math.abs(change).toFixed(1),
+      direction: change >= 0 ? 'increase' : 'decrease'
+    };
   };
-  
-  // Calculate current BMI
-  const calculateBmi = () => {
-    if (!healthData.weight || !healthData.height) return null;
-    
-    const heightInMeters = healthData.height / 100;
-    return healthData.weight / (heightInMeters * heightInMeters);
-  };
-  
-  // Get current BMI
-  const currentBmi = calculateBmi();
-  
-  // Get BMI category
-  const bmiCategory = currentBmi ? getBmiCategory(currentBmi) : null;
-  
-  // Generate body composition pie chart data
-  const generateBodyCompositionPieData = () => {
-    // This would normally use real data, but for demo we'll use estimates
-    const bodyFatPercentage = 20; // Example value
-    const muscleMassPercentage = 45; // Example value
-    const waterPercentage = 30; // Example value
-    const bonePercentage = 5; // Example value
-    
-    return [
-      { name: 'Body Fat', value: bodyFatPercentage, color: '#FF8A65' },
-      { name: 'Muscle Mass', value: muscleMassPercentage, color: '#5C6BC0' },
-      { name: 'Water', value: waterPercentage, color: '#4FC3F7' },
-      { name: 'Bone', value: bonePercentage, color: '#AED581' },
-    ];
-  };
-  
-  const bodyCompositionPieData = generateBodyCompositionPieData();
-  
-  // Colors for pie chart
-  
-  
+
   return (
-    <Card className={`overflow-hidden ${className}`}>
-      <CardHeader className="bg-slate-50 dark:bg-slate-800">
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Scale className="mr-2 h-5 w-5 text-blue-500" />
+          Body Composition
+        </CardTitle>
+        <CardDescription>Track changes in your body composition over time</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-xl flex items-center">
-            <Scale className="h-5 w-5 mr-2 text-blue-500" />
-            Body Composition
-          </CardTitle>
-          <div className="flex space-x-1">
-            <Button 
-              variant={timeRange === 'month' ? 'secondary' : 'ghost'} 
-              size="sm"
-              onClick={() => setTimeRange('month')}
-            >
-              1M
-            </Button>
-            <Button 
-              variant={timeRange === '3months' ? 'secondary' : 'ghost'} 
-              size="sm"
-              onClick={() => setTimeRange('3months')}
-            >
-              3M
-            </Button>
-            <Button 
-              variant={timeRange === 'year' ? 'secondary' : 'ghost'} 
-              size="sm"
-              onClick={() => setTimeRange('year')}
-            >
-              1Y
-            </Button>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="trends">Trends</TabsTrigger>
+              <TabsTrigger value="composition">Composition</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          <div className="ml-4">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Time Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3months">3 Months</SelectItem>
+                <SelectItem value="6months">6 Months</SelectItem>
+                <SelectItem value="1year">1 Year</SelectItem>
+                <SelectItem value="all">All Time</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <CardDescription>
-          Track your weight, BMI, and body composition metrics
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-            <TabsTrigger 
-              value="weight" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Weight
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bmi" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              BMI
-            </TabsTrigger>
-            <TabsTrigger 
-              value="composition" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Composition
-            </TabsTrigger>
-          </TabsList>
+        
+        <TabsContent value="trends" className="space-y-8">
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsLineChart data={bodyCompData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(date) => formatDate(date)}
+                />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    const dataset = datasets.find(d => d.key === name);
+                    return [value, dataset?.label || name];
+                  }}
+                  labelFormatter={(label) => formatDate(String(label))}
+                />
+                <Legend />
+                {datasets.map(dataset => (
+                  <Line 
+                    key={dataset.key}
+                    type="monotone"
+                    dataKey={dataset.key}
+                    stroke={dataset.color}
+                    name={dataset.key}
+                    activeDot={{ r: 8 }}
+                  />
+                ))}
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
           
-          {/* Weight Tab */}
-          <TabsContent value="weight" className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Current Weight</div>
-                <div className="text-2xl font-bold">
-                  {healthData.weight ? `${healthData.weight.toFixed(1)} kg` : 'N/A'}
+          <div className="grid grid-cols-2 gap-4">
+            {datasets.map(dataset => {
+              const change = calculateChange(dataset.key as keyof typeof startValues);
+              return (
+                <div key={dataset.key} className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500">{dataset.label}</div>
+                  <div className="flex justify-between items-end">
+                    <div className="text-2xl font-bold">
+                      {currentValues[dataset.key as keyof typeof currentValues]}
+                    </div>
+                    <div className={`flex items-center text-sm ${
+                      dataset.key === 'weight' || dataset.key === 'bodyFat' 
+                        ? change.direction === 'decrease' ? 'text-green-600' : 'text-red-600'
+                        : change.direction === 'increase' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      <ChevronRight className={`h-4 w-4 ${
+                        change.direction === 'increase' ? 'rotate-90' : '-rotate-90'
+                      }`} />
+                      {change.value}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center mt-1">
-                  <TrendingDown className="h-4 w-4 mr-1 text-green-500" />
-                  <span className="text-xs text-green-500">
-                    0.5 kg less than last month
-                  </span>
-                </div>
-              </div>
-              
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Height</div>
-                <div className="text-2xl font-bold">
-                  {healthData.height ? `${healthData.height} cm` : 'N/A'}
-                </div>
-                <div className="flex items-center mt-1">
-                  <Ruler className="h-4 w-4 mr-1 text-gray-400" />
-                  <span className="text-xs text-gray-500">
-                    {healthData.height ? `${(healthData.height / 100).toFixed(2)} m` : 'N/A'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">BMI</div>
-                <div className="text-2xl font-bold">
-                  {currentBmi ? currentBmi.toFixed(1) : 'N/A'}
-                </div>
-                <div className="flex items-center mt-1">
-                  {bmiCategory && (
-                    <>
-                      <div className={`h-2 w-2 rounded-full ${bmiCategory.color.replace('text-', 'bg-')} mr-1`}></div>
-                      <span className={`text-xs ${bmiCategory.color}`}>
-                        {bmiCategory.category}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            <div className="h-[250px] mb-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsLineChart data={weightData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis domain={['dataMin - 2', 'dataMax + 2']} />
-                  <Tooltip formatter={(value) => [`${value} kg`, 'Weight']} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="weight" 
-                    stroke="#3F51B5" 
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </RechartsLineChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-              <div className="flex items-start">
-                <Info className="h-5 w-5 mr-2 text-blue-500 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Weight Insight</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {currentBmi && currentBmi < 18.5 && 
-                      "You're currently underweight. Consider consulting with a nutritionist to develop a healthy weight gain plan."}
-                    {currentBmi && currentBmi >= 18.5 && currentBmi < 25 && 
-                      "Your weight is in the healthy range. Keep maintaining your balanced diet and exercise routine."}
-                    {currentBmi && currentBmi >= 25 && currentBmi < 30 && 
-                      "You're slightly overweight. Consider increasing physical activity and reviewing your nutrition."}
-                    {currentBmi && currentBmi >= 30 && 
-                      "Your BMI indicates obesity. Consider consulting with a healthcare provider for a personalized weight management plan."}
-                    {!currentBmi && 
-                      "Add your weight and height measurements to get personalized insights."}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* BMI Tab */}
-          <TabsContent value="bmi" className="p-6">
-            <div className="h-[250px] mb-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsLineChart data={bmiData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis domain={['dataMin - 1', 'dataMax + 1']} />
-                  <Tooltip formatter={(value) => [`${value}`, 'BMI']} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="bmi" 
-                    stroke="#FF5722" 
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                  {/* BMI category reference lines */}
-                  <Line 
-                    type="monotone" 
-                    dataKey={() => 18.5} 
-                    stroke="#2196F3" 
-                    strokeDasharray="3 3"
-                    dot={false}
-                    name="Underweight Threshold"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey={() => 25} 
-                    stroke="#4CAF50" 
-                    strokeDasharray="3 3"
-                    dot={false}
-                    name="Overweight Threshold"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey={() => 30} 
-                    stroke="#F44336" 
-                    strokeDasharray="3 3"
-                    dot={false}
-                    name="Obesity Threshold"
-                  />
-                </RechartsLineChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="grid grid-cols-4 gap-2 mb-6">
-              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg text-center">
-                <div className="text-xs text-blue-500 font-medium">Underweight</div>
-                <div className="text-xs text-gray-500">&lt; 18.5</div>
-              </div>
-              
-              <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg text-center">
-                <div className="text-xs text-green-500 font-medium">Normal</div>
-                <div className="text-xs text-gray-500">18.5 - 24.9</div>
-              </div>
-              
-              <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-lg text-center">
-                <div className="text-xs text-yellow-500 font-medium">Overweight</div>
-                <div className="text-xs text-gray-500">25 - 29.9</div>
-              </div>
-              
-              <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg text-center">
-                <div className="text-xs text-red-500 font-medium">Obese</div>
-                <div className="text-xs text-gray-500">&gt; 30</div>
+              );
+            })}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="composition" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div className="text-sm font-medium mb-2">Current Composition</div>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={currentBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {currentBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => [`${value}%`, 'Percentage']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
             
-            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
-              <h4 className="text-sm font-medium mb-2">What is BMI?</h4>
-              <p className="text-xs text-gray-500">
-                Body Mass Index (BMI) is a value derived from the mass (weight) and height of a person. 
-                It is defined as the body mass divided by the square of the body height, and is expressed in units of kg/m².
-                While BMI is a useful screening tool, it does not directly measure body fat or account for muscle mass.
-              </p>
-            </div>
-          </TabsContent>
-          
-          {/* Composition Tab */}
-          <TabsContent value="composition" className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <h4 className="text-sm font-medium mb-3">Body Composition Breakdown</h4>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPieChart>
-                      <Pie
-                        data={bodyCompositionPieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {bodyCompositionPieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value}%`, '']} />
-                      <Legend />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                </div>
+            <div>
+              <div className="text-sm font-medium mb-2">Detailed Breakdown</div>
+              
+              <div className="space-y-4">
+                {currentBreakdown.map(item => (
+                  <div key={item.name} className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-sm">{item.name}</span>
+                      <span className="text-sm font-medium">{item.value}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div 
+                        className="h-2.5 rounded-full" 
+                        style={{ 
+                          width: `${item.value}%`,
+                          backgroundColor: item.color
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
               </div>
               
-              <div>
-                <h4 className="text-sm font-medium mb-3">Body Fat Percentage</h4>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={bodyFatData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={['dataMin - 2', 'dataMax + 2']} />
-                      <Tooltip formatter={(value) => [`${value}%`, 'Body Fat']} />
-                      <Line 
-                        type="monotone" 
-                        dataKey="bodyFat" 
-                        stroke="#FF8A65" 
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 5 }}
-                      />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
+              <div className="mt-6 p-3 bg-blue-50 text-blue-800 rounded-lg">
+                <div className="text-sm font-medium">Smart Analysis</div>
+                <ul className="mt-1 space-y-1 text-xs">
+                  <li className="flex">
+                    <span className="mr-1">•</span>
+                    <span>Your muscle mass has increased by 2.5kg in the last 6 months</span>
+                  </li>
+                  <li className="flex">
+                    <span className="mr-1">•</span>
+                    <span>Body fat percentage has decreased by 5% since tracking began</span>
+                  </li>
+                  <li className="flex">
+                    <span className="mr-1">•</span>
+                    <span>Water percentage is within the optimal range</span>
+                  </li>
+                </ul>
               </div>
             </div>
-            
-            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg mb-4">
-              <h4 className="text-sm font-medium mb-2">Body Composition Metrics</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                <div>
-                  <div className="text-xs text-gray-500">Body Fat</div>
-                  <div className="text-lg font-bold">20%</div>
-                </div>
-                
-                <div>
-                  <div className="text-xs text-gray-500">Muscle Mass</div>
-                  <div className="text-lg font-bold">45%</div>
-                </div>
-                
-                <div>
-                  <div className="text-xs text-gray-500">Water</div>
-                  <div className="text-lg font-bold">30%</div>
-                </div>
-                
-                <div>
-                  <div className="text-xs text-gray-500">Bone Mass</div>
-                  <div className="text-lg font-bold">5%</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-              <div className="flex items-start">
-                <Info className="h-5 w-5 mr-2 text-blue-500 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Composition Insight</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Body composition is more important than weight alone. Focus on maintaining or increasing muscle mass while reducing body fat for optimal health.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </TabsContent>
       </CardContent>
     </Card>
   );

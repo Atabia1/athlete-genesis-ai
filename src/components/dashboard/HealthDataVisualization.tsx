@@ -6,13 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { 
-  Clock,
-  Calendar, 
   Heart, 
   Activity, 
-  BarChart3, 
-  LineChart, 
-  PieChart,
   Footprints,
   Scale,
   Moon
@@ -411,7 +406,7 @@ const HealthDataVisualization = ({ className = '' }) => {
       case 'heartRate':
         return (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+            <RechartsLineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis />
@@ -426,7 +421,7 @@ const HealthDataVisualization = ({ className = '' }) => {
                   activeDot={{ r: 8 }} 
                 />
               ))}
-            </LineChart>
+            </RechartsLineChart>
           </ResponsiveContainer>
         );
         
@@ -472,7 +467,7 @@ const HealthDataVisualization = ({ className = '' }) => {
       case 'weight':
         return (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+            <RechartsLineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis yAxisId="left" domain={['dataMin - 1', 'dataMax + 1']} />
@@ -493,7 +488,7 @@ const HealthDataVisualization = ({ className = '' }) => {
                 yAxisId="right"
                 activeDot={{ r: 8 }} 
               />
-            </LineChart>
+            </RechartsLineChart>
           </ResponsiveContainer>
         );
         

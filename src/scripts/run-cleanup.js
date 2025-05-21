@@ -106,13 +106,55 @@ function fixSpecificIssues() {
     console.error('Failed to fix GoalTrackingCard:', err);
   }
   
-  // Fix HealthDataVisualization.tsx arithmetic operation
+  // Fix HealthDataVisualization.tsx arithmetic operation and syntax issues
   const healthDataVisFile = path.resolve(__dirname, '../components/dashboard/HealthDataVisualization.tsx');
   try {
     let content = fs.readFileSync(healthDataVisFile, 'utf-8');
+    
+    // Fix the sleep efficiency calculation
     content = content.replace(/(sleepEfficiency \* 100)/g, 'Number(sleepEfficiency) * 100');
+    
+    // Fix syntax errors around line 342-367 (string literals and other syntax issues)
+    // This is a more complex fix that needs targeted replacement
+    
+    // Look for the case 'heartRate': section with syntax issues
+    const heartRateCaseRegex = /case ['"]heartRate['"]:([\s\S]*?)break;/;
+    const sleepCaseRegex = /case ['"]sleep['"]:([\s\S]*?)break;/;
+    const weightCaseRegex = /case ['"]weight['"]:([\s\S]*?)break;/;
+    
+    // Replace the heartRate case with corrected syntax
+    content = content.replace(heartRateCaseRegex, `case 'heartRate':
+          return {
+            ...baseData,
+            resting: day.heartRate.resting,
+            average: day.heartRate.average,
+            max: day.heartRate.max,
+          };
+          break;`);
+    
+    // Replace the sleep case with corrected syntax
+    content = content.replace(sleepCaseRegex, `case 'sleep':
+          return {
+            ...baseData,
+            hours: formatSleepHours(day.sleep.duration),
+            deep: formatSleepHours(day.sleep.deepSleep),
+            rem: formatSleepHours(day.sleep.remSleep),
+            light: formatSleepHours(day.sleep.lightSleep),
+            quality: day.sleep.quality,
+          };
+          break;`);
+    
+    // Replace the weight case with corrected syntax
+    content = content.replace(weightCaseRegex, `case 'weight':
+          return {
+            ...baseData,
+            weight: day.weight,
+            bodyFat: day.bodyFat,
+          };
+          break;`);
+    
     fs.writeFileSync(healthDataVisFile, content, 'utf-8');
-    console.log('✅ Fixed HealthDataVisualization arithmetic operation');
+    console.log('✅ Fixed HealthDataVisualization issues');
   } catch (err) {
     console.error('Failed to fix HealthDataVisualization:', err);
   }
