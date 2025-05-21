@@ -1,3 +1,4 @@
+
 /**
  * Dashboard Layout Component
  * 
@@ -16,12 +17,8 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { TopNavigation } from '@/components/layout/TopNavigation';
 import { SyncBanner } from '@/components/ui/sync-banner';
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
-  User,
-  Download,
-  Zap
-} from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { User, Download, Zap } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -29,11 +26,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -41,23 +36,26 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import { DashboardCustomizer } from '@/components/dashboard/DashboardCustomizer';
 import { createMockNavigate } from '@/utils/test-utils';
 import { createMockParams } from '@/utils/test-utils';
 import { createMockSearchParams } from '@/utils/test-utils';
 
+// Define feature types that match what the useFeatureAccess hook expects
+type Feature = 'coach_management' | 'team_management' | 'ai_features' | 'export_data';
+
 /**
  * Dashboard Layout Component
  */
 const DashboardLayout: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const { hasFeatureAccess } = useFeatureAccess();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const [isCustomizerDialogOpen, setIsCustomizerDialogOpen] = useState(false);
 
   // Determine if the current route is a coach or team route
   const isCoachRoute = location.pathname.startsWith('/dashboard/coach');
@@ -72,9 +70,9 @@ const DashboardLayout: React.FC = () => {
     if (process.env.NODE_ENV === 'test') {
       // Mock useParams based on the current route
       if (isCoachRoute && coachId) {
-        createMockParams({ coachId: `coach-${coachId}` });
+        createMockParams({ coachId });
       } else if (isTeamRoute && teamId) {
-        createMockParams({ teamId: `team-${teamId}` });
+        createMockParams({ teamId });
       }
 
       // Mock useNavigate
@@ -89,11 +87,11 @@ const DashboardLayout: React.FC = () => {
   const handleNavigation = (path: string) => {
     if (path.startsWith('/dashboard/coach/') || path.startsWith('/dashboard/team/')) {
       // Extract the ID from the path
-      const id = path.split('/').pop();
+      const id = path.split('/').pop() || '';
 
       if (path.startsWith('/dashboard/coach/')) {
         // Navigate to the coach dashboard if the user has access
-        if (hasFeatureAccess('coach_management')) {
+        if (hasFeatureAccess('coach_management' as Feature)) {
           navigate(`/dashboard/coach/${id}`);
         } else {
           // Redirect to the subscription page if the user doesn't have access
@@ -101,7 +99,7 @@ const DashboardLayout: React.FC = () => {
         }
       } else if (path.startsWith('/dashboard/team/')) {
         // Navigate to the team dashboard if the user has access
-        if (hasFeatureAccess('team_management')) {
+        if (hasFeatureAccess('team_management' as Feature)) {
           navigate(`/dashboard/team/${id}`);
         } else {
           // Redirect to the subscription page if the user doesn't have access
@@ -154,7 +152,7 @@ const DashboardLayout: React.FC = () => {
                 <span>Subscription</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()}>
+              <DropdownMenuItem onClick={() => logout()}>
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -172,7 +170,7 @@ const DashboardLayout: React.FC = () => {
         <footer className="border-t p-4 text-center text-sm text-gray-500">
           <div className="container">
             <p>&copy; {new Date().getFullYear()} Athlete Genesis AI. All rights reserved.</p>
-            <Dialog>
+            <Dialog open={isCustomizerDialogOpen} onOpenChange={setIsCustomizerDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="link">Customize Dashboard</Button>
               </DialogTrigger>
@@ -183,7 +181,16 @@ const DashboardLayout: React.FC = () => {
                     Make changes to your dashboard here. Click save when you're done.
                   </DialogDescription>
                 </DialogHeader>
-                <DashboardCustomizer />
+                <DashboardCustomizer 
+                  open={isCustomizerDialogOpen} 
+                  onOpenChange={setIsCustomizerDialogOpen}
+                  layout="default"
+                  onLayoutChange={() => {}}
+                  theme="light"
+                  onThemeChange={() => {}}
+                  widgets={[]}
+                  onWidgetsChange={() => {}}
+                />
               </DialogContent>
             </Dialog>
           </div>

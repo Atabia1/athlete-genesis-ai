@@ -1,16 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import {
   Activity,
-  BarChart2,
-  Dumbbell,
   ArrowRight,
-  Heart,
   Zap,
-  Trophy,
   Calendar,
   Clock,
   TrendingUp,
-  LineChart,
   Flame,
   Brain,
   MessageSquare,
@@ -43,6 +38,7 @@ import {
   Radar,
   Legend
 } from 'recharts';
+import { useAuth } from '@/hooks/use-auth';
 import WelcomeWidget from "./widgets/WelcomeWidget";
 import WorkoutWidget from "./widgets/WorkoutWidget";
 
@@ -52,13 +48,6 @@ import WorkoutWidget from "./widgets/WorkoutWidget";
  * This component displays an advanced dashboard for users with the Elite AI
  * subscription. It provides AI-powered insights, real-time analytics,
  * and premium features exclusive to the Elite tier.
- *
- * Features:
- * - AI-powered performance insights
- * - Advanced analytics with predictive modeling
- * - Real-time recovery optimization
- * - Personalized training recommendations
- * - Elite-exclusive visualizations and metrics
  */
 
 // Mock data for performance metrics
@@ -136,6 +125,8 @@ const upcomingWorkouts = [
 ];
 
 const EliteDashboard = () => {
+  const { user } = useAuth();
+  
   return (
     <div className="space-y-6">
       {/* Top row widgets */}
@@ -210,7 +201,7 @@ const EliteDashboard = () => {
                 </CardTitle>
                 <CardDescription>Your performance with AI-powered predictions</CardDescription>
               </div>
-              <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 flex items-center">
+              <Badge className="bg-purple-100 text-purple-800 flex items-center">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Elite Analytics
               </Badge>
