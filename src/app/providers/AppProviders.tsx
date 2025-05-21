@@ -1,3 +1,4 @@
+
 /**
  * AppProviders
  *
@@ -21,8 +22,6 @@ import { FeatureAccessProvider } from '@/context/FeatureAccessContext';
 import RetryQueueBanner from '@/components/ui/retry-queue-banner';
 import { SyncBanner } from '@/components/ui/sync-banner';
 import { OfflineModeIndicator } from '@/components/ui/offline-mode-indicator';
-import { RetryQueueProvider } from '@/context/RetryQueueProvider';
-import { SyncProvider } from '@/context/SyncProvider';
 
 // Loading component for suspense
 const Loading = () => (
@@ -90,14 +89,10 @@ export function AppProviders({
               <PlanProvider>
                 <FeatureAccessProvider>
                   <OfflineSyncProvider>
-                    <RetryQueueProvider>
-                      <SyncProvider>
-                        {children}
-                        <RetryQueueBanner />
-                        <SyncBanner />
-                        <OfflineModeIndicator position="bottom" />
-                      </SyncProvider>
-                    </RetryQueueProvider>
+                    {children}
+                    <RetryQueueBanner />
+                    <SyncBanner />
+                    <OfflineModeIndicator position="bottom" />
                   </OfflineSyncProvider>
                 </FeatureAccessProvider>
               </PlanProvider>

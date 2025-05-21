@@ -1,3 +1,4 @@
+
 /**
  * OfflineSyncContext
  * 
@@ -11,16 +12,13 @@
  * to reduce context nesting and improve performance.
  */
 
-import React, { useState, useEffect, useCallback, ReactNode } from 'react';
-import { createStateContext } from '@/shared/utils/context-factory';
+import React, { useState, useEffect, useCallback, ReactNode, createContext, useContext } from 'react';
 import { enhancedDbService } from '@/services/enhanced-indexeddb-service';
 import { toast } from '@/components/ui/use-toast';
 import { WorkoutPlan } from '@/types/workout';
 import { standardizeWorkoutPlan } from '@/utils/workout-normalizer';
 
 // Re-export the workout types for backward compatibility
-export type { Exercise as ExerciseTemplate } from '@/types/workout';
-export type { WorkoutDay as WorkoutDayTemplate } from '@/types/workout';
 export type { WorkoutPlan as WorkoutTemplate } from '@/types/workout';
 
 // Retry operation types
@@ -60,8 +58,8 @@ export enum SyncStatus {
   ERROR = 'error',
 }
 
-// State interface
-interface OfflineSyncState {
+// Define the context state interface
+interface OfflineSyncContextState {
   // Network status
   isOnline: boolean;
   
@@ -78,21 +76,14 @@ interface OfflineSyncState {
   savedWorkouts: WorkoutTemplate[];
   currentOfflineWorkout: WorkoutTemplate | null;
   isLoading: boolean;
-}
-
-// Actions interface
-interface OfflineSyncActions {
-  // Retry queue actions
+  
+  // Actions
   addToQueue: (operation: Omit<RetryOperation, 'id' | 'createdAt' | 'retryCount'>) => void;
   removeFromQueue: (id: string) => void;
   clearQueue: () => void;
   processQueue: () => Promise<void>;
   registerHandler: (type: RetryOperationType, handler: RetryHandler) => void;
-  
-  // Sync actions
   syncNow: () => Promise<void>;
-  
-  // Offline workouts actions
   saveCurrentPlanForOffline: (plan: WorkoutTemplate) => Promise<void>;
   selectOfflineWorkout: (workoutId: string) => void;
   getSavedWorkoutById: (id: string) => WorkoutTemplate | null;
@@ -102,47 +93,8 @@ interface OfflineSyncActions {
   saveMultipleWorkouts: (workouts: WorkoutTemplate[]) => Promise<void>;
 }
 
-// Create the context
-const {
-  Provider,
-  useContext: useOfflineSync,
-  useContextSelector: useOfflineSyncSelector,
-} = createStateContext<OfflineSyncState, OfflineSyncActions>({
-  name: 'OfflineSync',
-  defaultValue: {
-    // Network status
-    isOnline: true,
-    
-    // Retry queue
-    retryQueue: [],
-    isProcessingQueue: false,
-    
-    // Sync status
-    syncStatus: SyncStatus.IDLE,
-    lastSyncTime: null,
-    
-    // Offline workouts
-    offlineWorkouts: [],
-    savedWorkouts: [],
-    currentOfflineWorkout: null,
-    isLoading: true,
-    
-    // Actions (placeholders)
-    addToQueue: () => {},
-    removeFromQueue: () => {},
-    clearQueue: () => {},
-    processQueue: async () => {},
-    registerHandler: () => {},
-    syncNow: async () => {},
-    saveCurrentPlanForOffline: async () => {},
-    selectOfflineWorkout: () => {},
-    getSavedWorkoutById: () => null,
-    deleteSavedWorkout: async () => {},
-    deleteMultipleSavedWorkouts: async () => {},
-    clearAllSavedWorkouts: async () => {},
-    saveMultipleWorkouts: async () => {},
-  },
-});
+// Create the context with proper default values
+const OfflineSyncContext = createContext<OfflineSyncContextState | undefined>(undefined);
 
 /**
  * OfflineSyncProvider component
@@ -243,8 +195,7 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
   // Load workout templates
   const loadWorkoutTemplates = async (): Promise<WorkoutTemplate[]> => {
     // In a real implementation, these could be loaded from a JSON file or API
-    // For now, we'll use the existing templates from OfflineWorkoutsContext
-    // This would be replaced with a proper implementation
+    // For now, we'll return an empty array
     return [];
   };
 
@@ -281,26 +232,6 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
       processQueue();
     }
   }, [isOnline]);
-
-  // Remove operation from retry queue
-  const removeFromQueue = useCallback((id: string) => {
-    setRetryQueue(prev => prev.filter(op => op.id !== id));
-    
-    // Remove from IndexedDB
-    enhancedDbService.delete('retryQueue', id).catch(error => {
-      console.error('Error removing retry operation:', error);
-    });
-  }, []);
-
-  // Clear retry queue
-  const clearQueue = useCallback(() => {
-    setRetryQueue([]);
-    
-    // Clear from IndexedDB
-    enhancedDbService.clear('retryQueue').catch(error => {
-      console.error('Error clearing retry queue:', error);
-    });
-  }, []);
 
   // Process retry queue
   const processQueue = useCallback(async () => {
@@ -404,7 +335,27 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
     } finally {
       setIsProcessingQueue(false);
     }
-  }, [isOnline, isProcessingQueue, retryQueue, handlers, removeFromQueue]);
+  }, [isOnline, isProcessingQueue, retryQueue, handlers]);
+
+  // Remove operation from retry queue
+  const removeFromQueue = useCallback((id: string) => {
+    setRetryQueue(prev => prev.filter(op => op.id !== id));
+    
+    // Remove from IndexedDB
+    enhancedDbService.delete('retryQueue', id).catch(error => {
+      console.error('Error removing retry operation:', error);
+    });
+  }, []);
+
+  // Clear retry queue
+  const clearQueue = useCallback(() => {
+    setRetryQueue([]);
+    
+    // Clear from IndexedDB
+    enhancedDbService.clear('retryQueue').catch(error => {
+      console.error('Error clearing retry queue:', error);
+    });
+  }, []);
 
   // Register handler for retry operations
   const registerHandler = useCallback((type: RetryOperationType, handler: RetryHandler) => {
@@ -646,7 +597,7 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
   }, []);
 
   // Context value
-  const value = {
+  const value: OfflineSyncContextState = {
     // State
     isOnline,
     retryQueue,
@@ -674,51 +625,70 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
     saveMultipleWorkouts,
   };
 
-  return <Provider value={value}>{children}</Provider>;
+  return <OfflineSyncContext.Provider value={value}>{children}</OfflineSyncContext.Provider>;
 }
 
-// Export hooks
-export { useOfflineSync, useOfflineSyncSelector };
+// Export the main hook to access the full context
+export function useOfflineSync(): OfflineSyncContextState {
+  const context = useContext(OfflineSyncContext);
+  
+  if (context === undefined) {
+    throw new Error('useOfflineSync must be used within an OfflineSyncProvider');
+  }
+  
+  return context;
+}
 
-// Selector hooks for specific parts of the context
+// Selector hook for network status
 export function useNetworkStatus() {
-  return useOfflineSyncSelector(state => ({
-    isOnline: state.isOnline,
-  }));
+  const context = useOfflineSync();
+  
+  return {
+    isOnline: context.isOnline,
+  };
 }
 
+// Selector hook for retry queue
 export function useRetryQueue() {
-  return useOfflineSyncSelector(state => ({
-    retryQueue: state.retryQueue,
-    isProcessingQueue: state.isProcessingQueue,
-    addToQueue: state.addToQueue,
-    removeFromQueue: state.removeFromQueue,
-    clearQueue: state.clearQueue,
-    processQueue: state.processQueue,
-    registerHandler: state.registerHandler,
-  }));
+  const context = useOfflineSync();
+  
+  return {
+    retryQueue: context.retryQueue,
+    isProcessingQueue: context.isProcessingQueue,
+    addToQueue: context.addToQueue,
+    removeFromQueue: context.removeFromQueue,
+    clearQueue: context.clearQueue,
+    processQueue: context.processQueue,
+    registerHandler: context.registerHandler,
+  };
 }
 
+// Selector hook for sync status
 export function useSync() {
-  return useOfflineSyncSelector(state => ({
-    syncStatus: state.syncStatus,
-    lastSyncTime: state.lastSyncTime,
-    syncNow: state.syncNow,
-  }));
+  const context = useOfflineSync();
+  
+  return {
+    syncStatus: context.syncStatus,
+    lastSyncTime: context.lastSyncTime,
+    syncNow: context.syncNow,
+  };
 }
 
+// Selector hook for offline workouts
 export function useOfflineWorkouts() {
-  return useOfflineSyncSelector(state => ({
-    offlineWorkouts: state.offlineWorkouts,
-    savedWorkouts: state.savedWorkouts,
-    currentOfflineWorkout: state.currentOfflineWorkout,
-    isLoading: state.isLoading,
-    saveCurrentPlanForOffline: state.saveCurrentPlanForOffline,
-    selectOfflineWorkout: state.selectOfflineWorkout,
-    getSavedWorkoutById: state.getSavedWorkoutById,
-    deleteSavedWorkout: state.deleteSavedWorkout,
-    deleteMultipleSavedWorkouts: state.deleteMultipleSavedWorkouts,
-    clearAllSavedWorkouts: state.clearAllSavedWorkouts,
-    saveMultipleWorkouts: state.saveMultipleWorkouts,
-  }));
+  const context = useOfflineSync();
+  
+  return {
+    offlineWorkouts: context.offlineWorkouts,
+    savedWorkouts: context.savedWorkouts,
+    currentOfflineWorkout: context.currentOfflineWorkout,
+    isLoading: context.isLoading,
+    saveCurrentPlanForOffline: context.saveCurrentPlanForOffline,
+    selectOfflineWorkout: context.selectOfflineWorkout,
+    getSavedWorkoutById: context.getSavedWorkoutById,
+    deleteSavedWorkout: context.deleteSavedWorkout,
+    deleteMultipleSavedWorkouts: context.deleteMultipleSavedWorkouts,
+    clearAllSavedWorkouts: context.clearAllSavedWorkouts,
+    saveMultipleWorkouts: context.saveMultipleWorkouts,
+  };
 }

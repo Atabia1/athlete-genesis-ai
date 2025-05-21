@@ -1,180 +1,119 @@
+
 /**
- * Workout Types: Comprehensive type definitions for workout-related data structures
+ * Workout Types
  * 
- * This file contains TypeScript interfaces and types for all workout-related data,
- * ensuring type safety throughout the application. These types are used by both
- * the plan generation system and the offline storage functionality.
+ * This file defines the types for workout data used throughout the application.
  */
 
-import { ExperienceLevel, FitnessGoal, EquipmentOption } from '@/context/PlanContext';
-
-/**
- * Exercise: Represents a single exercise within a workout
- */
+// Basic exercise type
 export interface Exercise {
+  id: string;
   name: string;
-  sets: string;
-  reps: string;
-  rest: string;
-  notes?: string;
-  weight?: string;
-  tempo?: string;
-  duration?: string;
-  distance?: string;
-  equipment?: string;
-  substitutions?: string[];
+  description?: string;
+  sets?: number;
+  reps?: number;
+  duration?: number;
+  restTime?: number;
   videoUrl?: string;
   imageUrl?: string;
-}
-
-/**
- * Set: Represents a single set of an exercise with tracking data
- */
-export interface ExerciseSet {
-  weight: string;
-  reps: string;
-  rpe: number;
-  completed?: boolean;
   notes?: string;
 }
 
-/**
- * ExerciseLog: Represents logged data for a completed exercise
- */
-export interface ExerciseLog {
-  name: string;
-  sets: ExerciseSet[];
-  notes: string;
-  skipped: boolean;
-}
-
-/**
- * WorkoutDay: Represents a single day in a workout plan
- */
+// Workout day type
 export interface WorkoutDay {
-  day: string;
-  focus: string;
-  duration: string;
-  warmup: string;
+  id: string;
+  name: string;
+  description?: string;
   exercises: Exercise[];
-  cooldown: string;
-  notes?: string;
-  completed?: boolean;
+  dayNumber: number;
+  isRestDay?: boolean;
 }
 
-/**
- * WorkoutPlan: Represents a complete workout plan
- */
+// Workout plan type
 export interface WorkoutPlan {
   id: string;
   name: string;
-  description: string;
-  level: ExperienceLevel;
-  goals: FitnessGoal[];
-  equipment: EquipmentOption[];
-  weeklyPlan: WorkoutDay[];
-  createdAt?: string;
-  updatedAt?: string;
-  sport?: string;
+  description?: string;
+  days: WorkoutDay[];
   author?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  duration?: number;
+  goal?: WorkoutGoal;
+  equipment?: string[];
+  isTemplate?: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  category?: string;
   tags?: string[];
-  estimatedCalories?: number;
-  targetMuscleGroups?: string[];
-  notes?: string;
 }
 
-/**
- * WorkoutSession: Represents a logged workout session
- */
-export interface WorkoutSession {
+// Workout goal enum
+export enum WorkoutGoal {
+  STRENGTH = 'strength',
+  HYPERTROPHY = 'hypertrophy',
+  ENDURANCE = 'endurance',
+  WEIGHT_LOSS = 'weight_loss',
+  GENERAL_FITNESS = 'general_fitness',
+  SPORT_SPECIFIC = 'sport_specific'
+}
+
+// Workout progress type
+export interface WorkoutProgress {
   id: string;
-  date: string;
   workoutPlanId: string;
-  duration: number; // in minutes
-  exercises: ExerciseLog[];
-  notes?: string;
-  rating?: number; // 1-5 rating
-  energyLevel?: number; // 1-10 rating
+  userId: string;
+  currentDay: number;
   completedExercises: string[];
-  createdAt: string;
-  updatedAt?: string;
+  completedDays: string[];
+  startDate: string | Date;
+  lastActive: string | Date;
+  completed: boolean;
+  completionDate?: string | Date;
 }
 
-/**
- * MealPlan: Represents a complete meal plan
- */
-export interface MealPlan {
+// Workout type (individual workout session)
+export interface Workout {
   id: string;
   name: string;
-  description: string;
-  dailyPlans: DailyMealPlan[];
-  calorieTarget: number;
-  macroSplit: {
-    protein: number; // percentage
-    carbs: number; // percentage
-    fat: number; // percentage
-  };
-  createdAt?: string;
-  updatedAt?: string;
+  description?: string;
+  exercises: Exercise[];
+  duration?: number;
+  caloriesBurned?: number;
+  date: string | Date;
+  userId: string;
   notes?: string;
+  rating?: number; // User's rating of the workout (1-5)
+  fromPlanId?: string; // Reference to workout plan if part of one
 }
 
-/**
- * DailyMealPlan: Represents a single day in a meal plan
- */
-export interface DailyMealPlan {
-  day: string;
-  meals: Meal[];
-  totalCalories: number;
-  totalProtein: number; // in grams
-  totalCarbs: number; // in grams
-  totalFat: number; // in grams
-  notes?: string;
-}
-
-/**
- * Meal: Represents a single meal in a daily meal plan
- */
-export interface Meal {
-  name: string;
-  time: string;
-  foods: Food[];
-  totalCalories: number;
-  totalProtein: number; // in grams
-  totalCarbs: number; // in grams
-  totalFat: number; // in grams
-  notes?: string;
-}
-
-/**
- * Food: Represents a single food item in a meal
- */
-export interface Food {
-  name: string;
-  servingSize: string;
-  calories: number;
-  protein: number; // in grams
-  carbs: number; // in grams
-  fat: number; // in grams
-  notes?: string;
-}
-
-/**
- * TrainingPlan: Represents a higher-level training plan that may contain multiple workout plans
- */
-export interface TrainingPlan {
+// Exercise log for tracking individual exercise performance
+export interface ExerciseLog {
   id: string;
-  title: string;
-  description: string;
-  sport?: string;
-  level: ExperienceLevel;
-  duration: string; // e.g., "6 weeks"
-  sessions: number; // sessions per week
-  type: 'individual' | 'team';
-  created: string;
-  updated?: string;
-  assignments?: number;
-  completion?: number;
-  tags?: string[];
-  workoutPlans?: WorkoutPlan[];
+  exerciseId: string;
+  workoutId: string;
+  userId: string;
+  sets: {
+    weight?: number;
+    reps?: number;
+    duration?: number;
+    distance?: number;
+    completed: boolean;
+  }[];
+  date: string | Date;
+  notes?: string;
+  difficulty?: number; // Perceived difficulty (1-10)
+}
+
+// Workout record for historical tracking
+export interface WorkoutRecord {
+  id: string;
+  userId: string;
+  date: string | Date;
+  totalWorkouts: number;
+  totalDuration: number;
+  totalCaloriesBurned: number;
+  longestStreak: number;
+  currentStreak: number;
+  workoutsThisWeek: number;
+  workoutsThisMonth: number;
 }
