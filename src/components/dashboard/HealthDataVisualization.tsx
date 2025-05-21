@@ -366,7 +366,7 @@ const HealthDataVisualization = ({ className = '' }) => {
         // Sleep quality insight
         const latestSleep = getLatestData().sleep;
         const sleepEfficiency = (latestSleep.duration - latestSleep.awake) / latestSleep.duration;
-        insights.push(`Your sleep efficiency is ${Number(sleepEfficiency) * 100}%, with ${latestSleep.deepSleep / latestSleep.duration * 100}% deep sleep.`);
+        insights.push(`Your sleep efficiency is ${Math.round(Number(sleepEfficiency) * 100)}%, with ${Math.round(latestSleep.deepSleep / latestSleep.duration * 100)}% deep sleep.`);
         break;
         
       case 'weight':
