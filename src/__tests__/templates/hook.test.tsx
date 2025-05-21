@@ -1,3 +1,4 @@
+
 /**
  * Hook Test Template
  * 
@@ -6,6 +7,10 @@
  * Replace the example hook and tests with your actual code.
  */
 
+// This is a template file and not meant to be compiled directly
+// Uncomment and modify the following code when implementing actual tests
+
+/*
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useExampleHook } from '../path-to-your-hook';
 
@@ -85,10 +90,13 @@ describe('useExampleHook', () => {
   // Test with context
   it('should work with context providers', () => {
     // Arrange
-    const wrapper = ({ children }) => (
-      <TestContext.Provider value={{ theme: 'dark' }}>
+    interface WrapperProps {
+      children: React.ReactNode;
+    }
+    const wrapper = ({ children }: WrapperProps) => (
+      <ThemeContext.Provider value={{ theme: 'dark' }}>
         {children}
-      </TestContext.Provider>
+      </ThemeContext.Provider>
     );
     
     // Act
@@ -98,3 +106,4 @@ describe('useExampleHook', () => {
     expect(result.current.theme).toBe('dark');
   });
 });
+*/

@@ -1,3 +1,4 @@
+
 /**
  * Unit Test Template
  * 
@@ -5,6 +6,10 @@
  * Replace the example function and tests with your actual code.
  */
 
+// This is a template file and not meant to be compiled directly
+// Uncomment and modify the following code when implementing actual tests
+
+/*
 // Import the function to test
 import { exampleFunction } from '../path-to-your-function';
 
@@ -63,3 +68,4 @@ describe('exampleFunction', () => {
     expect(mockDependency).toHaveBeenCalledTimes(1);
   });
 });
+*/

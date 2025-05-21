@@ -1,3 +1,4 @@
+
 /**
  * Context Provider Test Template
  * 
@@ -5,7 +6,10 @@
  * Replace the example context and tests with your actual code.
  */
 
-import React from 'react';
+// This is a template file and not meant to be compiled directly
+// Uncomment and modify the following code when implementing actual tests
+
+/*
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ExampleProvider, useExampleContext } from '../path-to-your-context';
@@ -143,3 +147,4 @@ describe('ExampleProvider', () => {
     });
   });
 });
+*/

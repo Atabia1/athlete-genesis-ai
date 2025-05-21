@@ -1,3 +1,4 @@
+
 /**
  * Component Test Template
  * 
@@ -6,7 +7,10 @@
  * Replace the example component and tests with your actual code.
  */
 
-import React from 'react';
+// This is a template file and not meant to be compiled directly
+// Uncomment and modify the following code when implementing actual tests
+
+/*
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ExampleComponent } from '../path-to-your-component';
@@ -95,3 +99,4 @@ describe('ExampleComponent', () => {
     expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
   });
 });
+*/

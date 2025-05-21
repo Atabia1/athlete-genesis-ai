@@ -1,3 +1,4 @@
+
 /**
  * Integration Test Template
  * 
@@ -6,7 +7,10 @@
  * Replace the example components and tests with your actual code.
  */
 
-import React from 'react';
+// This is a template file and not meant to be compiled directly
+// Uncomment and modify the following code when implementing actual tests
+
+/*
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { rest } from 'msw';
@@ -181,3 +185,4 @@ describe('Workout Feature Integration', () => {
     Object.defineProperty(navigator, 'onLine', { value: true, writable: true });
   });
 });
+*/

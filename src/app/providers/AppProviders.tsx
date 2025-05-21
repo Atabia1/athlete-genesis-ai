@@ -6,7 +6,7 @@
  * It reduces the nesting of providers and improves the readability of the code.
  */
 
-import React, { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
@@ -40,14 +40,18 @@ const defaultQueryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       refetchOnWindowFocus: false,
-      onError: (error) => {
-        console.error('Query error:', error);
+      meta: {
+        onError: (error: Error) => {
+          console.error('Query error:', error);
+        }
       }
     },
     mutations: {
       retry: 1,
-      onError: (error) => {
-        console.error('Mutation error:', error);
+      meta: {
+        onError: (error: Error) => {
+          console.error('Mutation error:', error);
+        }
       }
     }
   }
