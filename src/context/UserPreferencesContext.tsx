@@ -1,3 +1,4 @@
+
 /**
  * UserPreferencesContext
  * 
@@ -10,7 +11,6 @@
  */
 
 import React, { useState, useEffect, ReactNode } from 'react';
-import { createStateContext } from '@/shared/utils/context-factory';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 // Theme types
@@ -30,10 +30,6 @@ interface UserPreferencesState {
   systemTheme: Theme;
   resolvedTheme: Theme;
   accessibilitySettings: AccessibilitySettings;
-}
-
-// Actions interface
-interface UserPreferencesActions {
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
   updateAccessibilitySetting: (setting: keyof AccessibilitySettings, value: boolean) => void;
@@ -49,23 +45,7 @@ const defaultAccessibilitySettings: AccessibilitySettings = {
 };
 
 // Create the context
-const {
-  Provider,
-  useContext: useUserPreferences,
-  useContextSelector: useUserPreferencesSelector,
-} = createStateContext<UserPreferencesState, UserPreferencesActions>({
-  name: 'UserPreferences',
-  defaultValue: {
-    theme: 'system',
-    systemTheme: 'light',
-    resolvedTheme: 'light',
-    accessibilitySettings: defaultAccessibilitySettings,
-    setTheme: () => {},
-    toggleTheme: () => {},
-    updateAccessibilitySetting: () => {},
-    resetAccessibilitySettings: () => {},
-  },
-});
+const UserPreferencesContext = React.createContext<UserPreferencesState | undefined>(undefined);
 
 /**
  * UserPreferencesProvider component
@@ -188,7 +168,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }): 
   const resolvedTheme = theme === 'system' ? systemTheme : theme;
 
   // Context value
-  const value = {
+  const value: UserPreferencesState = {
     theme,
     systemTheme,
     resolvedTheme,
@@ -199,13 +179,21 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }): 
     resetAccessibilitySettings,
   };
 
-  return <Provider value={value}>{children}</Provider>;
+  return <UserPreferencesContext.Provider value={value}>{children}</UserPreferencesContext.Provider>;
 }
 
-// Export hooks
-export { useUserPreferences, useUserPreferencesSelector };
+// Custom hook to use the context
+export function useUserPreferences(): UserPreferencesState {
+  const context = React.useContext(UserPreferencesContext);
+  
+  if (context === undefined) {
+    throw new Error('useUserPreferences must be used within a UserPreferencesProvider');
+  }
+  
+  return context;
+}
 
-// Selector hooks for specific parts of the context
+// Selector hook for specific theme data
 export function useTheme(): {
   theme: Theme;
   systemTheme: Theme;
@@ -213,23 +201,28 @@ export function useTheme(): {
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 } {
-  return useUserPreferencesSelector(state => ({
-    theme: state.theme,
-    systemTheme: state.systemTheme,
-    resolvedTheme: state.resolvedTheme,
-    setTheme: state.setTheme,
-    toggleTheme: state.toggleTheme,
-  }));
+  const context = useUserPreferences();
+  
+  return {
+    theme: context.theme,
+    systemTheme: context.systemTheme,
+    resolvedTheme: context.resolvedTheme,
+    setTheme: context.setTheme,
+    toggleTheme: context.toggleTheme,
+  };
 }
 
+// Selector hook for accessibility settings
 export function useAccessibilitySettings(): {
   accessibilitySettings: AccessibilitySettings;
   updateAccessibilitySetting: (setting: keyof AccessibilitySettings, value: boolean) => void;
   resetAccessibilitySettings: () => void;
 } {
-  return useUserPreferencesSelector(state => ({
-    accessibilitySettings: state.accessibilitySettings,
-    updateAccessibilitySetting: state.updateAccessibilitySetting,
-    resetAccessibilitySettings: state.resetAccessibilitySettings,
-  }));
+  const context = useUserPreferences();
+  
+  return {
+    accessibilitySettings: context.accessibilitySettings,
+    updateAccessibilitySetting: context.updateAccessibilitySetting,
+    resetAccessibilitySettings: context.resetAccessibilitySettings,
+  };
 }
