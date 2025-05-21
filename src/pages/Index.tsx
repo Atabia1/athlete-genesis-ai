@@ -15,9 +15,9 @@ const Index = () => {
           </p>
           
           <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <Link to="/onboarding">
+            <Link to="/dashboard">
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-6 rounded-lg text-lg">
-                Get Started
+                View Dashboard
               </Button>
             </Link>
             <Link to="/features">

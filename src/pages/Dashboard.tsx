@@ -1,84 +1,42 @@
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import FreeDashboard from "@/components/dashboard/FreeDashboard";
-import ProAthleteDashboard from "@/components/dashboard/ProAthleteDashboard";
-import CoachDashboard from "@/components/dashboard/CoachDashboard";
-import EliteDashboard from "@/components/dashboard/EliteDashboard";
-import { usePlan } from "@/context/PlanContext";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-
-/**
- * Dashboard: Main entry point after onboarding
- *
- * This component serves as a router that displays the appropriate dashboard
- * based on the user type (athlete, individual, or coach). It also ensures
- * that users have completed the onboarding process by checking for the
- * existence of workout and meal plans.
- */
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
-  const { userType, workoutPlan, mealPlan } = usePlan();
-  const navigate = useNavigate();
-
-  // Redirect to onboarding if no plans exist
-  useEffect(() => {
-    if (!workoutPlan && !mealPlan) {
-      navigate('/onboarding');
-    }
-  }, [workoutPlan, mealPlan, navigate]);
-
-  /**
-   * Renders the appropriate dashboard component based on user type and subscription tier
-   * - Coach: Team management dashboard
-   * - Individual: General fitness dashboard
-   * - Athlete: Sport-specific performance dashboard
-   * - Elite: Advanced AI-powered dashboard
-   */
-  const getDashboardContent = () => {
-    // Get subscription tier from context
-    const { subscriptionTier } = usePlan();
-    const isEliteTier = subscriptionTier === 'elite';
-
-    // If user has Elite subscription, show Elite dashboard regardless of user type
-    if (isEliteTier) {
-      return <EliteDashboard />;
-    }
-
-    // Otherwise, show dashboard based on user type
-    switch (userType) {
-      case 'coach':
-        return <CoachDashboard />;
-      case 'individual':
-        return <FreeDashboard />;
-      case 'athlete':
-        return <ProAthleteDashboard />;
-      default:
-        return <FreeDashboard />;
-    }
-  };
-
-  // Get subscription tier for title
-  const { subscriptionTier } = usePlan();
-
-  // Generate dashboard title based on subscription tier
-  const getDashboardTitle = () => {
-    switch (subscriptionTier) {
-      case 'elite':
-        return "Elite AI Dashboard";
-      case 'coach':
-        return "Coach Pro Dashboard";
-      case 'pro':
-        return "Pro Athlete Dashboard";
-      default:
-        return "Dashboard";
-    }
-  };
-
   return (
-    <DashboardLayout title={getDashboardTitle()}>
-      {getDashboardContent()}
-    </DashboardLayout>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-blue-800 text-white p-4 shadow-md">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold">Athlete GPT Dashboard</h1>
+          <Button variant="outline" className="text-white border-white hover:bg-blue-700">
+            <Link to="/">Return Home</Link>
+          </Button>
+        </div>
+      </header>
+      
+      <main className="container mx-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-4">Workout Plans</h2>
+            <p className="text-gray-600 mb-4">View and manage your personalized workout plans.</p>
+            <Button>View Plans</Button>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-4">Nutrition</h2>
+            <p className="text-gray-600 mb-4">Track your meal plans and nutrition goals.</p>
+            <Button>View Nutrition</Button>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-4">Progress</h2>
+            <p className="text-gray-600 mb-4">Track your fitness progress and achievements.</p>
+            <Button>View Progress</Button>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 };
 

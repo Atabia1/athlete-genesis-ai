@@ -8,6 +8,9 @@ import { Fragment } from "react";
 // Landing and marketing pages
 import Index from "./pages/Index";
 
+// Dashboard pages
+import Dashboard from "./pages/Dashboard";
+
 // Test page
 import TestPage from "./pages/TestPage";
 
@@ -19,6 +22,9 @@ const App = () => (
     <Routes>
       {/* Landing Page */}
       <Route path="/" element={<Index />} />
+      
+      {/* Dashboard */}
+      <Route path="/dashboard" element={<Dashboard />} />
       
       {/* Test Page */}
       <Route path="/test" element={<TestPage />} />
