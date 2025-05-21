@@ -1,4 +1,7 @@
 
+"use client";
+
+import * as React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
@@ -16,19 +19,14 @@ type ThemeProviderState = {
   setTheme: (theme: Theme) => void;
 };
 
-const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
-};
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+const ThemeProviderContext = createContext<ThemeProviderState | undefined>(undefined);
 
 export function ThemeProvider({
   children,
   defaultTheme = "system",
-  storageKey = "ui-theme",
+  storageKey = "vite-ui-theme",
   attribute = "data-theme",
-  enableSystem = true,
+  enableSystem = false,
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
@@ -41,21 +39,29 @@ export function ThemeProvider({
     root.classList.remove("light", "dark");
 
     if (theme === "system" && enableSystem) {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
         ? "dark"
         : "light";
+
       root.classList.add(systemTheme);
       root.setAttribute(attribute, systemTheme);
-    } else {
-      root.classList.add(theme);
-      root.setAttribute(attribute, theme);
+      return;
     }
+
+    root.classList.add(theme);
+    root.setAttribute(attribute, theme);
   }, [theme, attribute, enableSystem]);
+
+  useEffect(() => {
+    if (theme) {
+      localStorage.setItem(storageKey, theme);
+    }
+  }, [theme, storageKey]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
   };
@@ -70,8 +76,9 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
 
-  if (context === undefined)
+  if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");
+  }
 
   return context;
 };

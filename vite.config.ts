@@ -16,8 +16,8 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react({
-        // Use Babel to transform JSX
-        jsxRuntime: 'automatic',
+        // Use automatic JSX runtime
+        jsxImportSource: 'react',
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean),
