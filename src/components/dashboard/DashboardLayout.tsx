@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
-import { TopNavigation } from '@/components/layout/TopNavigation';
 import { MainSidebar } from '@/components/layout/MainSidebar';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
+import { TopNavigation } from '@/components/layout/TopNavigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -14,9 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useFeatureAccess } from '@/context/FeatureAccessContext';
 import { useToast } from "@/components/ui/use-toast"
-import { useNavigate } from 'react-router-dom';
 
 /**
  * Dashboard Layout Component
@@ -26,8 +25,8 @@ import { useNavigate } from 'react-router-dom';
  */
 const DashboardLayout: React.FC = () => {
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
-  const { toast } = useToast()
+  const { logout } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const toggleMobileSidebar = () => {
@@ -79,8 +78,8 @@ const DashboardLayout: React.FC = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://github.com/shadcn.png" alt="Shadcn" />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+                  <AvatarFallback>U</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

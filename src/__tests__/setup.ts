@@ -6,7 +6,7 @@
  */
 
 // Import Jest types
-import { jest, expect as jestExpect } from '@jest/globals';
+import { expect as jestExpect } from '@jest/globals';
 
 // Define types for globalThis extensions
 declare global {

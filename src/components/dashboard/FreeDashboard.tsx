@@ -1,5 +1,4 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WelcomeWidget from "./widgets/WelcomeWidget";
 import WorkoutWidget from "./widgets/WorkoutWidget";
 import ProgressWidget from "./widgets/ProgressWidget";
@@ -28,7 +27,7 @@ const FreeDashboard = () => {
     <div className="space-y-6">
       {/* Top row: Welcome and Workout widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <WelcomeWidget />
+        <WelcomeWidget userName="User" />
         <WorkoutWidget />
       </div>
 
