@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,9 @@ const CoachPaymentPage = () => {
     // Navigate to dashboard
     navigate('/dashboard');
   };
+
+  // Temporarily remove any code that depends on the OfflineSyncProvider
+  // No usePaystack usage here, so we're good
 
   return (
     <OnboardingLayout 

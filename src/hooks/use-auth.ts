@@ -6,6 +6,7 @@
  * backward compatibility with existing imports.
  */
 
+// Modified to not depend on useOfflineSync - removing the offline sync dependency
 export { useAuth, type User, type LoginCredentials, type RegistrationData, type PasswordResetRequest, type PasswordResetData, type UseAuthResult } from '@/features/auth/hooks/use-auth';
 
 // Augment the original UseAuthResult type to include logout and signOut methods

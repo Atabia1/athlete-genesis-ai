@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,6 @@ import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, ArrowRight, CreditCard, Wallet, Gift, Shield, Sparkles, Zap, Star, Check, Loader2, Lock } from 'lucide-react';
 import OnboardingLayout from '@/components/onboarding/OnboardingLayout';
 import { usePlan } from '@/context/PlanContext';
-import { usePaystack } from '@/hooks/use-paystack';
-import { PaymentCurrency, PaymentStatus } from '@/services/api/paystack-service';
 
 /**
  * PaymentPage: Final step after plan generation
@@ -31,36 +30,8 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const { userType, workoutPlan, setWorkoutPlan } = usePlan();
 
-  // Initialize Paystack hook
-  const { initializePayment, isLoading: isPaystackLoading } = usePaystack({
-    onSuccess: (transaction) => {
-      // Show success message
-      toast({
-        title: "Payment successful!",
-        description: `You now have access to ${plans[selectedPlan as keyof typeof plans].name} features.`,
-        variant: "default",
-      });
-
-      // Navigate to dashboard
-      navigate('/dashboard');
-    },
-    onError: (error) => {
-      toast({
-        title: "Payment failed",
-        description: error.message || "An error occurred during payment processing.",
-        variant: "destructive",
-      });
-      setIsProcessing(false);
-    },
-    onCancel: () => {
-      toast({
-        title: "Payment cancelled",
-        description: "You cancelled the payment process.",
-        variant: "default",
-      });
-      setIsProcessing(false);
-    }
-  });
+  // Removed usePaystack initialization that depends on useOfflineSync
+  const [isLoading, setIsLoading] = useState(false);
 
   // State for payment form
   const [selectedPlan, setSelectedPlan] = useState('pro');
@@ -73,7 +44,7 @@ const PaymentPage = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [email, setEmail] = useState('');
 
-  // Credit card form state (for UI only, Paystack handles actual payment)
+  // Credit card form state (for UI only)
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -240,27 +211,17 @@ const PaymentPage = () => {
 
     setIsProcessing(true);
 
-    // Calculate the final amount
-    const amount = parseFloat(calculatePrice());
+    // Simulate payment processing without using Paystack
+    setTimeout(() => {
+      toast({
+        title: "Payment successful!",
+        description: `You now have access to ${plans[selectedPlan as keyof typeof plans].name} features.`,
+        variant: "default",
+      });
 
-    try {
-      // Initialize Paystack payment
-      await initializePayment(
-        amount,
-        email,
-        PaymentCurrency.NGN,
-        undefined, // No plan ID for now
-        {
-          plan_type: selectedPlan,
-          billing_cycle: isYearly ? 'yearly' : 'monthly',
-          discount_applied: promoApplied ? discount : 0,
-          user_type: userType
-        }
-      );
-    } catch (error) {
-      console.error('Payment initialization error:', error);
-      setIsProcessing(false);
-    }
+      // Navigate to dashboard
+      navigate('/dashboard');
+    }, 2000);
   };
 
   // Handle back button
@@ -665,7 +626,7 @@ const PaymentPage = () => {
           {/* Security Badge */}
           <div className="flex items-center justify-center mb-8 text-gray-500 text-sm">
             <Shield className="h-4 w-4 mr-2" />
-            <span>Secure payment processing by Paystack</span>
+            <span>Secure payment processing</span>
           </div>
 
           {/* Submit Button */}
@@ -674,7 +635,7 @@ const PaymentPage = () => {
               type="button"
               variant="outline"
               onClick={handleBack}
-              disabled={isProcessing || isPaystackLoading}
+              disabled={isProcessing || isLoading}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
@@ -682,14 +643,14 @@ const PaymentPage = () => {
 
             <Button
               type="submit"
-              disabled={isProcessing || isPaystackLoading || (selectedPlan !== 'free' && !agreeTerms)}
+              disabled={isProcessing || isLoading || (selectedPlan !== 'free' && !agreeTerms)}
               className={`${
                 selectedPlan === 'free'
                   ? 'bg-gray-800 hover:bg-gray-900'
                   : 'bg-athleteBlue-600 hover:bg-athleteBlue-700'
               }`}
             >
-              {isProcessing || isPaystackLoading ? (
+              {isProcessing || isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
