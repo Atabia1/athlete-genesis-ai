@@ -64,7 +64,7 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-athleteBlue-50 to-white dark:from-athleteBlue-900 dark:to-gray-900 dark:text-white">
+   <div className="bg-gray-50 min-h-screen">
       {/* Header */}
       <header className="p-6 md:p-8 max-w-4xl mx-auto w-full">
         <div className="mb-2">
@@ -82,7 +82,7 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
 
       {/* Main Content */}
       <main className="flex-grow container max-w-4xl mx-auto px-6 md:px-8 pb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 animate-fade-in">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden p-8">
           <div className="mb-6 text-center">
             <h1 className="text-2xl md:text-3xl font-bold text-athleteBlue-800 dark:text-athleteBlue-200 mb-2">{title}</h1>
             {subtitle && <p className="text-gray-600 dark:text-gray-300">{subtitle}</p>}
