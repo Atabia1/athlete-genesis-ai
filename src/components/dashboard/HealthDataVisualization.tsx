@@ -148,10 +148,10 @@ const sampleHealthData: HealthData[] = [
  * 
  * Visualizes health data from connected devices or apps.
  */
-const HealthDataVisualization = ({ className = '' }) => {
+const HealthDataVisualization = ({ className = '', healthData = sampleHealthData }) => {
   const [activeMetric, setActiveMetric] = useState<HealthMetric>('steps');
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
-  const [healthData, setHealthData] = useState<HealthData[]>(sampleHealthData);
+  const [data, setData] = useState<HealthData[]>(healthData);
 
   // Format time from minutes to hours and minutes
   const formatTime = (minutes: number) => {
@@ -168,22 +168,22 @@ const HealthDataVisualization = ({ className = '' }) => {
   
   // Get the latest health data entry
   const getLatestData = (): HealthData => {
-    return healthData[healthData.length - 1];
+    return data[data.length - 1];
   };
   
   // Calculate daily average for a metric
   const calculateAverage = (metric: HealthMetric): number => {
     switch (metric) {
       case 'steps':
-        return Math.round(healthData.reduce((sum, day) => sum + day.steps, 0) / healthData.length);
+        return Math.round(data.reduce((sum, day) => sum + day.steps, 0) / data.length);
       case 'heartRate':
-        return Math.round(healthData.reduce((sum, day) => sum + day.heartRate.average, 0) / healthData.length);
+        return Math.round(data.reduce((sum, day) => sum + day.heartRate.average, 0) / data.length);
       case 'sleep':
-        return Math.round(healthData.reduce((sum, day) => sum + day.sleep.duration, 0) / healthData.length);
+        return Math.round(data.reduce((sum, day) => sum + day.sleep.duration, 0) / data.length);
       case 'weight':
-        return healthData.reduce((sum, day) => sum + day.weight, 0) / healthData.length;
+        return data.reduce((sum, day) => sum + day.weight, 0) / data.length;
       case 'calories':
-        return Math.round(healthData.reduce((sum, day) => sum + day.calories, 0) / healthData.length);
+        return Math.round(data.reduce((sum, day) => sum + day.calories, 0) / data.length);
       default:
         return 0;
     }
@@ -212,7 +212,7 @@ const HealthDataVisualization = ({ className = '' }) => {
   const getChartData = () => {
     const formatSleepHours = (minutes: number) => (minutes / 60).toFixed(1);
     
-    return healthData.map((day) => {
+    return data.map((day) => {
       const baseData = {
         date: formatDate(day.date)
       };
@@ -371,7 +371,7 @@ const HealthDataVisualization = ({ className = '' }) => {
         
       case 'weight':
         // Weight trend
-        const weightChange = healthData[healthData.length - 1].weight - healthData[0].weight;
+        const weightChange = data[data.length - 1].weight - data[0].weight;
         if (Math.abs(weightChange) < 0.5) {
           insights.push('Your weight has been stable over this period.');
         } else if (weightChange < 0) {
@@ -588,7 +588,7 @@ const HealthDataVisualization = ({ className = '' }) => {
         <div className="grid grid-cols-2 gap-4 my-4">
           <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Last updated</div>
-            <div className="text-lg text-athleteBlue-600 dark:text-athleteBlue-300">{formatDate(healthData[healthData.length - 1].date)}</div>
+            <div className="text-lg text-athleteBlue-600 dark:text-athleteBlue-300">{formatDate(data[data.length - 1].date)}</div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Data source</div>
