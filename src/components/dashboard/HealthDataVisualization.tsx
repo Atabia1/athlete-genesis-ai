@@ -143,12 +143,21 @@ const sampleHealthData: HealthData[] = [
   }
 ];
 
+// The component props interface
+interface HealthDataVisualizationProps {
+  className?: string;
+  healthData?: HealthData[];
+}
+
 /**
  * HealthDataVisualization Component
  * 
  * Visualizes health data from connected devices or apps.
  */
-const HealthDataVisualization = ({ className = '', healthData = sampleHealthData }) => {
+const HealthDataVisualization: React.FC<HealthDataVisualizationProps> = ({ 
+  className = '', 
+  healthData = sampleHealthData 
+}) => {
   const [activeMetric, setActiveMetric] = useState<HealthMetric>('steps');
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
   const [data, setData] = useState<HealthData[]>(healthData);
