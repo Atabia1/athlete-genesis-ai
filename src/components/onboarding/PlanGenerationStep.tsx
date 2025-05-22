@@ -50,17 +50,16 @@ const PlanGenerationStep = () => {
   const services = useServices();
   const {
     userType,
-    fitnessGoals,
-    sportActivity,
+    fitnessGoals = [],
+    sportActivities = [],
     experienceLevel,
     frequency,
     duration,
     timeOfDay,
-    equipment,
+    equipment = [],
     otherEquipment,
     medicalStatus,
-    generatingPlan,
-    setGeneratingPlan,
+    workoutPlan,
     setWorkoutPlan,
     setMealPlan
   } = usePlan();
@@ -70,14 +69,28 @@ const PlanGenerationStep = () => {
   const [error, setError] = useState<string | null>(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
 
+  // State for plan generation
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [sportActivity, setSportActivity] = useState<string | null>(null);
+
+  // Extract the primary sport activity from the selected activities
+  useEffect(() => {
+    if (sportActivities && sportActivities.length > 0) {
+      const selectedActivity = sportActivities.find(activity => activity.selected);
+      setSportActivity(selectedActivity ? selectedActivity.name : null);
+    }
+  }, [sportActivities]);
+
   /**
    * Validate that all required data is present
    * Redirects back to previous step if any information is missing
    */
   useEffect(() => {
-    // Check if essential data is missing
-    if (!userType || fitnessGoals.length === 0 || !sportActivity || !experienceLevel ||
-        !frequency || !duration || !timeOfDay || equipment.length === 0 || !medicalStatus) {
+    // Check if essential data is missing - use safe checks to prevent errors
+    const selectedFitnessGoals = fitnessGoals?.filter(goal => goal.selected) || [];
+
+    if (!userType || selectedFitnessGoals.length === 0 || !experienceLevel ||
+        !frequency || !duration || !timeOfDay || equipment.length === 0) {
       toast({
         title: "Missing information",
         description: "Please complete all onboarding steps first.",
@@ -85,7 +98,7 @@ const PlanGenerationStep = () => {
       });
       navigate('/onboarding/medical-status');
     }
-  }, [userType, fitnessGoals, sportActivity, experienceLevel, frequency, duration, timeOfDay, equipment, medicalStatus, navigate]);
+  }, [userType, fitnessGoals, experienceLevel, frequency, duration, timeOfDay, equipment, navigate]);
 
   /**
    * Generate personalized workout and meal plans
@@ -115,9 +128,16 @@ const PlanGenerationStep = () => {
         throw new Error('Network offline');
       }
 
+      // Extract selected goals for the API request
+      const selectedGoals = fitnessGoals
+        ? fitnessGoals
+            .filter(goal => goal.selected)
+            .map(goal => goal.name)
+        : [];
+
       const userProfile = {
         userType,
-        fitnessGoals,
+        fitnessGoals: selectedGoals,
         sportActivity,
         experienceLevel,
         frequency,
@@ -136,7 +156,7 @@ const PlanGenerationStep = () => {
       // Try to use the OpenAI service first, fall back to mock if it fails
       try {
         // Check if OpenAI service is available
-        if (services.openAI.isAvailable()) {
+        if (services.openAI && services.openAI.isAvailable && services.openAI.isAvailable()) {
           console.log('Using OpenAI service to generate fitness plan');
 
           // Generate fitness plan using OpenAI service
@@ -251,29 +271,24 @@ const PlanGenerationStep = () => {
 
             <div>
               <p className="text-sm font-medium text-gray-500">Sport/Activity</p>
-              <p className="text-md">{sportActivity}</p>
+              <p className="text-md">{sportActivity || 'Not specified'}</p>
             </div>
 
             <div>
               <p className="text-sm font-medium text-gray-500">Goals</p>
-              <p className="text-md">{fitnessGoals.map(goal =>
-                goal === 'performance' ? 'Performance Improvement' :
-                goal === 'strength' ? 'Strength & Muscle' :
-                goal === 'weight' ? 'Weight Management' :
-                goal === 'health' ? 'General Health' :
-                goal === 'endurance' ? 'Endurance' :
-                'Recovery & Mobility'
-              ).join(', ')}</p>
+              <p className="text-md">
+                {fitnessGoals && fitnessGoals.filter(goal => goal.selected).map(goal => goal.name).join(', ')}
+              </p>
             </div>
 
             <div>
               <p className="text-sm font-medium text-gray-500">Experience Level</p>
-              <p className="text-md capitalize">{experienceLevel}</p>
+              <p className="text-md capitalize">{experienceLevel || 'Not specified'}</p>
             </div>
 
             <div>
               <p className="text-sm font-medium text-gray-500">Training Frequency</p>
-              <p className="text-md">{frequency} days per week</p>
+              <p className="text-md">{frequency ? `${frequency} days per week` : 'Not specified'}</p>
             </div>
 
             <div>
@@ -283,38 +298,38 @@ const PlanGenerationStep = () => {
                  duration === '30-45' ? '30-45 minutes' :
                  duration === '45-60' ? '45-60 minutes' :
                  duration === '60-90' ? '60-90 minutes' :
-                 '90+ minutes'}
+                 duration === '90+' ? '90+ minutes' : 'Not specified'}
               </p>
             </div>
 
             <div className="col-span-1 md:col-span-2">
               <p className="text-sm font-medium text-gray-500">Medical Considerations</p>
               <p className="text-md">
-                {medicalStatus && (
+                {medicalStatus ? (
                   <>
-                    {medicalStatus.healthConditions.length > 0 && (
+                    {medicalStatus.conditions && medicalStatus.conditions.length > 0 && (
                       <span className="inline-block mr-2 mb-1 px-2 py-1 bg-red-50 text-red-700 rounded-full text-xs">
-                        {medicalStatus.healthConditions.length} Health Condition(s)
+                        {medicalStatus.conditions.length} Health Condition(s)
                       </span>
                     )}
-                    {medicalStatus.injuries.length > 0 && (
+                    {medicalStatus.injuries && medicalStatus.injuries.length > 0 && (
                       <span className="inline-block mr-2 mb-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-full text-xs">
                         {medicalStatus.injuries.length} Injury/Injuries
                       </span>
                     )}
-                    {medicalStatus.allergies.length > 0 && (
+                    {medicalStatus.medications && medicalStatus.medications.length > 0 && (
                       <span className="inline-block mr-2 mb-1 px-2 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs">
-                        {medicalStatus.allergies.length} Allergy/Allergies
+                        {medicalStatus.medications.length} Medication(s)
                       </span>
                     )}
-                    {medicalStatus.medicalClearance && (
+                    {medicalStatus.medicalClearance !== undefined && (
                       <span className="inline-block mr-2 mb-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs">
-                        {medicalStatus.medicalClearance === 'yes' ? 'Medical Clearance: Yes' :
-                         medicalStatus.medicalClearance === 'no' ? 'Medical Clearance: No' :
-                         'Medical Clearance: Not Needed'}
+                        Medical Clearance: {medicalStatus.medicalClearance ? 'Yes' : 'No'}
                       </span>
                     )}
                   </>
+                ) : (
+                  'No medical information provided'
                 )}
               </p>
             </div>

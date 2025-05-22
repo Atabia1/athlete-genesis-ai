@@ -112,6 +112,32 @@ export interface DailyNutrition {
   };
 }
 
+// Meal plan type for storing generated meal plans
+export interface MealPlan {
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  days: MealPlanDay[];
+}
+
+export interface MealPlanDay {
+  dayNumber: number;
+  meals: MealPlanMeal[];
+}
+
+export interface MealPlanMeal {
+  type: string;
+  title: string;
+  description: string;
+  nutrients: {
+    calories: number;
+    protein: string;
+    carbs: string;
+    fat: string;
+  };
+}
+
 // Plan context interface
 interface PlanContextType {
   userType: UserType;
@@ -150,6 +176,9 @@ interface PlanContextType {
   
   workoutPlan: WorkoutPlan | null;
   setWorkoutPlan: (plan: WorkoutPlan | null) => void;
+  
+  mealPlan: MealPlan | null;
+  setMealPlan: (plan: MealPlan | null) => void;
 }
 
 // Create the context with default values
@@ -190,7 +219,9 @@ const PlanContext = createContext<PlanContextType>({
   },
   setMedicalStatus: () => {},
   workoutPlan: null,
-  setWorkoutPlan: () => {}
+  setWorkoutPlan: () => {},
+  mealPlan: null,
+  setMealPlan: () => {}
 });
 
 // Provider component
@@ -246,6 +277,7 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
   
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
+  const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
 
   return (
     <PlanContext.Provider
@@ -274,7 +306,9 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         medicalStatus,
         setMedicalStatus,
         workoutPlan,
-        setWorkoutPlan
+        setWorkoutPlan,
+        mealPlan,
+        setMealPlan
       }}
     >
       {children}
