@@ -583,7 +583,7 @@ const HealthDataVisualization = ({ className = '' }) => {
         </div>
         
         {/* Health Score Progress */}
-        <Progress value={calculateHealthScore()} className="h-3 bg-gray-200 dark:bg-gray-700" indicatorClassName="bg-gradient-to-r from-athleteBlue-500 to-athleteGreen-500" />
+        <Progress value={calculateHealthScore()} className="h-3 bg-gray-200 dark:bg-gray-700" />
         
         <div className="grid grid-cols-2 gap-4 my-4">
           <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
