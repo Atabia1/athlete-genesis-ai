@@ -7,8 +7,8 @@ const testimonials = [
   },
   {
     quote: "As a coach, I can now manage my entire team more effectively. The AI suggestions have helped us improve performance across the board.",
-    author: "Michael T.",
-    role: "Basketball Coach"
+    author: "Ebenezer G.",
+    role: "Volleyball Coach"
   },
   {
     quote: "The nutrition planning alone is worth it. I've seen dramatic improvements in my energy levels and recovery times.",
