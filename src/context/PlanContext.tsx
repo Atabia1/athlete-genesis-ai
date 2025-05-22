@@ -23,6 +23,11 @@ export interface SportActivity {
 export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'elite' | null;
 
 // Time & Equipment type definitions
+export type FrequencyOption = '1-2' | '3-4' | '5-6' | '7+' | null;
+export type DurationOption = '<30' | '30-45' | '45-60' | '60-90' | '90+' | null;
+export type TimeOfDayOption = 'morning' | 'afternoon' | 'evening' | 'variable' | null;
+export type EquipmentOption = 'bodyweight' | 'basic-home' | 'full-home' | 'commercial-gym' | 'other';
+
 export interface TimeEquipment {
   sessionsPerWeek: number;
   minutesPerSession: number;
@@ -123,6 +128,22 @@ interface PlanContextType {
   
   timeEquipment: TimeEquipment;
   setTimeEquipment: (data: TimeEquipment) => void;
+
+  // Add the time and equipment specific properties
+  frequency: FrequencyOption;
+  setFrequency: (freq: FrequencyOption) => void;
+  
+  duration: DurationOption;
+  setDuration: (dur: DurationOption) => void;
+  
+  timeOfDay: TimeOfDayOption;  
+  setTimeOfDay: (time: TimeOfDayOption) => void;
+  
+  equipment: EquipmentOption[];
+  setEquipment: (equip: EquipmentOption[]) => void;
+  
+  otherEquipment: string;
+  setOtherEquipment: (other: string) => void;
   
   medicalStatus: MedicalStatus;
   setMedicalStatus: (status: MedicalStatus) => void;
@@ -150,6 +171,17 @@ const PlanContext = createContext<PlanContextType>({
     outdoorAccess: true
   },
   setTimeEquipment: () => {},
+  // Initialize the new properties
+  frequency: null,
+  setFrequency: () => {},
+  duration: null,
+  setDuration: () => {},
+  timeOfDay: null,
+  setTimeOfDay: () => {},
+  equipment: [],
+  setEquipment: () => {},
+  otherEquipment: '',
+  setOtherEquipment: () => {},
   medicalStatus: {
     conditions: [],
     injuries: [],
@@ -198,6 +230,13 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     hasCardioEquipment: false,
     outdoorAccess: true
   });
+
+  // Add the new state variables
+  const [frequency, setFrequency] = useState<FrequencyOption>(null);
+  const [duration, setDuration] = useState<DurationOption>(null);
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDayOption>(null);
+  const [equipment, setEquipment] = useState<EquipmentOption[]>([]);
+  const [otherEquipment, setOtherEquipment] = useState('');
   
   const [medicalStatus, setMedicalStatus] = useState<MedicalStatus>({
     conditions: [],
@@ -221,6 +260,17 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setExperienceLevel,
         timeEquipment,
         setTimeEquipment,
+        // Include the new state variables in the context value
+        frequency,
+        setFrequency,
+        duration,
+        setDuration,
+        timeOfDay,
+        setTimeOfDay,
+        equipment,
+        setEquipment,
+        otherEquipment,
+        setOtherEquipment,
         medicalStatus,
         setMedicalStatus,
         workoutPlan,

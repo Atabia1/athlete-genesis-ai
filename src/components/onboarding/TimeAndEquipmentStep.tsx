@@ -54,8 +54,9 @@ const TimeAndEquipmentStep = () => {
   const [localFrequency, setLocalFrequency] = useState<FrequencyOption | null>(frequency);
   const [localDuration, setLocalDuration] = useState<DurationOption | null>(duration);
   const [localTimeOfDay, setLocalTimeOfDay] = useState<TimeOfDayOption | null>(timeOfDay);
-  const [localEquipment, setLocalEquipment] = useState<EquipmentOption[]>(equipment);
-  const [localOtherEquipment, setLocalOtherEquipment] = useState(otherEquipment);
+  // Initialize localEquipment as an empty array if equipment is undefined
+  const [localEquipment, setLocalEquipment] = useState<EquipmentOption[]>(equipment || []);
+  const [localOtherEquipment, setLocalOtherEquipment] = useState(otherEquipment || '');
 
   const handleBack = () => {
     navigate('/onboarding/experience-level');
