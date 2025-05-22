@@ -74,23 +74,40 @@ class ServiceRegistryImpl implements ServiceRegistry {
   logging: LoggingService;
 
   constructor() {
-    // Initialize services
-    this.db = dbService;
-    this.retryQueue = retryQueueService;
+    try {
+      // Initialize services
+      this.db = dbService;
+      this.retryQueue = retryQueueService;
 
-    // Create API services
-    this.supabase = new SupabaseServiceImpl();
-    this.workout = new WorkoutService(this.supabase);
-    this.mealPlan = new MealPlanService(this.supabase);
-    this.user = userService;
-    this.paystack = paystackService;
-    this.openAI = openAIService;
-    this.health = healthApi;
-    this.healthSync = healthSyncService;
+      // Create API services
+      this.supabase = new SupabaseServiceImpl();
+      this.workout = new WorkoutService(this.supabase);
+      this.mealPlan = new MealPlanService(this.supabase);
+      this.user = userService;
+      this.paystack = paystackService;
+      this.openAI = openAIService;
+      this.health = healthApi;
+      this.healthSync = healthSyncService;
 
-    // Create utility services
-    this.analytics = new AnalyticsService();
-    this.logging = new LoggingService();
+      // Create utility services
+      this.analytics = new AnalyticsService();
+      this.logging = new LoggingService();
+    } catch (error) {
+      console.error('Error initializing service registry:', error);
+      // Initialize with minimal services to prevent crashes
+      this.db = dbService;
+      this.retryQueue = retryQueueService;
+      this.supabase = new SupabaseServiceImpl();
+      this.workout = new WorkoutService(this.supabase);
+      this.mealPlan = new MealPlanService(this.supabase);
+      this.user = userService;
+      this.paystack = paystackService;
+      this.openAI = openAIService;
+      this.health = healthApi;
+      this.healthSync = healthSyncService;
+      this.analytics = new AnalyticsService();
+      this.logging = new LoggingService();
+    }
   }
 
   /**
@@ -151,7 +168,11 @@ export function useServices(): ServiceRegistry {
  * Initialize all services
  */
 export async function initializeServices(): Promise<void> {
-  await serviceRegistry.initialize();
+  try {
+    await serviceRegistry.initialize();
+  } catch (error) {
+    console.error('Error initializing services:', error);
+  }
 }
 
 export default serviceRegistry;

@@ -1,3 +1,4 @@
+
 /**
  * Environment Configuration Utility
  *
@@ -63,11 +64,11 @@ const defaultConfig: AppConfig = {
   API_BASE_URL: 'https://api.athletegenesis.ai',
 
   // Authentication configuration
-  SUPABASE_URL: '',
-  SUPABASE_ANON_KEY: '',
+  SUPABASE_URL: 'https://placeholder-supabase-url.supabase.co',
+  SUPABASE_ANON_KEY: 'placeholder-anon-key',
 
   // Payment configuration
-  PAYSTACK_PUBLIC_KEY: '',
+  PAYSTACK_PUBLIC_KEY: 'placeholder-paystack-public-key',
 
   // Feature flags
   ENABLE_OFFLINE_MODE: true,

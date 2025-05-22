@@ -8,6 +8,7 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { toast } from '@/components/ui/use-toast';
+import { getSupabaseConfig } from '@/utils/env-config';
 
 /**
  * Supabase service interface
@@ -27,16 +28,33 @@ export class SupabaseServiceImpl implements SupabaseService {
   private client: SupabaseClient;
 
   constructor() {
-    // Initialize Supabase client
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    try {
+      // Get the Supabase configuration from environment variables
+      const { url, anonKey } = getSupabaseConfig();
 
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Supabase environment variables are not set');
-      throw new Error('Supabase environment variables are not set');
+      // Check if the URL and anonymous key are available
+      if (!url || !anonKey) {
+        // Use placeholder values for development and log a warning
+        console.warn('Supabase environment variables are not set. Using placeholder values for development. For production, please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY or configure window.APP_CONFIG.');
+        
+        // Initialize with public placeholder values for development
+        // These won't work for actual database operations but prevent runtime errors
+        this.client = createClient(
+          'https://placeholder-supabase-url.supabase.co', 
+          'placeholder-anon-key'
+        );
+      } else {
+        // Initialize with real credentials
+        this.client = createClient(url, anonKey);
+      }
+    } catch (error) {
+      console.error('Error initializing Supabase client:', error);
+      // Initialize with placeholder values if there's an error
+      this.client = createClient(
+        'https://placeholder-supabase-url.supabase.co', 
+        'placeholder-anon-key'
+      );
     }
-
-    this.client = createClient(supabaseUrl, supabaseKey);
   }
 
   /**
