@@ -343,9 +343,9 @@ const HealthDataVisualization: React.FC<HealthDataVisualizationProps> = ({
       case 'steps':
         const avgSteps = calculateAverage('steps');
         if (avgSteps > 10000) {
-          insights.push('Great job! You're exceeding the recommended 10,000 steps per day.');
+          insights.push('Great job! You\'re exceeding the recommended 10,000 steps per day.');
         } else if (avgSteps > 7500) {
-          insights.push('You're on the right track with your daily steps. Aim for 10,000 for optimal health benefits.');
+          insights.push('You\'re on the right track with your daily steps. Aim for 10,000 for optimal health benefits.');
         } else {
           insights.push('Try to increase your daily steps to at least 7,500-10,000 for better health outcomes.');
         }
@@ -365,9 +365,9 @@ const HealthDataVisualization: React.FC<HealthDataVisualizationProps> = ({
       case 'sleep':
         const avgSleep = calculateAverage('sleep') / 60; // Convert to hours
         if (avgSleep >= 7.5) {
-          insights.push('You're getting the recommended amount of sleep. Keep it up!');
+          insights.push('You\'re getting the recommended amount of sleep. Keep it up!');
         } else if (avgSleep >= 6.5) {
-          insights.push('You're slightly below the recommended 7-9 hours of sleep. Try to get to bed earlier.');
+          insights.push('You\'re slightly below the recommended 7-9 hours of sleep. Try to get to bed earlier.');
         } else {
           insights.push('Your sleep duration is below recommendations. Aim for 7-9 hours for optimal recovery and health.');
         }
@@ -571,75 +571,60 @@ const HealthDataVisualization: React.FC<HealthDataVisualizationProps> = ({
   };
 
   return (
-    <Card className={`bg-gradient-to-b from-athleteBlue-50 to-white dark:from-athleteBlue-900 dark:to-gray-900 shadow-lg ${className}`}>
-      <CardHeader className="border-b border-athleteBlue-100 dark:border-athleteBlue-800">
-        <CardTitle className="flex items-center text-athleteBlue-600 dark:text-athleteBlue-300">
+    <Card className={`bg-gradient-to-b from-primary/5 to-background shadow-lg ${className}`}>
+      <CardHeader className="border-b">
+        <CardTitle className="flex items-center text-primary">
           <Activity className="mr-2 h-6 w-6" />
           Health Data Visualization
         </CardTitle>
-        <CardDescription className="text-athleteBlue-500 dark:text-athleteBlue-400">Track and visualize your health metrics</CardDescription>
+        <CardDescription>Track and visualize your health metrics</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-6">
         {/* Health Score */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-athleteBlue-100 to-athleteBlue-50 dark:from-athleteBlue-800 dark:to-athleteBlue-900 p-4 rounded-lg">
+        <div className="flex items-center justify-between bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg">
           <div>
-            <h3 className="text-lg font-medium text-athleteBlue-700 dark:text-athleteBlue-200">Health Score</h3>
-            <p className="text-sm text-athleteBlue-600 dark:text-athleteBlue-300">
+            <h3 className="text-lg font-medium text-primary">Health Score</h3>
+            <p className="text-sm text-muted-foreground">
               Based on your activity, sleep, and heart rate
             </p>
           </div>
-          <div className="text-3xl font-bold text-athleteBlue-600 dark:text-athleteBlue-300 animate-pulse">{calculateHealthScore()}</div>
+          <div className="text-3xl font-bold text-primary animate-pulse">{calculateHealthScore()}</div>
         </div>
         
         {/* Health Score Progress */}
-        <Progress value={calculateHealthScore()} className="h-3 bg-gray-200 dark:bg-gray-700" />
+        <Progress value={calculateHealthScore()} className="h-3" />
         
         <div className="grid grid-cols-2 gap-4 my-4">
-          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Last updated</div>
-            <div className="text-lg text-athleteBlue-600 dark:text-athleteBlue-300">{formatDate(data[data.length - 1].date)}</div>
+          <div className="bg-card p-3 rounded-lg shadow-sm">
+            <div className="text-sm font-medium text-muted-foreground">Last updated</div>
+            <div className="text-lg text-primary">{formatDate(data[data.length - 1].date)}</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Data source</div>
-            <div className="text-lg text-athleteBlue-600 dark:text-athleteBlue-300">Health App</div>
+          <div className="bg-card p-3 rounded-lg shadow-sm">
+            <div className="text-sm font-medium text-muted-foreground">Data source</div>
+            <div className="text-lg text-primary">Health App</div>
           </div>
         </div>
         
         {/* Metric Selector */}
         <Tabs value={activeMetric} onValueChange={(value) => setActiveMetric(value as HealthMetric)}>
-          <TabsList className="grid grid-cols-5 bg-athleteBlue-50 dark:bg-athleteBlue-900/50">
-            <TabsTrigger 
-              value="steps" 
-              className="data-[state=active]:bg-athleteBlue-100 data-[state=active]:text-athleteBlue-800 dark:data-[state=active]:bg-athleteBlue-800 dark:data-[state=active]:text-athleteBlue-100 flex items-center justify-center"
-            >
+          <TabsList className="grid grid-cols-5">
+            <TabsTrigger value="steps" className="flex items-center justify-center">
               <Footprints className="h-4 w-4 mr-1 md:mr-2" /> 
               <span className="hidden md:inline">Steps</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="heartRate" 
-              className="data-[state=active]:bg-athleteBlue-100 data-[state=active]:text-athleteBlue-800 dark:data-[state=active]:bg-athleteBlue-800 dark:data-[state=active]:text-athleteBlue-100 flex items-center justify-center"
-            >
+            <TabsTrigger value="heartRate" className="flex items-center justify-center">
               <Heart className="h-4 w-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Heart Rate</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="sleep" 
-              className="data-[state=active]:bg-athleteBlue-100 data-[state=active]:text-athleteBlue-800 dark:data-[state=active]:bg-athleteBlue-800 dark:data-[state=active]:text-athleteBlue-100 flex items-center justify-center"
-            >
+            <TabsTrigger value="sleep" className="flex items-center justify-center">
               <Moon className="h-4 w-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Sleep</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="weight" 
-              className="data-[state=active]:bg-athleteBlue-100 data-[state=active]:text-athleteBlue-800 dark:data-[state=active]:bg-athleteBlue-800 dark:data-[state=active]:text-athleteBlue-100 flex items-center justify-center"
-            >
+            <TabsTrigger value="weight" className="flex items-center justify-center">
               <Scale className="h-4 w-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Weight</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="calories" 
-              className="data-[state=active]:bg-athleteBlue-100 data-[state=active]:text-athleteBlue-800 dark:data-[state=active]:bg-athleteBlue-800 dark:data-[state=active]:text-athleteBlue-100 flex items-center justify-center"
-            >
+            <TabsTrigger value="calories" className="flex items-center justify-center">
               <Activity className="h-4 w-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Calories</span>
             </TabsTrigger>
@@ -647,14 +632,14 @@ const HealthDataVisualization: React.FC<HealthDataVisualizationProps> = ({
         </Tabs>
         
         {/* Time Range Selector */}
-        <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-          <h3 className="text-lg font-medium text-athleteBlue-700 dark:text-athleteBlue-200 flex items-center">
+        <div className="flex justify-between items-center bg-card p-4 rounded-lg shadow-sm">
+          <h3 className="text-lg font-medium text-primary flex items-center">
             {renderMetricIcon(activeMetric)}
             <span className="ml-2">{activeMetric.charAt(0).toUpperCase() + activeMetric.slice(1)}</span>
           </h3>
           
           <Select value={timeRange} onValueChange={(value) => setTimeRange(value as 'day' | 'week' | 'month')}>
-            <SelectTrigger className="w-32 border-athleteBlue-200 dark:border-athleteBlue-700">
+            <SelectTrigger className="w-32">
               <SelectValue placeholder="Date Range" />
             </SelectTrigger>
             <SelectContent>
@@ -667,55 +652,55 @@ const HealthDataVisualization: React.FC<HealthDataVisualizationProps> = ({
         
         {/* Current Value */}
         <div className="grid grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-athleteBlue-50 to-white dark:from-athleteBlue-900 dark:to-gray-800 border-none shadow-md">
+          <Card className="bg-gradient-to-br from-primary/5 to-background border-none shadow-md">
             <CardContent className="p-4">
-              <div className="text-sm text-athleteBlue-500 dark:text-athleteBlue-400">Current</div>
-              <div className="text-2xl font-bold text-athleteBlue-700 dark:text-athleteBlue-200">
-                {getLatestMetricValue(activeMetric)} <span className="text-sm font-normal text-athleteBlue-500 dark:text-athleteBlue-400">{getUnitLabel(activeMetric)}</span>
+              <div className="text-sm text-muted-foreground">Current</div>
+              <div className="text-2xl font-bold text-primary">
+                {getLatestMetricValue(activeMetric)} <span className="text-sm font-normal text-muted-foreground">{getUnitLabel(activeMetric)}</span>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-athleteBlue-50 to-white dark:from-athleteBlue-900 dark:to-gray-800 border-none shadow-md">
+          <Card className="bg-gradient-to-br from-primary/5 to-background border-none shadow-md">
             <CardContent className="p-4">
-              <div className="text-sm text-athleteBlue-500 dark:text-athleteBlue-400">Average</div>
-              <div className="text-2xl font-bold text-athleteBlue-700 dark:text-athleteBlue-200">
+              <div className="text-sm text-muted-foreground">Average</div>
+              <div className="text-2xl font-bold text-primary">
                 {
                   activeMetric === 'sleep' 
                     ? (calculateAverage(activeMetric) / 60).toFixed(1)
                     : activeMetric === 'weight'
                       ? calculateAverage(activeMetric).toFixed(1)
                       : calculateAverage(activeMetric).toLocaleString()
-                } <span className="text-sm font-normal text-athleteBlue-500 dark:text-athleteBlue-400">{getUnitLabel(activeMetric)}</span>
+                } <span className="text-sm font-normal text-muted-foreground">{getUnitLabel(activeMetric)}</span>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-athleteBlue-50 to-white dark:from-athleteBlue-900 dark:to-gray-800 border-none shadow-md">
+          <Card className="bg-gradient-to-br from-primary/5 to-background border-none shadow-md">
             <CardContent className="p-4">
-              <div className="text-sm text-athleteBlue-500 dark:text-athleteBlue-400">Goal</div>
-              <div className="text-2xl font-bold text-athleteBlue-700 dark:text-athleteBlue-200">
+              <div className="text-sm text-muted-foreground">Goal</div>
+              <div className="text-2xl font-bold text-primary">
                 {activeMetric === 'steps' ? '10,000' : 
                  activeMetric === 'sleep' ? '8.0' :
                  activeMetric === 'weight' ? '70.0' :
                  activeMetric === 'heartRate' ? '65' :
-                 '2,200'} <span className="text-sm font-normal text-athleteBlue-500 dark:text-athleteBlue-400">{getUnitLabel(activeMetric)}</span>
+                 '2,200'} <span className="text-sm font-normal text-muted-foreground">{getUnitLabel(activeMetric)}</span>
               </div>
             </CardContent>
           </Card>
         </div>
         
         {/* Chart */}
-        <div className="mt-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+        <div className="mt-6 bg-card p-4 rounded-lg shadow-md">
           {renderMetricChart()}
         </div>
         
         {/* Insights */}
-        <div className="mt-6 bg-gradient-to-r from-athleteBlue-50 to-athleteBlue-100 dark:from-athleteBlue-900 dark:to-athleteBlue-800 p-4 rounded-lg shadow-md">
-          <h3 className="text-sm font-medium text-athleteBlue-800 dark:text-athleteBlue-200 mb-2">Insights</h3>
+        <div className="mt-6 bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg shadow-md">
+          <h3 className="text-sm font-medium text-primary mb-2">Insights</h3>
           <ul className="space-y-2">
             {generateInsights(activeMetric).map((insight, index) => (
-              <li key={index} className="text-sm text-athleteBlue-700 dark:text-athleteBlue-300 flex">
+              <li key={index} className="text-sm text-foreground flex">
                 <span className="mr-2">•</span>
                 <span>{insight}</span>
               </li>
@@ -724,7 +709,7 @@ const HealthDataVisualization: React.FC<HealthDataVisualizationProps> = ({
         </div>
         
         <div className="flex justify-end mt-4">
-          <Button variant="outline" size="sm" className="border-athleteBlue-200 text-athleteBlue-600 hover:bg-athleteBlue-50 dark:border-athleteBlue-700 dark:text-athleteBlue-300 dark:hover:bg-athleteBlue-900/50">Export Data</Button>
+          <Button variant="outline" size="sm">Export Data</Button>
         </div>
       </CardContent>
     </Card>
