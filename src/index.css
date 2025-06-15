@@ -94,6 +94,11 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
@@ -103,19 +108,31 @@
   }
   
   .feature-card {
-    @apply bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300;
+    @apply bg-card text-card-foreground p-6 rounded-xl shadow-md border border-border hover:shadow-lg transition-all duration-300;
   }
   
   .btn-primary {
-    @apply bg-athleteBlue-600 hover:bg-athleteBlue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200;
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-md transition-colors duration-200;
   }
   
   .btn-secondary {
-    @apply bg-athleteGreen-600 hover:bg-athleteGreen-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200;
+    @apply bg-secondary hover:bg-secondary/90 text-secondary-foreground font-medium py-2 px-4 rounded-md transition-colors duration-200;
   }
   
   .btn-outline {
-    @apply border border-athleteBlue-600 text-athleteBlue-600 hover:bg-athleteBlue-50 font-medium py-2 px-4 rounded-md transition-colors duration-200;
+    @apply border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-medium py-2 px-4 rounded-md transition-colors duration-200;
+  }
+
+  /* Theme-aware text colors */
+  .text-primary-theme {
+    @apply text-foreground;
+  }
+
+  .text-secondary-theme {
+    @apply text-muted-foreground;
+  }
+
+  .bg-card-theme {
+    @apply bg-card text-card-foreground;
   }
 }
-

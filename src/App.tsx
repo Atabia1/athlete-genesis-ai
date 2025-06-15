@@ -1,49 +1,38 @@
 
-/**
- * Athlete GPT - Main Application
- */
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import About from './pages/About';
+import Features from './pages/Features';
+import Pricing from './pages/Pricing';
+import Login from './pages/Login';
+import SignUp from './pages/SignUp';
+import Dashboard from './pages/Dashboard';
+import Onboarding from './pages/Onboarding';
+import NotFound from './pages/NotFound';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import { cn } from './lib/utils';
 
-// Landing and marketing pages
-import Index from "./pages/Index";
-
-// Dashboard pages
-import Dashboard from "./pages/Dashboard";
-
-// Onboarding pages
-import Onboarding from "./pages/Onboarding";
-import FitnessGoals from "./pages/onboarding/FitnessGoals";
-import SportActivity from "./pages/onboarding/SportActivity";
-import ExperienceLevel from "./pages/onboarding/ExperienceLevel";
-import TimeAndEquipment from "./pages/onboarding/TimeAndEquipment";
-import MedicalStatus from "./pages/onboarding/MedicalStatus";
-import PlanGeneration from "./pages/onboarding/PlanGeneration";
-import PaymentPage from "./pages/onboarding/PaymentPage";
-
-/**
- * Main App component that sets up application routing
- */
-const App = () => (
-  <Routes>
-    {/* Landing Page */}
-    <Route path="/" element={<Index />} />
-    
-    {/* Dashboard */}
-    <Route path="/dashboard" element={<Dashboard />} />
-    
-    {/* Onboarding Flow */}
-    <Route path="/onboarding" element={<Onboarding />} />
-    <Route path="/onboarding/fitness-goals" element={<FitnessGoals />} />
-    <Route path="/onboarding/sport-activity" element={<SportActivity />} />
-    <Route path="/onboarding/experience-level" element={<ExperienceLevel />} />
-    <Route path="/onboarding/time-equipment" element={<TimeAndEquipment />} />
-    <Route path="/onboarding/medical-status" element={<MedicalStatus />} />
-    <Route path="/onboarding/plan-generation" element={<PlanGeneration />} />
-    <Route path="/onboarding/payment" element={<PaymentPage />} />
-    
-    {/* Redirect any unknown routes to home page */}
-    <Route path="*" element={<Navigate to="/" replace />} />
-  </Routes>
-);
+function App() {
+  return (
+    <div className={cn("min-h-screen bg-background text-foreground flex flex-col transition-colors duration-300")}>
+      <Navbar />
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/onboarding/*" element={<Onboarding />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  );
+}
 
 export default App;
