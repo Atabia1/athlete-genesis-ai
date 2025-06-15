@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Trophy, TrendingUp, Weight, Heart, Timer, Brain } from 'lucide-react';
@@ -50,11 +50,12 @@ const FitnessGoalsStep = () => {
   const [selectedGoals, setSelectedGoals] = useState<FitnessGoal[]>(savedGoals);
   const navigate = useNavigate();
 
-  const toggleGoal = (goalId: FitnessGoal) => {
-    if (selectedGoals.includes(goalId)) {
-      setSelectedGoals(selectedGoals.filter(id => id !== goalId));
+  const toggleGoal = (goalId: string) => {
+    const goal = goalId as FitnessGoal;
+    if (selectedGoals.includes(goal)) {
+      setSelectedGoals(selectedGoals.filter(id => id !== goal));
     } else {
-      setSelectedGoals([...selectedGoals, goalId]);
+      setSelectedGoals([...selectedGoals, goal]);
     }
   };
 
@@ -85,7 +86,7 @@ const FitnessGoalsStep = () => {
                   ? 'border-athleteBlue-600 bg-athleteBlue-50'
                   : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
               }`}
-              onClick={() => toggleGoal(goal.id as FitnessGoal)}
+              onClick={() => toggleGoal(goal.id)}
             >
               <div className="flex items-start">
                 <div className={`p-2 rounded-full mr-4 ${

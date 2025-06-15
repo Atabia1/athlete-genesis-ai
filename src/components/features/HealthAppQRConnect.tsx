@@ -1,20 +1,17 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   CheckCircle, 
-  Clock, 
   RefreshCw, 
-  AlertTriangle,
-  Download,
-  Wifi,
-  WifiOff
+  AlertTriangle
 } from "lucide-react";
 
 const HealthAppQRConnect = () => {
-  const [qrCode, setQrCode] = useState('https://example.com/health-app-connect');
+  const [qrCode] = useState('https://example.com/health-app-connect');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [connectionError, setConnectionError] = useState('');
@@ -67,7 +64,7 @@ const HealthAppQRConnect = () => {
                 <AlertDescription>{connectionError}</AlertDescription>
               </Alert>
             )}
-            <QRCode value={qrCode} size={256} level="H" />
+            <QRCodeSVG value={qrCode} size={256} level="H" />
             <p className="text-sm text-muted-foreground">
               Scan this QR code with your health app to connect.
             </p>

@@ -1,18 +1,15 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { 
   Smartphone, 
   Watch, 
   Activity, 
-  Heart, 
   Wifi, 
   WifiOff, 
   CheckCircle, 
   AlertCircle,
-  Bluetooth,
   Zap
 } from "lucide-react";
 
@@ -26,7 +23,7 @@ interface HealthDevice {
 }
 
 const ConnectedHealthDevices = () => {
-  const [devices, setDevices] = useState<HealthDevice[]>([
+  const [devices] = useState<HealthDevice[]>([
     {
       id: '1',
       name: 'Apple Watch',

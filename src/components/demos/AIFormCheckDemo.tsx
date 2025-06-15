@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
 
 const AIFormCheckDemo = () => {
@@ -28,7 +28,9 @@ const AIFormCheckDemo = () => {
   const [submissionResult, setSubmissionResult] = useState<'success' | 'error' | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
+    const checked = 'checked' in e.target ? e.target.checked : false;
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -155,9 +157,7 @@ const AIFormCheckDemo = () => {
             <Label>Experience Level</Label>
             <RadioGroup
               defaultValue={formData.experience}
-              onValueChange={(value) => handleChange({
-                target: { name: 'experience', value } as any,
-              })}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, experience: value }))}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="beginner" id="beginner" />
@@ -189,7 +189,7 @@ const AIFormCheckDemo = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Input
+            <input
               type="checkbox"
               id="terms"
               name="terms"
@@ -214,17 +214,17 @@ const AIFormCheckDemo = () => {
           </Button>
 
           {submissionResult === 'success' && (
-            <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+            <div className="bg-green-100 text-green-800 p-2 rounded flex items-center">
               <CheckCircle className="mr-2 h-4 w-4" />
               Form submitted successfully!
-            </Badge>
+            </div>
           )}
 
           {submissionResult === 'error' && (
-            <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-100">
+            <div className="bg-red-100 text-red-800 p-2 rounded flex items-center">
               <AlertTriangle className="mr-2 h-4 w-4" />
               Form submission failed. Please try again.
-            </Badge>
+            </div>
           )}
         </form>
       </CardContent>

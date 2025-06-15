@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
-import { MainSidebar } from '@/components/layout/MainSidebar';
+import MainSidebar from '@/components/layout/MainSidebar';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { TopNavigation } from '@/components/layout/TopNavigation';
 import { Button } from '@/components/ui/button';

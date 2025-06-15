@@ -1,9 +1,9 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User, Loader2 } from 'lucide-react';
 import { useFeatureAccess } from '@/hooks/use-feature-access';
 
@@ -20,8 +20,8 @@ const AICoachChat = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
-  const { hasFeatureAccess } = useFeatureAccess();
-  const canAccessAICoach = hasFeatureAccess('ai_coach');
+  const { canAccess } = useFeatureAccess();
+  const canAccessAICoach = canAccess('ai_coach');
 
   useEffect(() => {
     // Scroll to bottom on message change
@@ -79,12 +79,11 @@ const AICoachChat = () => {
                   {message.sender === 'ai' && (
                     <Bot className="mr-2 h-4 w-4 text-blue-500" />
                   )}
-                  <Badge
-                    variant="secondary"
-                    className={message.sender === 'user' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800'}
+                  <div
+                    className={`px-3 py-2 rounded-md ${message.sender === 'user' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800'}`}
                   >
                     {message.content}
-                  </Badge>
+                  </div>
                   {message.sender === 'user' && (
                     <User className="ml-2 h-4 w-4 text-green-500" />
                   )}
@@ -97,9 +96,9 @@ const AICoachChat = () => {
             {isLoading && (
               <div className="flex items-center">
                 <Bot className="mr-2 h-4 w-4 text-blue-500" />
-                <Badge variant="secondary" className="bg-gray-200 text-gray-800">
-                  Thinking... <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                </Badge>
+                <div className="bg-gray-200 text-gray-800 px-3 py-2 rounded-md">
+                  Thinking... <Loader2 className="ml-2 h-4 w-4 animate-spin inline" />
+                </div>
               </div>
             )}
             <div ref={chatBottomRef} />

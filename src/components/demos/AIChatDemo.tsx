@@ -1,10 +1,9 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Send, User, Bot } from "lucide-react";
-import { usePlan } from "@/context/PlanContext";
+import { Send } from "lucide-react";
 
 interface Message {
   id: string;
@@ -16,7 +15,6 @@ interface Message {
 const AIChatDemo = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const { plan } = usePlan();
 
   const sendMessage = () => {
     if (input.trim() === '') return;
