@@ -3,7 +3,7 @@ import { useState } from "react";
 import { usePlan } from "@/context/PlanContext";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Check, X, PenLine, ArrowRight } from "lucide-react";
+import { Dumbbell, Check, PenLine, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -52,9 +52,10 @@ const TodayWorkout = () => {
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const dayName = `Day ${dayOfWeek + 1}`; // Convert to 1-indexed for "Day 1", "Day 2", etc.
 
-  // Find today's workout
-  const todayWorkout = workoutPlan.weeklyPlan.find((day: WorkoutDay) =>
-    day.day.includes(dayName) || day.day.includes(dayNames[dayOfWeek])
+  // Find today's workout - use type assertion for workout plan structure
+  const weeklyPlan = (workoutPlan as any).weeklyPlan || [];
+  const todayWorkout = weeklyPlan.find((day: any) =>
+    (day.day && day.day.includes(dayName)) || (day.day && day.day.includes(dayNames[dayOfWeek]))
   );
 
   if (!todayWorkout) {
@@ -95,11 +96,6 @@ const TodayWorkout = () => {
     });
   };
 
-  const calculateProgress = () => {
-    if (!todayWorkout.exercises.length) return 0;
-    return (completedExercises.length / todayWorkout.exercises.length) * 100;
-  };
-
   return (
     <Card className="border-athleteBlue-200 shadow-sm relative">
       {!isOnline && <OfflineContentBadge contentType="workout" position="top-right" />}
@@ -135,12 +131,12 @@ const TodayWorkout = () => {
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-medium text-sm">Exercises</h3>
             <span className="text-xs text-gray-500">
-              {completedExercises.length} of {todayWorkout.exercises.length} completed
+              {completedExercises.length} of {todayWorkout.exercises?.length || 0} completed
             </span>
           </div>
 
           <div className="space-y-3 mb-4">
-            {todayWorkout.exercises.map((exercise: Exercise, index: number) => (
+            {(todayWorkout.exercises || []).map((exercise: Exercise, index: number) => (
               <div
                 key={index}
                 className={`flex items-start p-3 rounded-md border ${
@@ -171,7 +167,7 @@ const TodayWorkout = () => {
                   </div>
 
                   <div className="mt-1 text-xs text-gray-600">
-                    Rest: {exercise.rest}
+                    Rest: {(exercise as any).rest || '60s'}
                   </div>
                 </div>
               </div>

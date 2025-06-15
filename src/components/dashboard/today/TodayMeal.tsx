@@ -62,6 +62,9 @@ const TodayMeal = () => {
     return Utensils;
   };
 
+  // Use type assertion for meal plan data structure
+  const mealPlanData = (mealPlan as any).mealPlan || [];
+
   return (
     <Card className="border-athleteGreen-200 shadow-sm relative">
       {!isOnline && <OfflineContentBadge contentType="meal plan" position="top-right" />}
@@ -82,7 +85,7 @@ const TodayMeal = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {mealPlan.mealPlan.map((meal: any, index: number) => {
+          {mealPlanData.map((meal: any, index: number) => {
             const MealIcon = getMealIcon(meal.meal);
 
             return (
@@ -119,17 +122,17 @@ const TodayMeal = () => {
                   </div>
 
                   <div className="mt-3">
-                    {meal.options.map((option: any, optionIndex: number) => (
+                    {meal.options && meal.options.map((option: any, optionIndex: number) => (
                       <div key={optionIndex} className="mt-2 ml-2 text-sm">
                         <p className="font-medium">{option.name}</p>
                         <div className="mt-1">
                           <div className="flex flex-wrap gap-1 text-xs">
-                            {option.ingredients.slice(0, 3).map((ingredient: string, i: number) => (
+                            {option.ingredients && option.ingredients.slice(0, 3).map((ingredient: string, i: number) => (
                               <Badge key={i} variant="outline" className="bg-gray-50">
                                 {ingredient}
                               </Badge>
                             ))}
-                            {option.ingredients.length > 3 && (
+                            {option.ingredients && option.ingredients.length > 3 && (
                               <Badge variant="outline" className="bg-gray-50">
                                 +{option.ingredients.length - 3} more
                               </Badge>
@@ -160,7 +163,7 @@ const TodayMeal = () => {
             <SheetHeader>
               <SheetTitle>Log Your Meals</SheetTitle>
             </SheetHeader>
-            <MealLogger mealPlan={mealPlan.mealPlan} />
+            <MealLogger mealPlan={mealPlanData} />
           </SheetContent>
         </Sheet>
 

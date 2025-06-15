@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -15,7 +14,21 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { CheckCircle, Info, Minus, Plus } from "lucide-react";
-import { WorkoutDay, Exercise, ExerciseLog, ExerciseSet } from "@/types/workout";
+import { WorkoutDay, Exercise } from "@/types/workout";
+
+interface WorkoutSet {
+  weight: string;
+  reps: string;
+  rpe: number;
+  completed: boolean;
+}
+
+interface ExerciseLog {
+  name: string;
+  sets: WorkoutSet[];
+  notes: string;
+  skipped: boolean;
+}
 
 interface WorkoutLoggerProps {
   workout: WorkoutDay;
@@ -23,10 +36,10 @@ interface WorkoutLoggerProps {
 
 const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
   const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>(
-    workout.exercises.map((exercise: Exercise) => ({
+    (workout.exercises || []).map((exercise: Exercise) => ({
       name: exercise.name,
-      sets: Array(parseInt(exercise.sets) || 1).fill({
-        weight: exercise.weight || "",
+      sets: Array(parseInt(exercise.sets || '1')).fill({
+        weight: (exercise as any).weight || "",
         reps: exercise.reps?.toString()?.split('-')?.[0] || "",
         rpe: 7,
         completed: false
@@ -39,7 +52,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
   const [duration, setDuration] = useState("60");
   const [overallNotes, setOverallNotes] = useState("");
 
-  const updateExerciseSet = (exerciseIndex: number, setIndex: number, field: keyof ExerciseLog['sets'][0], value: any) => {
+  const updateExerciseSet = (exerciseIndex: number, setIndex: number, field: keyof WorkoutSet, value: any) => {
     setExerciseLogs(prev => {
       const newLogs = [...prev];
       newLogs[exerciseIndex].sets[setIndex] = {
@@ -89,7 +102,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
     // Here you would send the data to your backend or context
     // For now, let's just show a toast notification
     console.log({
-      workout: workout.day,
+      workout: (workout as any).day || 'Today\'s Workout',
       exercises: exerciseLogs,
       duration,
       overallNotes,
@@ -106,7 +119,7 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
     <div className="py-4">
       <div className="space-y-6">
         <div>
-          <h3 className="text-sm font-medium mb-2">{workout.day} - {workout.focus}</h3>
+          <h3 className="text-sm font-medium mb-2">{(workout as any).day || 'Today\'s Workout'} - {(workout as any).focus || 'Workout'}</h3>
           <div className="mb-4">
             <Label htmlFor="duration">Duration (minutes)</Label>
             <Input
@@ -145,7 +158,6 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
                             placeholder="lb/kg"
                             value={set.weight}
                             onChange={e => updateExerciseSet(exerciseIndex, setIndex, 'weight', e.target.value)}
-                            size={1}
                           />
                         </div>
                         <div>
@@ -154,7 +166,6 @@ const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
                             type="number"
                             value={set.reps}
                             onChange={e => updateExerciseSet(exerciseIndex, setIndex, 'reps', e.target.value)}
-                            size={1}
                           />
                         </div>
                         <div>

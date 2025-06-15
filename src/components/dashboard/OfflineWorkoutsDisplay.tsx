@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import {
   Card,
@@ -17,7 +18,6 @@ import {
   Wifi,
   WifiOff,
   Play,
-  Pause,
   CheckCircle,
   Clock,
   AlertCircle,
@@ -96,10 +96,6 @@ const OfflineWorkoutsDisplay = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  const handleDownloadWorkout = (workoutId: string) => {
-    console.log('Downloading workout:', workoutId);
-  };
 
   const handleSyncWorkouts = () => {
     console.log('Syncing workouts...');
@@ -220,7 +216,6 @@ const OfflineWorkoutsDisplay = () => {
             </AlertDescription>
           </Alert>
           
-          {/* Download interface would go here */}
           <Card>
             <CardContent className="pt-6">
               <p className="text-center text-muted-foreground">

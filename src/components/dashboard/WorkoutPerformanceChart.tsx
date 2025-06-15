@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -65,9 +66,6 @@ const WorkoutPerformanceChart = ({
   const [activeTab, setActiveTab] = useState('strength');
   const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month' | '3months' | 'year'>(timeRange);
   const [strengthData, setStrengthData] = useState<any[]>([]);
-  const [volumeData, setVolumeData] = useState<any[]>([]);
-  const [consistencyData, setConsistencyData] = useState<any[]>([]);
-  const [exerciseData, setExerciseData] = useState<any[]>([]);
   const [performanceMetrics, setPerformanceMetrics] = useState({
     totalWorkouts: 0,
     totalVolume: 0,
@@ -96,8 +94,6 @@ const WorkoutPerformanceChart = ({
     
     // Generate strength progression data
     const strengthProgressionData = [];
-    const volumeProgressionData = [];
-    const consistencyProgressionData = [];
     
     // Determine number of data points based on time range
     let dataPoints = 7; // week
@@ -131,20 +127,10 @@ const WorkoutPerformanceChart = ({
       const strengthVariation = Math.random() * 10 - 5;
       const strength = Math.max(0, Math.min(100, baseStrength + strengthVariation));
       
-      // Generate volume data with slight upward trend
-      const baseVolume = 2000 + (i * 50);
-      const volumeVariation = Math.random() * 500 - 250;
-      const volume = Math.max(0, baseVolume + volumeVariation);
-      
       // Generate intensity data
       const baseIntensity = 70 + (i * 0.5);
       const intensityVariation = Math.random() * 10 - 5;
       const intensity = Math.max(0, Math.min(100, baseIntensity + intensityVariation));
-      
-      // Generate consistency data (workout completion rate)
-      const baseConsistency = 80 + (i * 0.3);
-      const consistencyVariation = Math.random() * 20 - 10;
-      const consistency = Math.max(0, Math.min(100, baseConsistency + consistencyVariation));
       
       // Add to strength data
       strengthProgressionData.push({
@@ -153,36 +139,10 @@ const WorkoutPerformanceChart = ({
         intensity,
         target: 85,
       });
-      
-      // Add to volume data
-      volumeProgressionData.push({
-        date: label,
-        volume,
-        intensity,
-      });
-      
-      // Add to consistency data
-      consistencyProgressionData.push({
-        date: label,
-        consistency,
-        target: 90,
-      });
     }
-    
-    // Generate exercise-specific data
-    const exerciseSpecificData = [
-      { exercise: 'Squat', current: 85, previous: 75, improvement: 13.3 },
-      { exercise: 'Bench Press', current: 80, previous: 72, improvement: 11.1 },
-      { exercise: 'Deadlift', current: 90, previous: 82, improvement: 9.8 },
-      { exercise: 'Shoulder Press', current: 75, previous: 65, improvement: 15.4 },
-      { exercise: 'Pull-ups', current: 82, previous: 70, improvement: 17.1 },
-    ];
     
     // Set data
     setStrengthData(strengthProgressionData);
-    setVolumeData(volumeProgressionData);
-    setConsistencyData(consistencyProgressionData);
-    setExerciseData(exerciseSpecificData);
     
     // Calculate performance metrics
     setPerformanceMetrics({
@@ -285,24 +245,6 @@ const WorkoutPerformanceChart = ({
               className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
             >
               Strength
-            </TabsTrigger>
-            <TabsTrigger 
-              value="volume" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Volume
-            </TabsTrigger>
-            <TabsTrigger 
-              value="exercises" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Exercises
-            </TabsTrigger>
-            <TabsTrigger 
-              value="consistency" 
-              className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Consistency
             </TabsTrigger>
           </TabsList>
           
