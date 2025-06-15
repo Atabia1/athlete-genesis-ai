@@ -12,15 +12,13 @@ const PlanGenerationStep = () => {
   const { 
     userType, 
     fitnessGoals, 
-    sportActivity, 
+    sport: sportActivity,
     experienceLevel,
     frequency,
     duration,
     timeOfDay,
     equipment,
     otherEquipment,
-    generatingPlan,
-    setGeneratingPlan,
     setWorkoutPlan,
     setMealPlan
   } = usePlan();
@@ -43,7 +41,6 @@ const PlanGenerationStep = () => {
 
   const generatePlans = async () => {
     setIsLoading(true);
-    setGeneratingPlan(true);
     
     try {
       const userProfile = {
@@ -90,7 +87,6 @@ const PlanGenerationStep = () => {
       });
     } finally {
       setIsLoading(false);
-      setGeneratingPlan(false);
     }
   };
 
@@ -100,6 +96,18 @@ const PlanGenerationStep = () => {
 
   const handleContinue = () => {
     navigate('/dashboard');
+  };
+
+  const getGoalDisplayName = (goal: string) => {
+    switch (goal) {
+      case 'performance': return 'Performance Improvement';
+      case 'strength': return 'Strength & Muscle';
+      case 'weight': return 'Weight Management';
+      case 'health': return 'General Health';
+      case 'endurance': return 'Endurance';
+      case 'recovery': return 'Recovery & Mobility';
+      default: return goal;
+    }
   };
 
   return (
@@ -125,14 +133,7 @@ const PlanGenerationStep = () => {
             
             <div>
               <p className="text-sm font-medium text-gray-500">Goals</p>
-              <p className="text-md">{fitnessGoals.map(goal => 
-                goal === 'performance' ? 'Performance Improvement' :
-                goal === 'strength' ? 'Strength & Muscle' :
-                goal === 'weight' ? 'Weight Management' :
-                goal === 'health' ? 'General Health' :
-                goal === 'endurance' ? 'Endurance' :
-                'Recovery & Mobility'
-              ).join(', ')}</p>
+              <p className="text-md">{fitnessGoals.map(getGoalDisplayName).join(', ')}</p>
             </div>
             
             <div>

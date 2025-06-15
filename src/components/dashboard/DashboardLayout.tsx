@@ -53,7 +53,9 @@ const DashboardLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Sidebar (Hidden on small screens) */}
-      <MainSidebar className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:border-r lg:bg-gray-50" />
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:border-r lg:bg-gray-50">
+        <MainSidebar />
+      </div>
       
       {/* Mobile Sidebar */}
       <MobileSidebar isOpen={isMobileSidebarOpen} onClose={toggleMobileSidebar}>
@@ -71,7 +73,7 @@ const DashboardLayout: React.FC = () => {
       </MobileSidebar>
 
       {/* Page Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden lg:ml-64">
         {/* Top Navigation */}
         <TopNavigation onMenuClick={toggleMobileSidebar}>
           <DropdownMenu>

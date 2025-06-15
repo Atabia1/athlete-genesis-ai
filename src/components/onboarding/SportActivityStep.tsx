@@ -7,7 +7,7 @@ import { usePlan } from '@/context/PlanContext';
 import SportsSelector from './SportsSelector';
 
 const SportActivityStep = () => {
-  const { sportActivity, setSportActivity } = usePlan();
+  const { sport: sportActivity, setSport: setSportActivity } = usePlan();
   const navigate = useNavigate();
 
   const handleBack = () => {

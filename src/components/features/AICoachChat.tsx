@@ -21,7 +21,7 @@ const AICoachChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const { canAccess } = useFeatureAccess();
-  const canAccessAICoach = canAccess('ai_coach');
+  const canAccessAICoach = canAccess('ai_basic_chat' as any);
 
   useEffect(() => {
     // Scroll to bottom on message change

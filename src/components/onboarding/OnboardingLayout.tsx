@@ -76,7 +76,7 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
               {Math.round(progress)}%
             </span>
           </div>
-          <Progress value={progress} className="h-2 bg-gray-200 dark:bg-gray-700" indicatorClassName="bg-gradient-to-r from-athleteBlue-500 to-athleteGreen-500" />
+          <Progress value={progress} className="h-2 bg-gray-200 dark:bg-gray-700" />
         </div>
       </header>
 

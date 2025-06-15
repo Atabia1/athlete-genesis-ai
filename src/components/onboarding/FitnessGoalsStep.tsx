@@ -8,37 +8,37 @@ import { usePlan, FitnessGoal } from '@/context/PlanContext';
 
 const fitnessGoals = [
   {
-    id: 'performance',
+    id: 'performance' as FitnessGoal,
     title: 'Performance Improvement',
     description: 'Enhance specific skills and capabilities for my sport.',
     icon: Trophy
   },
   {
-    id: 'strength',
+    id: 'strength' as FitnessGoal,
     title: 'Strength & Muscle',
     description: 'Build muscle mass and increase overall strength.',
     icon: TrendingUp
   },
   {
-    id: 'weight',
+    id: 'weight' as FitnessGoal,
     title: 'Weight Management',
     description: 'Lose weight or maintain a healthy body composition.',
     icon: Weight
   },
   {
-    id: 'health',
+    id: 'health' as FitnessGoal,
     title: 'General Health',
     description: 'Improve overall wellness and prevent health issues.',
     icon: Heart
   },
   {
-    id: 'endurance',
+    id: 'endurance' as FitnessGoal,
     title: 'Endurance',
     description: 'Increase stamina and cardiovascular capacity.',
     icon: Timer
   },
   {
-    id: 'recovery',
+    id: 'recovery' as FitnessGoal,
     title: 'Recovery & Mobility',
     description: 'Enhance flexibility, prevent injuries, and improve recovery.',
     icon: Brain
@@ -50,12 +50,11 @@ const FitnessGoalsStep = () => {
   const [selectedGoals, setSelectedGoals] = useState<FitnessGoal[]>(savedGoals);
   const navigate = useNavigate();
 
-  const toggleGoal = (goalId: string) => {
-    const goal = goalId as FitnessGoal;
-    if (selectedGoals.includes(goal)) {
-      setSelectedGoals(selectedGoals.filter(id => id !== goal));
+  const toggleGoal = (goalId: FitnessGoal) => {
+    if (selectedGoals.includes(goalId)) {
+      setSelectedGoals(selectedGoals.filter(id => id !== goalId));
     } else {
-      setSelectedGoals([...selectedGoals, goal]);
+      setSelectedGoals([...selectedGoals, goalId]);
     }
   };
 
@@ -82,7 +81,7 @@ const FitnessGoalsStep = () => {
             <div
               key={goal.id}
               className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                selectedGoals.includes(goal.id as FitnessGoal)
+                selectedGoals.includes(goal.id)
                   ? 'border-athleteBlue-600 bg-athleteBlue-50'
                   : 'border-gray-200 hover:border-athleteBlue-300 hover:bg-gray-50'
               }`}
@@ -90,7 +89,7 @@ const FitnessGoalsStep = () => {
             >
               <div className="flex items-start">
                 <div className={`p-2 rounded-full mr-4 ${
-                  selectedGoals.includes(goal.id as FitnessGoal)
+                  selectedGoals.includes(goal.id)
                     ? 'bg-athleteBlue-100 text-athleteBlue-600'
                     : 'bg-gray-100 text-gray-500'
                 }`}>
