@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import WorkoutLogger from "./WorkoutLogger";
 import { useNavigate } from "react-router-dom";
-import { WorkoutDay, Exercise } from "@/types/workout";
+import { Exercise } from "@/types/workout";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { OfflineContentBadge } from "@/components/ui/offline-content-badge";

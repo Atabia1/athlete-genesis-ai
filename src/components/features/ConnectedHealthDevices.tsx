@@ -1,319 +1,141 @@
-/**
- * Connected Health Devices Component
- * 
- * This component displays a list of connected health devices and allows
- * the user to manage them.
- */
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
   Smartphone, 
-  Trash2, 
-  RefreshCw, 
-  AppleIcon,
-  Smartphone as AndroidIcon,
-  Heart,
-  Info,
-  CheckCircle,
-  XCircle
-} from 'lucide-react';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { useToast } from "@/components/ui/use-toast";
+  Watch, 
+  Activity, 
+  Heart, 
+  Wifi, 
+  WifiOff, 
+  CheckCircle, 
+  AlertCircle,
+  Bluetooth,
+  Zap
+} from "lucide-react";
 
-interface ConnectedDevice {
+interface HealthDevice {
   id: string;
-  device_id: string;
-  device_info: {
-    name: string;
-    model: string;
-    os: string;
-    osVersion: string;
-  };
-  connected_at: string;
-  last_sync: string;
+  name: string;
+  type: 'watch' | 'scale' | 'other';
+  status: 'connected' | 'disconnected';
+  batteryLevel?: number;
+  lastSync?: string;
 }
 
-/**
- * Connected Health Devices Component
- */
 const ConnectedHealthDevices = () => {
-  const [devices, setDevices] = useState<ConnectedDevice[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedDevice, setSelectedDevice] = useState<ConnectedDevice | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
-  const supabase = useSupabaseClient();
-  const { toast } = useToast();
-  
-  // Fetch connected devices
-  const fetchConnectedDevices = async () => {
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.functions.invoke('health-sync', {
-        body: { action: 'devices' },
-      });
-      
-      if (error) {
-        throw new Error(error.message);
-      }
-      
-      setDevices(data || []);
-    } catch (error) {
-      console.error('Error fetching connected devices:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch connected devices. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
+  const [devices, setDevices] = useState<HealthDevice[]>([
+    {
+      id: '1',
+      name: 'Apple Watch',
+      type: 'watch',
+      status: 'connected',
+      batteryLevel: 85,
+      lastSync: 'Just now'
+    },
+    {
+      id: '2',
+      name: 'Smart Scale',
+      type: 'scale',
+      status: 'connected',
+      batteryLevel: 60,
+      lastSync: '5 minutes ago'
+    },
+    {
+      id: '3',
+      name: 'Generic Tracker',
+      type: 'other',
+      status: 'disconnected',
+      lastSync: '2 days ago'
     }
-  };
-  
-  // Disconnect a device
-  const disconnectDevice = async (deviceId: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('health-sync', {
-        body: { action: 'disconnect', deviceId },
-      });
-      
-      if (error) {
-        throw new Error(error.message);
-      }
-      
-      if (data.success) {
-        // Remove the device from the list
-        setDevices(devices.filter(device => device.device_id !== deviceId));
-        
-        toast({
-          title: 'Device Disconnected',
-          description: 'The device has been disconnected successfully.',
-        });
-      } else {
-        throw new Error(data.error || 'Failed to disconnect device');
-      }
-    } catch (error) {
-      console.error('Error disconnecting device:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to disconnect device. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setShowDeleteDialog(false);
-      setSelectedDevice(null);
-    }
-  };
-  
-  // Fetch connected devices on mount
+  ]);
+
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
   useEffect(() => {
-    fetchConnectedDevices();
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
-  
-  // Format date for display
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Never';
-    
-    return new Date(dateString).toLocaleDateString([], {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-  
-  // Get device icon based on OS
-  const getDeviceIcon = (device: ConnectedDevice) => {
-    const os = device.device_info?.os?.toLowerCase() || '';
-    
-    if (os.includes('ios')) {
-      return <AppleIcon className="h-5 w-5" />;
-    } else if (os.includes('android')) {
-      return <AndroidIcon className="h-5 w-5" />;
-    } else {
-      return <Smartphone className="h-5 w-5" />;
-    }
-  };
-  
-  // Get health app name based on device info
-  const getHealthAppName = (device: ConnectedDevice) => {
-    const os = device.device_info?.os?.toLowerCase() || '';
-    
-    if (os.includes('ios')) {
-      return 'Apple Health';
-    } else if (os.includes('android')) {
-      // Check if Samsung Health is available
-      if (device.device_info?.model?.toLowerCase().includes('samsung')) {
-        return 'Samsung Health';
-      } else {
-        return 'Google Fit';
-      }
-    } else {
-      return 'Health App';
-    }
-  };
-  
-  // Check if a device is recently synced (within the last hour)
-  const isRecentlySynced = (lastSync?: string) => {
-    if (!lastSync) return false;
-    
-    const lastSyncDate = new Date(lastSync);
-    const now = new Date();
-    const diffMs = now.getTime() - lastSyncDate.getTime();
-    const diffHours = diffMs / (1000 * 60 * 60);
-    
-    return diffHours < 1;
-  };
-  
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <Heart className="mr-2 h-5 w-5" />
-          Connected Health Devices
-        </CardTitle>
-        <CardDescription>
-          Manage your connected health devices
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          // Loading state
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="flex items-center p-4 bg-slate-50 rounded-lg">
-                <Skeleton className="h-10 w-10 rounded-full mr-4" />
-                <div className="flex-1">
-                  <Skeleton className="h-5 w-40 mb-2" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-                <Skeleton className="h-9 w-9 rounded-md" />
-              </div>
-            ))}
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              {isOnline ? (
+                <Wifi className="h-5 w-5 text-green-500" />
+              ) : (
+                <WifiOff className="h-5 w-5 text-red-500" />
+              )}
+              Connected Devices
+            </CardTitle>
+            <CardDescription>
+              Manage your connected health devices
+            </CardDescription>
           </div>
-        ) : devices.length === 0 ? (
-          // No devices
-          <div className="text-center py-8">
-            <Smartphone className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-            <h3 className="text-lg font-medium mb-1">No Devices Connected</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Connect a health app to sync your health data
-            </p>
-            <Button onClick={() => window.location.href = '/settings/health-apps/connect'}>
-              Connect Health App
-            </Button>
+          <Button variant="outline" disabled={!isOnline}>
+            Connect New
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {devices.length === 0 ? (
+          <div className="text-center py-4">
+            <AlertCircle className="h-6 w-6 mx-auto text-gray-400 mb-2" />
+            <p className="text-sm text-gray-500">No devices connected</p>
           </div>
         ) : (
-          // Device list
-          <div className="space-y-4">
+          <div className="space-y-3">
             {devices.map((device) => (
-              <div key={device.device_id} className="flex items-center p-4 bg-slate-50 rounded-lg">
-                <div className="bg-primary/10 p-2 rounded-full mr-4">
-                  {getDeviceIcon(device)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center">
-                    <h3 className="font-medium">
-                      {device.device_info?.name || 'Unknown Device'}
-                    </h3>
-                    {device.last_sync && (
-                      <Badge 
-                        variant={isRecentlySynced(device.last_sync) ? 'default' : 'outline'}
-                        className="ml-2"
-                      >
-                        {isRecentlySynced(device.last_sync) ? (
-                          <span className="flex items-center">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Synced
-                          </span>
-                        ) : (
-                          <span className="flex items-center">
-                            <Info className="h-3 w-3 mr-1" />
-                            Needs Sync
-                          </span>
-                        )}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {getHealthAppName(device)} • {device.device_info?.model || 'Unknown Model'}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Connected: {formatDate(device.connected_at)}
-                    {device.last_sync && ` • Last Sync: ${formatDate(device.last_sync)}`}
+              <div key={device.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {device.type === 'watch' && <Watch className="h-5 w-5 text-blue-500" />}
+                  {device.type === 'scale' && <Activity className="h-5 w-5 text-green-500" />}
+                  {device.type === 'other' && <Smartphone className="h-5 w-5 text-gray-500" />}
+                  <div>
+                    <p className="font-medium">{device.name}</p>
+                    <div className="text-sm text-muted-foreground">
+                      {device.status === 'connected' ? (
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3 text-green-500" />
+                          Connected
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3 text-red-500" />
+                          Disconnected
+                        </div>
+                      )}
+                      {device.lastSync && ` - Last Sync: ${device.lastSync}`}
+                    </div>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setSelectedDevice(device);
-                    setShowDeleteDialog(true);
-                  }}
-                >
-                  <Trash2 className="h-5 w-5 text-red-500" />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  {device.status === 'connected' && device.batteryLevel !== undefined && (
+                    <div className="flex items-center space-x-1">
+                      <Zap className="h-4 w-4 text-yellow-500" />
+                      <span>{device.batteryLevel}%</span>
+                    </div>
+                  )}
+                  <Button variant="outline" size="sm">
+                    Manage
+                  </Button>
+                </div>
               </div>
             ))}
-            
-            <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={fetchConnectedDevices}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-              <Button onClick={() => window.location.href = '/settings/health-apps/connect'}>
-                Connect New Device
-              </Button>
-            </div>
           </div>
         )}
-        
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Disconnect Device</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to disconnect this device? This will stop syncing health data from this device.
-                {selectedDevice && (
-                  <div className="mt-2 p-3 bg-slate-100 rounded-md">
-                    <div className="font-medium">
-                      {selectedDevice.device_info?.name || 'Unknown Device'}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {getHealthAppName(selectedDevice)} • {selectedDevice.device_info?.model || 'Unknown Model'}
-                    </div>
-                  </div>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-red-500 hover:bg-red-600"
-                onClick={() => selectedDevice && disconnectDevice(selectedDevice.device_id)}
-              >
-                Disconnect
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </CardContent>
     </Card>
   );

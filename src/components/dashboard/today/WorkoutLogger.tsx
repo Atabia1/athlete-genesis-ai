@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { CheckCircle, Info, Minus, Plus } from "lucide-react";
-import { WorkoutDay, Exercise } from "@/types/workout";
 
 interface WorkoutSet {
   weight: string;
@@ -31,14 +29,14 @@ interface ExerciseLog {
 }
 
 interface WorkoutLoggerProps {
-  workout: WorkoutDay;
+  workout: any;
 }
 
 const WorkoutLogger = ({ workout }: WorkoutLoggerProps) => {
   const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>(
-    (workout.exercises || []).map((exercise: Exercise) => ({
+    (workout.exercises || []).map((exercise: any) => ({
       name: exercise.name,
-      sets: Array(parseInt(exercise.sets || '1')).fill({
+      sets: Array(parseInt(exercise.sets?.toString() || '1')).fill({
         weight: (exercise as any).weight || "",
         reps: exercise.reps?.toString()?.split('-')?.[0] || "",
         rpe: 7,

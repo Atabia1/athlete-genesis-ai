@@ -1,478 +1,233 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Camera, 
-  Upload, 
-  Sparkles, 
-  Brain, 
-  Lock, 
-  Zap, 
-  CheckCircle, 
-  X, 
-  AlertCircle,
-  Loader2,
-  ArrowRight,
-  RotateCcw
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { usePlan } from '@/context/PlanContext';
-import { useFeatureAccess } from '@/hooks/use-feature-access';
-import { 
-  trackFeatureUsage, 
-  EventAction 
-} from '@/utils/analytics';
-import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
 
-/**
- * AIFormCheckDemo: Interactive demo of the AI Form Check feature
- * 
- * This component provides an interactive demo of the AI Form Check feature,
- * allowing users to experience the feature before subscribing.
- */
+const AIFormCheckDemo = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    age: '',
+    experience: 'beginner',
+    goals: '',
+    terms: false,
+  });
+  const [formErrors, setFormErrors] = useState({
+    name: '',
+    email: '',
+    age: '',
+    goals: '',
+    terms: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<'success' | 'error' | null>(null);
 
-// Demo form check results
-const demoResults = {
-  squat: {
-    score: 78,
-    feedback: [
-      {
-        area: "Knee Alignment",
-        issue: "Knees caving inward slightly during descent",
-        recommendation: "Focus on pushing knees outward in line with toes",
-        severity: "medium"
-      },
-      {
-        area: "Depth",
-        issue: "Not quite reaching parallel depth",
-        recommendation: "Work on mobility to achieve deeper squat position",
-        severity: "medium"
-      },
-      {
-        area: "Back Position",
-        issue: "Good neutral spine maintained throughout",
-        recommendation: "Continue maintaining this strong position",
-        severity: "good"
-      },
-      {
-        area: "Bar Path",
-        issue: "Bar path is mostly vertical with slight forward drift",
-        recommendation: "Focus on keeping weight in mid-foot throughout movement",
-        severity: "low"
-      }
-    ]
-  },
-  deadlift: {
-    score: 82,
-    feedback: [
-      {
-        area: "Starting Position",
-        issue: "Hips slightly too high at starting position",
-        recommendation: "Lower hips slightly to engage legs more in initial pull",
-        severity: "low"
-      },
-      {
-        area: "Back Position",
-        issue: "Lower back rounds slightly at heaviest portion",
-        recommendation: "Focus on maintaining neutral spine throughout lift",
-        severity: "medium"
-      },
-      {
-        area: "Bar Path",
-        issue: "Excellent vertical bar path",
-        recommendation: "Continue with this efficient movement pattern",
-        severity: "good"
-      },
-      {
-        area: "Lockout",
-        issue: "Strong lockout at the top of the movement",
-        recommendation: "Maintain this strong finishing position",
-        severity: "good"
-      }
-    ]
-  },
-  bench: {
-    score: 85,
-    feedback: [
-      {
-        area: "Bar Path",
-        issue: "Bar path is slightly diagonal rather than J-curve",
-        recommendation: "Focus on lowering bar to mid-chest and pressing up toward shoulders",
-        severity: "low"
-      },
-      {
-        area: "Elbow Position",
-        issue: "Elbows flaring out too wide",
-        recommendation: "Keep elbows at about 45° angle to reduce shoulder stress",
-        severity: "medium"
-      },
-      {
-        area: "Arch",
-        issue: "Good upper back arch and stability",
-        recommendation: "Continue maintaining this strong position",
-        severity: "good"
-      },
-      {
-        area: "Foot Position",
-        issue: "Feet firmly planted providing good stability",
-        recommendation: "Maintain this stable base throughout the lift",
-        severity: "good"
-      }
-    ]
-  }
-};
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+    setFormErrors(prev => ({ ...prev, [name]: '' })); // Clear error on change
+  };
 
-export const AIFormCheckDemo = () => {
-  const [activeTab, setActiveTab] = useState('upload');
-  const [selectedExercise, setSelectedExercise] = useState<'squat' | 'deadlift' | 'bench' | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [analysisComplete, setAnalysisComplete] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
-  const { canAccess } = useFeatureAccess();
-  
-  // Check if user has access to AI form check
-  const hasAccess = canAccess('ai_form_check', false);
-  
-  // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors: typeof formErrors = { ...formErrors };
+
+    if (!formData.name) {
+      newErrors.name = 'Name is required';
+      isValid = false;
+    }
+
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+      isValid = false;
+    }
+
+    if (!formData.age) {
+      newErrors.age = 'Age is required';
+      isValid = false;
+    } else if (isNaN(Number(formData.age)) || Number(formData.age) <= 0) {
+      newErrors.age = 'Age must be a positive number';
+      isValid = false;
+    }
+
+    if (!formData.goals) {
+      newErrors.goals = 'Goals are required';
+      isValid = false;
+    }
+
+    if (!formData.terms) {
+      newErrors.terms = 'You must accept the terms';
+      isValid = false;
+    }
+
+    setFormErrors(newErrors);
+    return isValid;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmissionResult(null); // Reset previous result
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    setIsSubmitting(false);
+    // Simulate success/error randomly
+    if (Math.random() > 0.5) {
+      setSubmissionResult('success');
+    } else {
+      setSubmissionResult('error');
     }
   };
-  
-  // Handle exercise selection
-  const handleExerciseSelect = (exercise: 'squat' | 'deadlift' | 'bench') => {
-    setSelectedExercise(exercise);
-  };
-  
-  // Handle form submission
-  const handleSubmit = () => {
-    if (!selectedExercise) return;
-    
-    // Track feature usage
-    trackFeatureUsage('ai_form_check', EventAction.FEATURE_USED, {
-      exercise: selectedExercise,
-      is_demo: true
-    });
-    
-    setIsAnalyzing(true);
-    setAnalysisProgress(0);
-    
-    // Simulate analysis progress
-    const interval = setInterval(() => {
-      setAnalysisProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsAnalyzing(false);
-          setAnalysisComplete(true);
-          setActiveTab('results');
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 300);
-  };
-  
-  // Handle reset
-  const handleReset = () => {
-    setSelectedExercise(null);
-    setSelectedFile(null);
-    setIsAnalyzing(false);
-    setAnalysisProgress(0);
-    setAnalysisComplete(false);
-    setActiveTab('upload');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-  
-  // Handle upgrade click
-  const handleUpgradeClick = () => {
-    navigate('/dashboard/subscription');
-  };
-  
-  // Get severity color
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'good':
-        return 'text-green-600 bg-green-50 border-green-200';
-      case 'low':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'medium':
-        return 'text-amber-600 bg-amber-50 border-amber-200';
-      case 'high':
-        return 'text-red-600 bg-red-50 border-red-200';
-      default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
-  
-  // Get severity icon
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'good':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'low':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'medium':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'high':
-        return <X className="h-4 w-4" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
-    }
-  };
-  
+
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-3 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-full bg-purple-100 text-purple-600">
-              <Camera className="h-5 w-5" />
-            </div>
-            <div>
-              <CardTitle>AI Form Check</CardTitle>
-              <CardDescription>Get feedback on your exercise technique</CardDescription>
-            </div>
-          </div>
-          <Badge className="bg-purple-100 text-purple-800">
-            <Sparkles className="h-3 w-3 mr-1" />
-            Elite Feature
-          </Badge>
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>AI Form Check Demo</CardTitle>
+        <CardDescription>
+          This form demonstrates client-side validation and simulated submission.
+        </CardDescription>
       </CardHeader>
-      
-      {hasAccess ? (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full">
-            <TabsTrigger value="upload" disabled={isAnalyzing}>Upload</TabsTrigger>
-            <TabsTrigger value="results" disabled={!analysisComplete}>Results</TabsTrigger>
-          </TabsList>
-          
-          <CardContent className="p-6">
-            <TabsContent value="upload" className="mt-0">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Select Exercise</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <Card 
-                      className={cn(
-                        "cursor-pointer hover:border-purple-300 transition-all",
-                        selectedExercise === 'squat' && "border-purple-500 bg-purple-50"
-                      )}
-                      onClick={() => handleExerciseSelect('squat')}
-                    >
-                      <CardContent className="p-4 text-center">
-                        <div className="font-medium">Squat</div>
-                      </CardContent>
-                    </Card>
-                    <Card 
-                      className={cn(
-                        "cursor-pointer hover:border-purple-300 transition-all",
-                        selectedExercise === 'deadlift' && "border-purple-500 bg-purple-50"
-                      )}
-                      onClick={() => handleExerciseSelect('deadlift')}
-                    >
-                      <CardContent className="p-4 text-center">
-                        <div className="font-medium">Deadlift</div>
-                      </CardContent>
-                    </Card>
-                    <Card 
-                      className={cn(
-                        "cursor-pointer hover:border-purple-300 transition-all",
-                        selectedExercise === 'bench' && "border-purple-500 bg-purple-50"
-                      )}
-                      onClick={() => handleExerciseSelect('bench')}
-                    >
-                      <CardContent className="p-4 text-center">
-                        <div className="font-medium">Bench Press</div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Upload Video</h3>
-                  <div 
-                    className="border-2 border-dashed rounded-lg p-6 text-center hover:border-purple-300 transition-all cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <input
-                      type="file"
-                      accept="video/*"
-                      className="hidden"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                    />
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600 mb-1">
-                      {selectedFile ? selectedFile.name : "Click to upload or drag and drop"}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      MP4, MOV or WebM (max. 100MB)
-                    </p>
-                  </div>
-                </div>
-                
-                {isAnalyzing && (
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Analyzing form...</span>
-                      <span>{analysisProgress}%</span>
-                    </div>
-                    <Progress value={analysisProgress} className="h-2" />
-                    <div className="flex items-center gap-2 text-sm text-gray-500 justify-center">
-                      <Brain className="h-4 w-4 text-purple-500 animate-pulse" />
-                      <span>AI is analyzing your {selectedExercise} form</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="results" className="mt-0">
-              {selectedExercise && demoResults[selectedExercise] && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium">Form Analysis Results</h3>
-                    <Badge className={cn(
-                      demoResults[selectedExercise].score >= 80 ? "bg-green-100 text-green-800" :
-                      demoResults[selectedExercise].score >= 60 ? "bg-amber-100 text-amber-800" :
-                      "bg-red-100 text-red-800"
-                    )}>
-                      Score: {demoResults[selectedExercise].score}/100
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {demoResults[selectedExercise].feedback.map((item, index) => (
-                      <div 
-                        key={index}
-                        className={`p-4 rounded-lg border ${getSeverityColor(item.severity)}`}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          {getSeverityIcon(item.severity)}
-                          <span className="font-medium">{item.area}</span>
-                        </div>
-                        <p className="text-sm mb-2">{item.issue}</p>
-                        <div className="text-sm bg-white bg-opacity-50 p-2 rounded">
-                          <span className="font-medium">Recommendation:</span> {item.recommendation}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="h-4 w-4 text-purple-600" />
-                      <span className="font-medium text-purple-800">AI Coach Insight</span>
-                    </div>
-                    <p className="text-sm text-purple-700">
-                      {selectedExercise === 'squat' && "Your squat form is generally good, but focus on knee tracking and depth. Try box squats to develop positional awareness and improve mobility with ankle and hip stretches."}
-                      {selectedExercise === 'deadlift' && "Your deadlift technique shows good bar path and lockout. Work on your starting position by practicing 'hip hinging' and core bracing exercises to maintain a neutral spine throughout the lift."}
-                      {selectedExercise === 'bench' && "Your bench press shows good stability and arch. Focus on controlling the bar path and keeping your elbows tucked at about 45° to reduce shoulder stress. Consider adding some upper back work to improve overall pressing strength."}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-          </CardContent>
-          
-          <CardFooter className="flex flex-col sm:flex-row gap-3 border-t p-4">
-            {activeTab === 'upload' ? (
-              <Button 
-                className="w-full bg-purple-600 hover:bg-purple-700"
-                onClick={handleSubmit}
-                disabled={!selectedExercise || isAnalyzing}
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Brain className="mr-2 h-4 w-4" />
-                    Analyze Form
-                  </>
-                )}
-              </Button>
-            ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={handleReset}
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Analyze Another Video
-                </Button>
-                <Button 
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
-                  <ArrowRight className="mr-2 h-4 w-4" />
-                  Get Personalized Coaching
-                </Button>
-              </>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Name</Label>
+            <Input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="John Doe"
+            />
+            {formErrors.name && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>
             )}
-          </CardFooter>
-        </Tabs>
-      ) : (
-        <CardContent className="p-6 space-y-4">
-          <Alert className="bg-purple-50 border-purple-200">
-            <Lock className="h-4 w-4 text-purple-600" />
-            <AlertTitle>Elite Feature</AlertTitle>
-            <AlertDescription>
-              AI Form Check is available with the Elite AI subscription.
-            </AlertDescription>
-          </Alert>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg border">
-              <h3 className="font-medium mb-2 flex items-center gap-2">
-                <Camera className="h-4 w-4 text-gray-600" />
-                How It Works
-              </h3>
-              <ol className="text-sm text-gray-600 space-y-2 list-decimal pl-5">
-                <li>Upload a video of your exercise form</li>
-                <li>Our AI analyzes your technique in detail</li>
-                <li>Get personalized feedback and recommendations</li>
-                <li>Track your form improvements over time</li>
-              </ol>
-            </div>
-            
-            <div className="p-4 bg-gray-50 rounded-lg border">
-              <h3 className="font-medium mb-2 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-gray-600" />
-                Key Benefits
-              </h3>
-              <ul className="text-sm text-gray-600 space-y-2 list-disc pl-5">
-                <li>Reduce injury risk with proper form</li>
-                <li>Maximize exercise effectiveness</li>
-                <li>Get coaching-quality feedback anytime</li>
-                <li>Supports 30+ common exercises</li>
-              </ul>
-            </div>
           </div>
-          
-          <Button 
-            className="w-full bg-purple-600 hover:bg-purple-700"
-            onClick={handleUpgradeClick}
-          >
-            <Zap className="mr-2 h-4 w-4" />
-            Upgrade to Elite AI
+
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="john.doe@example.com"
+            />
+            {formErrors.email && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="age">Age</Label>
+            <Input
+              type="number"
+              id="age"
+              name="age"
+              value={formData.age}
+              onChange={handleChange}
+              placeholder="30"
+            />
+            {formErrors.age && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.age}</p>
+            )}
+          </div>
+
+          <div>
+            <Label>Experience Level</Label>
+            <RadioGroup
+              defaultValue={formData.experience}
+              onValueChange={(value) => handleChange({
+                target: { name: 'experience', value } as any,
+              })}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="beginner" id="beginner" />
+                <Label htmlFor="beginner">Beginner</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="intermediate" id="intermediate" />
+                <Label htmlFor="intermediate">Intermediate</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="advanced" id="advanced" />
+                <Label htmlFor="advanced">Advanced</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div>
+            <Label htmlFor="goals">Goals</Label>
+            <Textarea
+              id="goals"
+              name="goals"
+              value={formData.goals}
+              onChange={handleChange}
+              placeholder="What are your fitness goals?"
+            />
+            {formErrors.goals && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.goals}</p>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Input
+              type="checkbox"
+              id="terms"
+              name="terms"
+              checked={formData.terms}
+              onChange={handleChange}
+            />
+            <Label htmlFor="terms">I agree to the terms and conditions</Label>
+            {formErrors.terms && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.terms}</p>
+            )}
+          </div>
+
+          <Button disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              "Submit"
+            )}
           </Button>
-        </CardContent>
-      )}
+
+          {submissionResult === 'success' && (
+            <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Form submitted successfully!
+            </Badge>
+          )}
+
+          {submissionResult === 'error' && (
+            <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-100">
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              Form submission failed. Please try again.
+            </Badge>
+          )}
+        </form>
+      </CardContent>
     </Card>
   );
 };
