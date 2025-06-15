@@ -1,15 +1,13 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 // User type definitions
 export type UserType = 'individual' | 'athlete' | 'coach' | null;
 
-// Fitness goals type definitions
-export interface FitnessGoal {
-  id: string;
-  name: string;
-  selected: boolean;
-}
+// Subscription tier type
+export type SubscriptionTier = 'free' | 'pro' | 'coach' | 'elite';
+
+// Fitness goals type definitions - simplified to string union
+export type FitnessGoal = 'performance' | 'strength' | 'weight' | 'health' | 'endurance' | 'recovery';
 
 // Sports/activities type definitions
 export interface SportActivity {
@@ -37,12 +35,13 @@ export interface TimeEquipment {
   outdoorAccess: boolean;
 }
 
-// Medical status type definitions
+// Medical status type definitions - add missing notes property
 export interface MedicalStatus {
   conditions: string[];
   injuries: string[];
   medications: string[];
   medicalClearance: boolean;
+  notes?: string;
 }
 
 // Workout plan type definitions
@@ -149,6 +148,10 @@ interface PlanContextType {
   sportActivities: SportActivity[];
   setSportActivities: (activities: SportActivity[]) => void;
   
+  // Add sport and setSport properties
+  sport: string | null;
+  setSport: (sport: string | null) => void;
+  
   experienceLevel: ExperienceLevel;
   setExperienceLevel: (level: ExperienceLevel) => void;
   
@@ -179,6 +182,10 @@ interface PlanContextType {
   
   mealPlan: MealPlan | null;
   setMealPlan: (plan: MealPlan | null) => void;
+
+  // Add subscription tier
+  subscriptionTier: SubscriptionTier | null;
+  setSubscriptionTier: (tier: SubscriptionTier | null) => void;
 }
 
 // Create the context with default values
@@ -189,6 +196,8 @@ const PlanContext = createContext<PlanContextType>({
   setFitnessGoals: () => {},
   sportActivities: [],
   setSportActivities: () => {},
+  sport: null,
+  setSport: () => {},
   experienceLevel: null,
   setExperienceLevel: () => {},
   timeEquipment: {
@@ -221,22 +230,15 @@ const PlanContext = createContext<PlanContextType>({
   workoutPlan: null,
   setWorkoutPlan: () => {},
   mealPlan: null,
-  setMealPlan: () => {}
+  setMealPlan: () => {},
+  subscriptionTier: null,
+  setSubscriptionTier: () => {}
 });
 
 // Provider component
 export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [userType, setUserType] = useState<UserType>(null);
-  const [fitnessGoals, setFitnessGoals] = useState<FitnessGoal[]>([
-    { id: '1', name: 'Lose Weight', selected: false },
-    { id: '2', name: 'Build Muscle', selected: false },
-    { id: '3', name: 'Improve Endurance', selected: false },
-    { id: '4', name: 'Increase Strength', selected: false },
-    { id: '5', name: 'Enhance Sports Performance', selected: false },
-    { id: '6', name: 'Improve Mobility/Flexibility', selected: false },
-    { id: '7', name: 'General Fitness', selected: false },
-    { id: '8', name: 'Rehabilitation', selected: false }
-  ]);
+  const [fitnessGoals, setFitnessGoals] = useState<FitnessGoal[]>([]);
   
   const [sportActivities, setSportActivities] = useState<SportActivity[]>([
     { id: '1', name: 'Running', icon: '🏃', selected: false },
@@ -251,6 +253,7 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     { id: '10', name: 'CrossFit', icon: '💪', selected: false }
   ]);
   
+  const [sport, setSport] = useState<string | null>(null);
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(null);
   
   const [timeEquipment, setTimeEquipment] = useState<TimeEquipment>({
@@ -278,6 +281,7 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier | null>(null);
 
   return (
     <PlanContext.Provider
@@ -288,6 +292,8 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setFitnessGoals,
         sportActivities,
         setSportActivities,
+        sport,
+        setSport,
         experienceLevel,
         setExperienceLevel,
         timeEquipment,
@@ -308,7 +314,9 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         workoutPlan,
         setWorkoutPlan,
         mealPlan,
-        setMealPlan
+        setMealPlan,
+        subscriptionTier,
+        setSubscriptionTier
       }}
     >
       {children}

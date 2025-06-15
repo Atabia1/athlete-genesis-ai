@@ -15,7 +15,7 @@ const MedicalStatusStep = () => {
   // Local state for form data
   const [selectedConditions, setSelectedConditions] = useState<string[]>(medicalStatus?.conditions || []);
   const [medications, setMedications] = useState<string[]>(medicalStatus?.medications || []);
-  const [injuries, setInjuries] = useState<string[]>(medicalStatus?.injuries || []);
+  const [injuries] = useState<string[]>(medicalStatus?.injuries || []);
   const [medicalClearance, setMedicalClearance] = useState<boolean>(medicalStatus?.medicalClearance || false);
   const [additionalNotes, setAdditionalNotes] = useState<string>(medicalStatus?.notes || '');
 

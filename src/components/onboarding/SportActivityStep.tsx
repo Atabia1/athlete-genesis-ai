@@ -7,7 +7,7 @@ import { usePlan } from '@/context/PlanContext';
 import SportsSelector from './SportsSelector';
 
 const SportActivityStep = () => {
-  const { sport: sportActivity, setSport: setSportActivity } = usePlan();
+  const { sport, setSport } = usePlan();
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -15,7 +15,7 @@ const SportActivityStep = () => {
   };
 
   const handleContinue = () => {
-    if (sportActivity) {
+    if (sport) {
       navigate('/onboarding/experience-level');
     }
   };
@@ -42,8 +42,8 @@ const SportActivityStep = () => {
         </div>
 
         <SportsSelector
-          selectedSport={sportActivity}
-          onSelectSport={setSportActivity}
+          selectedSport={sport}
+          onSelectSport={setSport}
         />
       </div>
 
@@ -57,7 +57,7 @@ const SportActivityStep = () => {
         </Button>
         <Button
           onClick={handleContinue}
-          disabled={!sportActivity}
+          disabled={!sport}
           className="bg-athleteBlue-600 hover:bg-athleteBlue-700"
         >
           Continue

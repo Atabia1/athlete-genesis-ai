@@ -12,7 +12,7 @@ const PlanGenerationStep = () => {
   const { 
     userType, 
     fitnessGoals, 
-    sport: sportActivity,
+    sport,
     experienceLevel,
     frequency,
     duration,
@@ -28,7 +28,7 @@ const PlanGenerationStep = () => {
 
   useEffect(() => {
     // Check if essential data is missing
-    if (!userType || fitnessGoals.length === 0 || !sportActivity || !experienceLevel || 
+    if (!userType || fitnessGoals.length === 0 || !sport || !experienceLevel || 
         !frequency || !duration || !timeOfDay || equipment.length === 0) {
       toast({
         title: "Missing information",
@@ -37,7 +37,7 @@ const PlanGenerationStep = () => {
       });
       navigate('/onboarding/time-and-equipment');
     }
-  }, [userType, fitnessGoals, sportActivity, experienceLevel, frequency, duration, timeOfDay, equipment, navigate]);
+  }, [userType, fitnessGoals, sport, experienceLevel, frequency, duration, timeOfDay, equipment, navigate]);
 
   const generatePlans = async () => {
     setIsLoading(true);
@@ -46,7 +46,7 @@ const PlanGenerationStep = () => {
       const userProfile = {
         userType,
         fitnessGoals,
-        sportActivity,
+        sport,
         experienceLevel,
         frequency,
         duration,
@@ -128,7 +128,7 @@ const PlanGenerationStep = () => {
             
             <div>
               <p className="text-sm font-medium text-gray-500">Sport/Activity</p>
-              <p className="text-md">{sportActivity}</p>
+              <p className="text-md">{sport}</p>
             </div>
             
             <div>
