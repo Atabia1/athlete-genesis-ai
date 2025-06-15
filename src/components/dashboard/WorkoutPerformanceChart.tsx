@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   BarChart2, 
   TrendingUp, 
-  Dumbbell, 
-  Calendar, 
-  Clock, 
-  Activity, 
-  Heart, 
-  Zap, 
-  ArrowRight,
   ArrowUpRight,
   ArrowDownRight,
   Minus,
@@ -22,25 +14,21 @@ import {
 import { 
   LineChart, 
   Line, 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ComposedChart,
-  Area,
-  ReferenceLine,
-  Scatter
+  Legend
 } from 'recharts';
-import { WorkoutSession } from '@/types/workout';
+
+// Local interface to resolve build error since the type is not defined globally.
+interface WorkoutSession {
+  id: string;
+  name: string;
+  date: string;
+  [key: string]: any;
+}
 
 interface WorkoutPerformanceChartProps {
   /** Workout sessions data */
