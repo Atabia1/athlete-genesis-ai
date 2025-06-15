@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
+import { AuthProvider } from '@/hooks/use-auth';
 import { PlanProvider } from '@/context/PlanContext';
 import { UserPreferencesProvider } from '@/context/UserPreferencesContext';
 import { DashboardCustomizationProvider } from '@/context/DashboardCustomizationContext';
@@ -29,6 +30,7 @@ interface AppProvidersProps {
  * - BrowserRouter for routing
  * - QueryClientProvider for data fetching
  * - ThemeProvider for light/dark mode
+ * - AuthProvider for authentication
  * - PlanProvider for workout planning
  * - UserPreferencesProvider for user settings
  * - DashboardCustomizationProvider for dashboard customization
@@ -38,13 +40,15 @@ export const AppProviders = ({ children }: AppProvidersProps) => {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="system" enableSystem>
-          <UserPreferencesProvider>
-            <PlanProvider>
-              <DashboardCustomizationProvider>
-                {children}
-              </DashboardCustomizationProvider>
-            </PlanProvider>
-          </UserPreferencesProvider>
+          <AuthProvider>
+            <UserPreferencesProvider>
+              <PlanProvider>
+                <DashboardCustomizationProvider>
+                  {children}
+                </DashboardCustomizationProvider>
+              </PlanProvider>
+            </UserPreferencesProvider>
+          </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
