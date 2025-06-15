@@ -1,243 +1,144 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Scale, ChevronRight } from 'lucide-react';
-import { 
-  LineChart as RechartsLineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  Legend, 
-  PieChart, 
-  Pie, 
-  Cell 
-} from 'recharts';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar, TrendingUp, TrendingDown, User, Scale } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Sample body composition data
-const bodyCompData = [
-  { date: '2023-01-01', weight: 82, bodyFat: 24, muscle: 58, water: 55 },
-  { date: '2023-02-01', weight: 81, bodyFat: 23, muscle: 58.5, water: 55.5 },
-  { date: '2023-03-01', weight: 80, bodyFat: 22.5, muscle: 59, water: 56 },
-  { date: '2023-04-01', weight: 78.5, bodyFat: 21.5, muscle: 59.5, water: 56.5 },
-  { date: '2023-05-01', weight: 77, bodyFat: 20, muscle: 60, water: 57 },
-  { date: '2023-06-01', weight: 76.5, bodyFat: 19, muscle: 60.5, water: 57.5 }
-];
+interface BodyCompositionData {
+  date: string;
+  weight: number;
+  bodyFat: number;
+  muscleMass: number;
+  visceralFat: number;
+}
 
-// Sample body composition breakdown for current date
-const currentBreakdown = [
-  { name: 'Body Fat', value: 19, color: '#f97316' },
-  { name: 'Muscle Mass', value: 45, color: '#3b82f6' },
-  { name: 'Water', value: 31, color: '#06b6d4' },
-  { name: 'Other', value: 5, color: '#94a3b8' }
-];
+const BodyCompositionChart = () => {
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
-// Define dataset for the charts
-const datasets = [
-  { label: 'Weight (kg)', key: 'weight', color: '#6366f1' },
-  { label: 'Body Fat (%)', key: 'bodyFat', color: '#f97316' },
-  { label: 'Muscle Mass (kg)', key: 'muscle', color: '#3b82f6' },
-  { label: 'Water (%)', key: 'water', color: '#06b6d4' }
-];
+  // Sample data
+  const data: BodyCompositionData[] = [
+    { date: '2024-01-01', weight: 70.5, bodyFat: 15.2, muscleMass: 32.1, visceralFat: 4.5 },
+    { date: '2024-01-08', weight: 70.2, bodyFat: 14.8, muscleMass: 32.3, visceralFat: 4.3 },
+    { date: '2024-01-15', weight: 69.8, bodyFat: 14.5, muscleMass: 32.5, visceralFat: 4.2 },
+    { date: '2024-01-22', weight: 69.5, bodyFat: 14.2, muscleMass: 32.8, visceralFat: 4.0 },
+    { date: '2024-01-29', weight: 69.2, bodyFat: 13.9, muscleMass: 33.0, visceralFat: 3.8 },
+  ];
 
-/**
- * BodyCompositionChart Component
- * 
- * Visualizes user's body composition data over time
- */
-const BodyCompositionChart = ({ className = '' }) => {
-  const [timeRange, setTimeRange] = useState('6months');
-  const [activeTab, setActiveTab] = useState('trends');
-  
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const currentData = data[data.length - 1];
+  const previousData = data[data.length - 2];
+
+  const calculateChange = (current: number, previous: number) => {
+    const change = current - previous;
+    const percentage = (change / previous) * 100;
+    return { change, percentage };
   };
-  
-  // Get starting values for comparisons
-  const startValues = bodyCompData[0];
-  const currentValues = bodyCompData[bodyCompData.length - 1];
-  
-  // Calculate changes
-  const calculateChange = (metric: keyof typeof startValues) => {
-    const change = currentValues[metric] - startValues[metric];
-    return {
-      value: Math.abs(change).toFixed(1),
-      direction: change >= 0 ? 'increase' : 'decrease'
-    };
-  };
+
+  const weightChange = calculateChange(currentData.weight, previousData.weight);
+  const bodyFatChange = calculateChange(currentData.bodyFat, previousData.bodyFat);
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Scale className="mr-2 h-5 w-5 text-blue-500" />
-          Body Composition
-        </CardTitle>
-        <CardDescription>Track changes in your body composition over time</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex justify-between items-center">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="trends">Trends</TabsTrigger>
-              <TabsTrigger value="composition">Composition</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <div className="ml-4">
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Time Range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3months">3 Months</SelectItem>
-                <SelectItem value="6months">6 Months</SelectItem>
-                <SelectItem value="1year">1 Year</SelectItem>
-                <SelectItem value="all">All Time</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        <TabsContent value="trends" className="space-y-8">
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart data={bodyCompData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(date) => formatDate(date)}
-                />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value, name) => {
-                    const dataset = datasets.find(d => d.key === name);
-                    return [value, dataset?.label || name];
-                  }}
-                  labelFormatter={(label) => formatDate(String(label))}
-                />
-                <Legend />
-                {datasets.map(dataset => (
-                  <Line 
-                    key={dataset.key}
-                    type="monotone"
-                    dataKey={dataset.key}
-                    stroke={dataset.color}
-                    name={dataset.key}
-                    activeDot={{ r: 8 }}
-                  />
-                ))}
-              </RechartsLineChart>
-            </ResponsiveContainer>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            {datasets.map(dataset => {
-              const change = calculateChange(dataset.key as keyof typeof startValues);
-              return (
-                <div key={dataset.key} className="bg-gray-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-500">{dataset.label}</div>
-                  <div className="flex justify-between items-end">
-                    <div className="text-2xl font-bold">
-                      {currentValues[dataset.key as keyof typeof currentValues]}
-                    </div>
-                    <div className={`flex items-center text-sm ${
-                      dataset.key === 'weight' || dataset.key === 'bodyFat' 
-                        ? change.direction === 'decrease' ? 'text-green-600' : 'text-red-600'
-                        : change.direction === 'increase' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      <ChevronRight className={`h-4 w-4 ${
-                        change.direction === 'increase' ? 'rotate-90' : '-rotate-90'
-                      }`} />
-                      {change.value}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="composition" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium mb-2">Current Composition</div>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={currentBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {currentBreakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => [`${value}%`, 'Percentage']}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+              <CardTitle className="flex items-center gap-2">
+                <Scale className="h-5 w-5" />
+                Body Composition
+              </CardTitle>
+              <CardDescription>Track your body metrics over time</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              {(['7d', '30d', '90d', '1y'] as const).map((range) => (
+                <Button
+                  key={range}
+                  variant={timeRange === range ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTimeRange(range)}
+                >
+                  {range}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold">{currentData.weight.toFixed(1)} kg</div>
+              <div className="text-sm text-muted-foreground">Weight</div>
+              <div className={`flex items-center justify-center gap-1 text-xs ${
+                weightChange.change < 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {weightChange.change < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                {Math.abs(weightChange.change).toFixed(1)} kg
               </div>
             </div>
             
-            <div>
-              <div className="text-sm font-medium mb-2">Detailed Breakdown</div>
-              
-              <div className="space-y-4">
-                {currentBreakdown.map(item => (
-                  <div key={item.name} className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-sm">{item.name}</span>
-                      <span className="text-sm font-medium">{item.value}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div 
-                        className="h-2.5 rounded-full" 
-                        style={{ 
-                          width: `${item.value}%`,
-                          backgroundColor: item.color
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mt-6 p-3 bg-blue-50 text-blue-800 rounded-lg">
-                <div className="text-sm font-medium">Smart Analysis</div>
-                <ul className="mt-1 space-y-1 text-xs">
-                  <li className="flex">
-                    <span className="mr-1">•</span>
-                    <span>Your muscle mass has increased by 2.5kg in the last 6 months</span>
-                  </li>
-                  <li className="flex">
-                    <span className="mr-1">•</span>
-                    <span>Body fat percentage has decreased by 5% since tracking began</span>
-                  </li>
-                  <li className="flex">
-                    <span className="mr-1">•</span>
-                    <span>Water percentage is within the optimal range</span>
-                  </li>
-                </ul>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{currentData.bodyFat.toFixed(1)}%</div>
+              <div className="text-sm text-muted-foreground">Body Fat</div>
+              <div className={`flex items-center justify-center gap-1 text-xs ${
+                bodyFatChange.change < 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {bodyFatChange.change < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                {Math.abs(bodyFatChange.change).toFixed(1)}%
               </div>
             </div>
+            
+            <div className="text-center">
+              <div className="text-2xl font-bold">{currentData.muscleMass.toFixed(1)} kg</div>
+              <div className="text-sm text-muted-foreground">Muscle Mass</div>
+              <Badge variant="outline" className="text-xs">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                +0.2 kg
+              </Badge>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-2xl font-bold">{currentData.visceralFat.toFixed(1)}</div>
+              <div className="text-sm text-muted-foreground">Visceral Fat</div>
+              <Badge variant="outline" className="text-xs">
+                <TrendingDown className="h-3 w-3 mr-1" />
+                -0.2
+              </Badge>
+            </div>
           </div>
-        </TabsContent>
-      </CardContent>
-    </Card>
+
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                />
+                <YAxis />
+                <Tooltip 
+                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="weight" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={2}
+                  name="Weight (kg)"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="bodyFat" 
+                  stroke="hsl(var(--secondary))" 
+                  strokeWidth={2}
+                  name="Body Fat (%)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

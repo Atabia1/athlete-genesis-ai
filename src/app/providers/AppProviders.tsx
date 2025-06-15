@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
-import { AuthProvider } from '@/hooks/use-auth';
+import { AuthProvider } from '@/hooks/use-auth.tsx';
 import { PlanProvider } from '@/context/PlanContext';
 import { UserPreferencesProvider } from '@/context/UserPreferencesContext';
 import { DashboardCustomizationProvider } from '@/context/DashboardCustomizationContext';

@@ -1,508 +1,236 @@
-
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardFooter 
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
-import { 
-  Button,
-  Badge,
-  Progress,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-  Alert,
-  AlertTitle,
-  AlertDescription
-} from '@/components/ui/card';
-import { Workout, WorkoutGoal } from '@/types/workout';
-import { 
-  Clock, 
-  Calendar, 
-  ArrowUpFromLine, 
-  Download, 
-  Wifi, 
-  WifiOff, 
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Loader2
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import {
+  Download,
+  Upload,
+  Wifi,
+  WifiOff,
+  Play,
+  Pause,
+  CheckCircle,
+  Clock,
+  AlertCircle,
 } from 'lucide-react';
 
-// Connection quality type
-type ConnectionQuality = 'offline' | 'poor' | 'good' | 'excellent' | 'captive-portal';
+interface OfflineWorkout {
+  id: string;
+  name: string;
+  duration: number;
+  exercises: Array<{
+    name: string;
+    sets: number;
+    reps: number;
+    weight?: number;
+  }>;
+  completed: boolean;
+  dateDownloaded: string;
+  size: string;
+}
 
-// Sample offline workouts (would normally come from IndexedDB or similar)
-const sampleOfflineWorkouts: Workout[] = [
-  {
-    id: '1',
-    name: 'Full Body Strength',
-    title: 'Full Body Strength Session',
-    type: 'strength',
-    description: 'Complete full body workout targeting all major muscle groups',
-    exercises: [
-      {
-        id: 'e1',
-        name: 'Squats',
-        description: 'Bodyweight squats',
-        sets: 3,
-        reps: 15
-      },
-      {
-        id: 'e2',
-        name: 'Push-ups',
-        description: 'Standard push-ups',
-        sets: 3,
-        reps: 12
-      }
-    ],
-    duration: 45,
-    caloriesBurned: 320,
-    date: '2023-06-01',
-    userId: 'user123',
-    goals: [WorkoutGoal.STRENGTH, WorkoutGoal.HYPERTROPHY]
-  },
-  {
-    id: '2',
-    name: 'Morning Run',
-    title: 'Morning Cardio Run',
-    type: 'cardio',
-    description: '5K morning run at moderate pace',
-    exercises: [
-      {
-        id: 'e3',
-        name: 'Running',
-        description: '5K run',
-        duration: 30
-      }
-    ],
-    duration: 30,
-    caloriesBurned: 250,
-    date: '2023-06-02',
-    userId: 'user123',
-    goals: [WorkoutGoal.ENDURANCE]
-  },
-  {
-    id: '3',
-    name: 'HIIT Session',
-    title: 'High Intensity Circuit',
-    type: 'hiit',
-    description: 'High intensity interval training with minimal rest',
-    exercises: [
-      {
-        id: 'e4',
-        name: 'Burpees',
-        description: 'Full burpees',
-        sets: 4,
-        reps: 10
-      },
-      {
-        id: 'e5',
-        name: 'Mountain Climbers',
-        description: 'Mountain climbers',
-        duration: 45,
-        sets: 4
-      }
-    ],
-    duration: 25,
-    caloriesBurned: 280,
-    date: '2023-06-03',
-    userId: 'user123',
-    goals: [WorkoutGoal.WEIGHT_LOSS, WorkoutGoal.ENDURANCE]
-  }
-];
+const OfflineWorkoutsDisplay = () => {
+  const [offlineWorkouts] = useState<OfflineWorkout[]>([
+    {
+      id: '1',
+      name: 'Upper Body Strength',
+      duration: 45,
+      exercises: [
+        { name: 'Push-ups', sets: 3, reps: 12 },
+        { name: 'Pull-ups', sets: 3, reps: 8 },
+        { name: 'Dumbbell Press', sets: 3, reps: 10, weight: 25 },
+      ],
+      completed: false,
+      dateDownloaded: '2024-01-15',
+      size: '2.3 MB',
+    },
+    {
+      id: '2',
+      name: 'Lower Body Power',
+      duration: 50,
+      exercises: [
+        { name: 'Squats', sets: 4, reps: 10, weight: 60 },
+        { name: 'Deadlifts', sets: 3, reps: 8, weight: 80 },
+        { name: 'Lunges', sets: 3, reps: 12, weight: 20 },
+      ],
+      completed: true,
+      dateDownloaded: '2024-01-10',
+      size: '2.1 MB',
+    },
+    {
+      id: '3',
+      name: 'Core Stability',
+      duration: 30,
+      exercises: [
+        { name: 'Planks', sets: 3, reps: 60 },
+        { name: 'Russian Twists', sets: 3, reps: 20 },
+        { name: 'Mountain Climbers', sets: 3, reps: 30 },
+      ],
+      completed: false,
+      dateDownloaded: '2024-01-18',
+      size: '1.8 MB',
+    },
+  ]);
 
-/**
- * OfflineWorkoutsDisplay Component
- * 
- * Displays workouts that have been stored offline and manages their sync status
- */
-const OfflineWorkoutsDisplay = ({ className = '' }) => {
-  const [offlineWorkouts, setOfflineWorkouts] = useState<Workout[]>(sampleOfflineWorkouts);
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [syncProgress, setSyncProgress] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionQuality>('good');
-  const [activeTab, setActiveTab] = useState('workouts');
-  
-  // Simulate checking connection status
+
   useEffect(() => {
-    checkConnectionStatus();
-    
-    // Set up periodic connection check
-    const intervalId = setInterval(checkConnectionStatus, 30000);
-    
-    return () => clearInterval(intervalId);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
-  
-  // Simulate checking connection status
-  const checkConnectionStatus = () => {
-    // In a real app, this would use the Network Information API or similar
-    if (!navigator.onLine) {
-      setConnectionStatus('offline');
-      return;
-    }
-    
-    // Simulate different connection qualities
-    const qualities: ConnectionQuality[] = ['poor', 'good', 'excellent', 'captive-portal'];
-    const randomQuality = qualities[Math.floor(Math.random() * 3)]; // Skip captive-portal most times
-    setConnectionStatus(randomQuality);
+
+  const handleDownloadWorkout = (workoutId: string) => {
+    console.log('Downloading workout:', workoutId);
   };
-  
-  // Handle connection status changes
-  const handleConnectionChange = () => {
-    checkConnectionStatus();
-  };
-  
-  // Calculate sync eligibility based on connection
-  const canSync = () => {
-    switch (connectionStatus) {
-      case "poor":
-      // Handle poor connection
-        return true; // Allow sync but warn user
-      case "offline":
-        return false;
-      case "excellent":
-      // Handle excellent connection
-        return true;
-      case "captive-portal":
-      // Handle captive portal
-        return false; // Captive portal might cause sync issues
-      default:
-        return true;
-    }
-  };
-  
-  // Start sync process
-  const startSync = () => {
-    if (!canSync()) {
-      return;
-    }
-    
-    setSyncStatus('syncing');
+
+  const handleSyncWorkouts = () => {
+    console.log('Syncing workouts...');
     setSyncProgress(0);
-    
-    // Simulate sync process with progress
-    let progress = 0;
     const interval = setInterval(() => {
-      progress += Math.random() * 15;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        
-        // Simulate potential errors
-        if (Math.random() > 0.9) {
-          setSyncStatus('error');
-        } else {
-          setSyncStatus('success');
-          // In a real app, we'd clear the synced workouts or mark them as synced
+      setSyncProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
         }
-      }
-      setSyncProgress(progress);
-    }, 300);
-  };
-  
-  // Retry failed sync
-  const retrySync = () => {
-    setSyncStatus('idle');
-    setTimeout(() => startSync(), 500);
-  };
-  
-  // Get connection status display
-  const getConnectionStatusDisplay = () => {
-    switch (connectionStatus) {
-      case 'offline':
-        return {
-          icon: <WifiOff className="h-4 w-4" />,
-          label: 'Offline',
-          color: 'text-red-500 bg-red-50'
-        };
-      case 'poor':
-        return {
-          icon: <Wifi className="h-4 w-4" />,
-          label: 'Poor Connection',
-          color: 'text-orange-500 bg-orange-50'
-        };
-      case 'good':
-        return {
-          icon: <Wifi className="h-4 w-4" />,
-          label: 'Connected',
-          color: 'text-green-500 bg-green-50'
-        };
-      case 'excellent':
-        return {
-          icon: <Wifi className="h-4 w-4" />,
-          label: 'Excellent',
-          color: 'text-green-600 bg-green-50'
-        };
-      case 'captive-portal':
-        return {
-          icon: <AlertTriangle className="h-4 w-4" />,
-          label: 'Captive Portal',
-          color: 'text-amber-500 bg-amber-50'
-        };
-      default:
-        return {
-          icon: <Wifi className="h-4 w-4" />,
-          label: 'Unknown',
-          color: 'text-gray-500 bg-gray-50'
-        };
-    }
-  };
-  
-  // Get sync status display
-  const getSyncStatusDisplay = () => {
-    switch (syncStatus) {
-      case 'syncing':
-        return {
-          icon: <Loader2 className="h-5 w-5 animate-spin" />,
-          label: 'Syncing...',
-          color: 'text-blue-500'
-        };
-      case 'success':
-        return {
-          icon: <CheckCircle2 className="h-5 w-5" />,
-          label: 'Sync Complete',
-          color: 'text-green-500'
-        };
-      case 'error':
-        return {
-          icon: <XCircle className="h-5 w-5" />,
-          label: 'Sync Failed',
-          color: 'text-red-500'
-        };
-      default:
-        return {
-          icon: <ArrowUpFromLine className="h-5 w-5" />,
-          label: 'Ready to Sync',
-          color: 'text-gray-500'
-        };
-    }
-  };
-  
-  // Format date for display
-  const formatDate = (date: string | Date) => {
-    return new Date(String(date)).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-  
-  // Get badge color for workout type
-  const getWorkoutTypeBadgeColor = (type: string) => {
-    switch (type) {
-      case 'strength':
-        return 'bg-blue-100 text-blue-800';
-      case 'cardio':
-        return 'bg-green-100 text-green-800';
-      case 'hiit':
-        return 'bg-purple-100 text-purple-800';
-      case 'flexibility':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-  
-  // Get badge for workout goal
-  const getGoalBadge = (goal: WorkoutGoal) => {
-    switch (goal) {
-      case WorkoutGoal.STRENGTH:
-        return 'bg-blue-100 text-blue-800';
-      case WorkoutGoal.HYPERTROPHY:
-        return 'bg-indigo-100 text-indigo-800';
-      case WorkoutGoal.ENDURANCE:
-        return 'bg-green-100 text-green-800';
-      case WorkoutGoal.WEIGHT_LOSS:
-        return 'bg-orange-100 text-orange-800';
-      case WorkoutGoal.GENERAL_FITNESS:
-        return 'bg-cyan-100 text-cyan-800';
-      case WorkoutGoal.SPORT_SPECIFIC:
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+        return prev + 10;
+      });
+    }, 200);
   };
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="flex items-center">
-              <Download className="h-5 w-5 text-blue-500 mr-2" />
-              Offline Workouts
-            </CardTitle>
-            <CardDescription>Manage your offline workout data</CardDescription>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                {isOnline ? (
+                  <Wifi className="h-5 w-5 text-green-500" />
+                ) : (
+                  <WifiOff className="h-5 w-5 text-red-500" />
+                )}
+                Offline Workouts
+              </CardTitle>
+              <CardDescription>
+                {isOnline ? 'Connected' : 'Offline'} - Download workouts for offline access
+              </CardDescription>
+            </div>
+            <Button
+              onClick={handleSyncWorkouts}
+              disabled={!isOnline}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Sync Data
+            </Button>
           </div>
-          
-          <Badge
-            variant="outline"
-            className={`${getConnectionStatusDisplay().color} flex items-center gap-1`}
-          >
-            {getConnectionStatusDisplay().icon}
-            <span>{getConnectionStatusDisplay().label}</span>
-          </Badge>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="workouts">Stored Workouts</TabsTrigger>
-            <TabsTrigger value="sync">Sync Status</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="workouts" className="space-y-4 pt-4">
-            {offlineWorkouts.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="mx-auto w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
-                  <Download className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-medium">No offline workouts</h3>
-                <p className="text-gray-500 mt-1">
-                  You don't have any workouts stored for offline access.
-                </p>
+        </CardHeader>
+
+        {syncProgress > 0 && syncProgress < 100 && (
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Syncing workouts...</span>
+                <span>{syncProgress}%</span>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {offlineWorkouts.map(workout => (
-                  <Card key={workout.id} className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="border-l-4 border-blue-500 p-4">
-                        <div className="flex justify-between">
-                          <h3 className="font-medium">{workout.title}</h3>
-                          <Badge variant="outline" className={getWorkoutTypeBadgeColor(workout.type || '')}>
-                            {workout.type}
+              <Progress value={syncProgress} />
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      <Tabs defaultValue="available" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="available">Available Offline</TabsTrigger>
+          <TabsTrigger value="download">Download More</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="available" className="space-y-4">
+          {offlineWorkouts.length === 0 ? (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>No offline workouts</AlertTitle>
+              <AlertDescription>
+                Download workouts to access them when you're offline.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="grid gap-4">
+              {offlineWorkouts.map((workout) => (
+                <Card key={workout.id}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <h3 className="font-semibold">{workout.name}</h3>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {workout.duration} min
+                          </span>
+                          <span>{workout.exercises.length} exercises</span>
+                          <Badge variant={workout.completed ? 'default' : 'secondary'}>
+                            {workout.completed ? (
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                            ) : (
+                              <Play className="h-3 w-3 mr-1" />
+                            )}
+                            {workout.completed ? 'Completed' : 'Ready'}
                           </Badge>
                         </div>
-                        
-                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            {formatDate(workout.date)}
-                          </div>
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {workout.duration} min
-                          </div>
-                        </div>
-                        
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {workout.goals && workout.goals.map((goal, index) => (
-                            <Badge key={index} variant="outline" className={getGoalBadge(goal)}>
-                              {goal.replace('_', ' ')}
-                            </Badge>
-                          ))}
-                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-            
-            <div className="text-sm text-gray-500">
-              {offlineWorkouts.length} workouts stored offline
+                      <Button
+                        variant={workout.completed ? 'outline' : 'default'}
+                        size="sm"
+                      >
+                        {workout.completed ? 'View' : 'Start'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          </TabsContent>
-          
-          <TabsContent value="sync" className="space-y-4 pt-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex justify-between mb-2">
-                <div className="text-sm font-medium">Sync Status</div>
-                <div className={`text-sm font-medium ${getSyncStatusDisplay().color}`}>
-                  {getSyncStatusDisplay().label}
-                </div>
-              </div>
-              
-              {syncStatus === 'syncing' && (
-                <div className="space-y-1">
-                  <Progress value={syncProgress} className="h-2" />
-                  <div className="text-xs text-gray-500 text-right">{Math.round(syncProgress)}%</div>
-                </div>
-              )}
-              
-              <div className="flex flex-col space-y-2 mt-4">
-                <div className="flex justify-between">
-                  <span className="text-sm">Total Workouts</span>
-                  <span className="text-sm font-medium">{offlineWorkouts.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Connection</span>
-                  <span className={`text-sm font-medium ${getConnectionStatusDisplay().color.split(' ')[0]}`}>
-                    {getConnectionStatusDisplay().label}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Last Synced</span>
-                  <span className="text-sm font-medium">1 hour ago</span>
-                </div>
-              </div>
-            </div>
-            
-            {connectionStatus === 'offline' && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>No Connection</AlertTitle>
-                <AlertDescription>
-                  You're currently offline. Please reconnect to the internet to sync your workout data.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {syncStatus === 'error' && (
-              <Alert variant="destructive">
-                <XCircle className="h-4 w-4" />
-                <AlertTitle>Sync Failed</AlertTitle>
-                <AlertDescription>
-                  There was an issue syncing your workout data. Please try again.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {syncStatus === 'success' && (
-              <Alert className="bg-green-50 text-green-800 border-green-200">
-                <CheckCircle2 className="h-4 w-4" />
-                <AlertTitle>Sync Complete</AlertTitle>
-                <AlertDescription>
-                  All your offline workouts have been successfully synchronized.
-                </AlertDescription>
-              </Alert>
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-      
-      <CardFooter className="flex justify-end space-x-2 border-t pt-4">
-        <Button 
-          variant="outline" 
-          onClick={handleConnectionChange}
-        >
-          Check Connection
-        </Button>
-        <Button
-          onClick={syncStatus === 'error' ? retrySync : startSync}
-          disabled={!canSync() || syncStatus === 'syncing' || syncStatus === 'success' || offlineWorkouts.length === 0}
-          className="flex items-center gap-2"
-        >
-          {syncStatus === 'error' ? (
-            <>Retry Sync</>
-          ) : syncStatus === 'syncing' ? (
-            <>Syncing...</>
-          ) : syncStatus === 'success' ? (
-            <>Synced</>
-          ) : (
-            <>Sync Now</>
           )}
-        </Button>
-      </CardFooter>
-    </Card>
+        </TabsContent>
+
+        <TabsContent value="download" className="space-y-4">
+          <Alert>
+            <Download className="h-4 w-4" />
+            <AlertTitle>Download for Offline Access</AlertTitle>
+            <AlertDescription>
+              Select workouts to download and access without an internet connection.
+            </AlertDescription>
+          </Alert>
+          
+          {/* Download interface would go here */}
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-center text-muted-foreground">
+                Download interface coming soon...
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
