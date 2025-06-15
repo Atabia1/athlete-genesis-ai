@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,21 +84,21 @@ const WorkoutPlanDisplay = () => {
 
           <TabsContent value="weeklyPlan" className="mt-4">
             <div className="space-y-4">
-              {workoutPlan.weeklyPlan.map((day: WorkoutDay) => (
-                <div key={day.day} className="border rounded-lg overflow-hidden">
+              {(workoutPlan as any).weeklyPlan.map((day: WorkoutDay) => (
+                <div key={(day as any).day} className="border rounded-lg overflow-hidden">
                   <div
                     className="flex justify-between items-center p-4 cursor-pointer bg-gray-50"
-                    onClick={() => toggleDay(day.day)}
+                    onClick={() => toggleDay((day as any).day)}
                   >
                     <div>
-                      <h3 className="font-medium">{day.day}</h3>
-                      <p className="text-sm text-gray-600">{day.focus}</p>
+                      <h3 className="font-medium">{(day as any).day}</h3>
+                      <p className="text-sm text-gray-600">{(day as any).focus}</p>
                     </div>
                     <div className="flex items-center">
                       <span className="text-xs bg-athleteBlue-100 text-athleteBlue-800 px-2 py-1 rounded-full mr-2">
-                        {day.duration}
+                        {(day as any).duration}
                       </span>
-                      {expandedDay === day.day ? (
+                      {expandedDay === (day as any).day ? (
                         <ChevronUp className="h-5 w-5 text-gray-400" />
                       ) : (
                         <ChevronDown className="h-5 w-5 text-gray-400" />
@@ -107,21 +106,21 @@ const WorkoutPlanDisplay = () => {
                     </div>
                   </div>
 
-                  {expandedDay === day.day && (
+                  {expandedDay === (day as any).day && (
                     <div className="p-4 border-t">
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Warm-up</h4>
-                        <p className="text-sm">{day.warmup}</p>
+                        <p className="text-sm">{(day as any).warmup}</p>
                       </div>
 
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Exercises</h4>
                         <div className="space-y-3">
-                          {day.exercises.map((exercise: Exercise, index: number) => (
+                          {(day as any).exercises.map((exercise: Exercise, index: number) => (
                             <div
                               key={index}
                               className={`flex items-start p-3 rounded-md border ${
-                                isExerciseCompleted(day.day, exercise.name)
+                                isExerciseCompleted((day as any).day, exercise.name)
                                   ? 'bg-green-50 border-green-200'
                                   : 'bg-white border-gray-200'
                               }`}
@@ -130,11 +129,11 @@ const WorkoutPlanDisplay = () => {
                                 variant="ghost"
                                 size="sm"
                                 className={`rounded-full mr-3 p-1 ${
-                                  isExerciseCompleted(day.day, exercise.name)
+                                  isExerciseCompleted((day as any).day, exercise.name)
                                     ? 'text-green-600 hover:text-green-700 hover:bg-green-100'
                                     : 'text-gray-400 hover:text-gray-500 hover:bg-gray-100'
                                 }`}
-                                onClick={() => toggleExerciseCompletion(day.day, exercise.name)}
+                                onClick={() => toggleExerciseCompletion((day as any).day, exercise.name)}
                               >
                                 <Check className="h-4 w-4" />
                               </Button>
@@ -148,7 +147,7 @@ const WorkoutPlanDisplay = () => {
                                 </div>
 
                                 <div className="mt-1 text-sm text-gray-600">
-                                  Rest: {exercise.rest}
+                                  Rest: {(exercise as any).rest}
                                 </div>
 
                                 {exercise.notes && (
@@ -165,7 +164,7 @@ const WorkoutPlanDisplay = () => {
 
                       <div>
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Cool-down</h4>
-                        <p className="text-sm">{day.cooldown}</p>
+                        <p className="text-sm">{(day as any).cooldown}</p>
                       </div>
                     </div>
                   )}
@@ -178,12 +177,12 @@ const WorkoutPlanDisplay = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="font-medium mb-2">Periodization</h3>
-                <p className="text-sm text-gray-700">{workoutPlan.periodization}</p>
+                <p className="text-sm text-gray-700">{(workoutPlan as any).periodization}</p>
               </div>
 
               <div>
                 <h3 className="font-medium mb-2">Progression Strategy</h3>
-                <p className="text-sm text-gray-700">{workoutPlan.progressionStrategy}</p>
+                <p className="text-sm text-gray-700">{(workoutPlan as any).progressionStrategy}</p>
               </div>
             </div>
           </TabsContent>
