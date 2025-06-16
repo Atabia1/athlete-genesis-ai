@@ -1,60 +1,59 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   WifiOff,
   RefreshCw,
   X,
   Clock,
-  CheckCircle2,
   XCircle,
-  AlertCircle,
 } from 'lucide-react';
 import { useRetryQueue } from '@/hooks/use-retry-queue';
 
 interface RetryQueueBannerProps {
   className?: string;
-  showProgress?: boolean;
+}
+
+interface RetryItem {
+  id: string;
+  status: string;
+  message: string;
 }
 
 interface UseRetryQueueResult {
-  // Define minimal interface based on actual usage
-  items: any[];
-  isRetrying: boolean;
-  retry: (id: string) => void;
-  clear: (id: string) => void;
+  pendingOperations: RetryItem[];
+  isProcessing: boolean;
+  processQueue: () => void;
+  clearQueue: () => void;
 }
 
 const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
   className = '',
-  showProgress = true,
 }) => {
-  const { items, isRetrying, retry, clear } = useRetryQueue() as UseRetryQueueResult;
+  const { pendingOperations, isProcessing, processQueue, clearQueue } = useRetryQueue() as UseRetryQueueResult;
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!items || items.length === 0) {
+  if (!pendingOperations || pendingOperations.length === 0) {
     return null;
   }
 
-  const handleRetry = (id: string) => {
-    retry(id);
+  const handleRetry = () => {
+    processQueue();
   };
 
-  const handleClear = (id: string) => {
-    clear(id);
+  const handleClear = () => {
+    clearQueue();
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
         return <Clock className="h-4 w-4 text-gray-500" />;
-      case 'success':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
       case 'error':
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+        return <Clock className="h-4 w-4 text-orange-500" />;
     }
   };
 
@@ -64,12 +63,12 @@ const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
       <AlertDescription className="flex items-center justify-between">
         <div>
           <span className="font-medium text-orange-800">
-            {items.length} items failed to sync
+            {pendingOperations.length} items failed to sync
           </span>
           <p className="text-sm text-orange-700 mt-1">
             {isExpanded ? (
               <>
-                {items.map((item) => (
+                {pendingOperations.map((item) => (
                   <div key={item.id} className="flex items-center justify-between py-1">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(item.status)}
@@ -78,12 +77,12 @@ const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
                     <div>
                       {item.status === 'error' && (
                         <Button
-                          size="xs"
+                          size="sm"
                           variant="outline"
-                          onClick={() => handleRetry(item.id)}
-                          disabled={isRetrying}
+                          onClick={handleRetry}
+                          disabled={isProcessing}
                         >
-                          {isRetrying ? (
+                          {isProcessing ? (
                             <>
                               <RefreshCw className="mr-2 h-3 w-3 animate-spin" />
                               Retrying...
@@ -97,9 +96,9 @@ const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
                         </Button>
                       )}
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="ghost"
-                        onClick={() => handleClear(item.id)}
+                        onClick={handleClear}
                       >
                         <X className="h-3 w-3" />
                       </Button>

@@ -1,7 +1,6 @@
-import { Badge } from '@/components/ui/badge';
+
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { WifiOff, Wifi, RefreshCw, AlertTriangle, Zap } from 'lucide-react';
+import { WifiOff, Wifi, RefreshCw } from 'lucide-react';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import SyncIndicator from '@/components/ui/sync-indicator';
 
@@ -21,10 +20,6 @@ const NetworkStatus: React.FC<NetworkStatusProps> = ({
   className = '',
 }) => {
   const { isOnline } = useNetworkStatus() as NetworkStatus;
-
-  const getStatusColor = () => {
-    return isOnline ? 'text-green-600' : 'text-orange-600';
-  };
 
   const getStatusIcon = () => {
     return isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />;

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -43,7 +42,7 @@ const MealPlanDisplay = ({ mealPlan }: { mealPlan: MealPlan }) => {
 
   return (
     <Card className="border-athleteGreen-200 shadow-sm relative">
-      {!isOnline && <OfflineContentBadge contentType="meal plan" position="top-right" />}
+      {!isOnline && <OfflineContentBadge isDownloaded={true} className="absolute top-2 right-2" />}
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center">
@@ -52,9 +51,8 @@ const MealPlanDisplay = ({ mealPlan }: { mealPlan: MealPlan }) => {
           </CardTitle>
           {!isOnline && (
             <OfflineIndicator
-              variant="badge"
-              featureSpecific={true}
-              featureName="This meal plan"
+              showRetryButton={false}
+              className="ml-2"
             />
           )}
         </div>

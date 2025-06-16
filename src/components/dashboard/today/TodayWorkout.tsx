@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { usePlan } from "@/context/PlanContext";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -97,7 +98,7 @@ const TodayWorkout = () => {
 
   return (
     <Card className="border-athleteBlue-200 shadow-sm relative">
-      {!isOnline && <OfflineContentBadge contentType="workout" position="top-right" />}
+      {!isOnline && <OfflineContentBadge isDownloaded={true} className="absolute top-2 right-2" />}
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center">
@@ -107,9 +108,8 @@ const TodayWorkout = () => {
           <div className="flex items-center gap-2">
             {!isOnline && (
               <OfflineIndicator
-                variant="badge"
-                featureSpecific={true}
-                featureName="This workout"
+                showRetryButton={false}
+                className="ml-2"
               />
             )}
             <Badge className="bg-athleteBlue-100 text-athleteBlue-800 hover:bg-athleteBlue-100">

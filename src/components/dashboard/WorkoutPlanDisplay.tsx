@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ const WorkoutPlanDisplay = () => {
 
   return (
     <Card className="border-athleteBlue-200 shadow-sm relative">
-      {!isOnline && <OfflineContentBadge contentType="workout plan" position="top-right" />}
+      {!isOnline && <OfflineContentBadge isDownloaded={true} className="absolute top-2 right-2" />}
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center">
@@ -68,9 +69,8 @@ const WorkoutPlanDisplay = () => {
           </CardTitle>
           {!isOnline && (
             <OfflineIndicator
-              variant="badge"
-              featureSpecific={true}
-              featureName="This workout plan"
+              showRetryButton={false}
+              className="ml-2"
             />
           )}
         </div>

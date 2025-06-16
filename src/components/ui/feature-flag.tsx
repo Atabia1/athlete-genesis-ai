@@ -14,7 +14,7 @@ const FeatureFlagComponent: React.FC<FeatureFlagComponentProps> = ({
 }) => {
   const { canAccess } = useFeatureAccess();
 
-  if (canAccess(feature)) {
+  if (canAccess(feature as any)) {
     return <>{children}</>;
   }
 
