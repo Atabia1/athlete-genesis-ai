@@ -1,3 +1,4 @@
+
 /**
  * Community Leaderboard Component
  * 
@@ -182,7 +183,7 @@ const CommunityLeaderboard: React.FC<CommunityLeaderboardProps> = ({
       // In a real app, this would fetch data from an API
       // For now, we'll generate mock data
       setTimeout(() => {
-        const mockEntries = generateMockLeaderboardEntries(leaderboardType, timePeriod);
+        const mockEntries = generateMockLeaderboardEntries(leaderboardType);
         setEntries(mockEntries);
         setIsLoading(false);
       }, 1000);
@@ -205,8 +206,7 @@ const CommunityLeaderboard: React.FC<CommunityLeaderboardProps> = ({
   
   // Generate mock leaderboard entries
   const generateMockLeaderboardEntries = (
-    entryType: string,
-    // entryPeriod parameter removed as it's not used
+    entryType: string
   ): LeaderboardEntry[] => {
     const mockEntries: LeaderboardEntry[] = [];
     
