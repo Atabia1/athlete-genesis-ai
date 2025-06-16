@@ -7,12 +7,31 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { AlertCircle, CheckCircle, CreditCard, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SubscriptionTier } from '@/context/PlanContext';
-import { SUBSCRIPTION_PRICES } from '@/utils/paystack';
 import { useAuth } from '@/hooks/use-auth';
 import PaystackButton from '@/components/payment/PaystackWrapper';
+
+// Add free tier to subscription prices
+const SUBSCRIPTION_PRICES = {
+  free: {
+    monthly: 0,
+    yearly: 0
+  },
+  pro: {
+    monthly: 999,
+    yearly: 9900
+  },
+  coach: {
+    monthly: 1999,
+    yearly: 19900
+  },
+  elite: {
+    monthly: 4999,
+    yearly: 49900
+  }
+};
 
 interface PaystackPaymentFormProps {
   selectedTier: SubscriptionTier;
@@ -20,9 +39,6 @@ interface PaystackPaymentFormProps {
   onCancel: () => void;
 }
 
-/**
- * PaystackPaymentForm: Component for processing payments via Paystack
- */
 const PaystackPaymentForm = ({ selectedTier, onSuccess, onCancel }: PaystackPaymentFormProps) => {
   const { user } = useAuth ? useAuth() : { user: null };
   const [email, setEmail] = useState(user?.email || '');
@@ -35,10 +51,30 @@ const PaystackPaymentForm = ({ selectedTier, onSuccess, onCancel }: PaystackPaym
 
   const navigate = useNavigate();
 
+  // Handle free tier
+  if (selectedTier === 'free') {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Free Tier Selected</CardTitle>
+          <CardDescription>No payment required for the free tier</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p>You have selected the free tier. No payment is required.</p>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={() => onSuccess('free-tier')} className="w-full">
+            Continue with Free Tier
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
   // Calculate amount based on tier and period
   const amount = period === 'yearly'
-    ? SUBSCRIPTION_PRICES[selectedTier].yearly / 100 // Convert to dollars
-    : SUBSCRIPTION_PRICES[selectedTier].monthly / 100; // Convert to dollars
+    ? SUBSCRIPTION_PRICES[selectedTier].yearly / 100
+    : SUBSCRIPTION_PRICES[selectedTier].monthly / 100;
 
   // Calculate yearly savings
   const yearlySavings = period === 'yearly' ? {
@@ -50,7 +86,6 @@ const PaystackPaymentForm = ({ selectedTier, onSuccess, onCancel }: PaystackPaym
     if (!discountCode) return;
 
     setLoading(true);
-    // Mock discount application
     setTimeout(() => {
       setDiscountApplied(true);
       setLoading(false);
@@ -64,7 +99,6 @@ const PaystackPaymentForm = ({ selectedTier, onSuccess, onCancel }: PaystackPaym
       return;
     }
 
-    // Instead of real Paystack processing, we'll simulate it
     setLoading(true);
     setTimeout(() => {
       const reference = `demo_${Date.now()}`;
@@ -73,10 +107,7 @@ const PaystackPaymentForm = ({ selectedTier, onSuccess, onCancel }: PaystackPaym
     }, 2000);
   };
 
-  // Since we're using Paystack, we need to create a key for testing
   const paystackPublicKey = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-  // In a real app, we'd use:
-  // const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
   return (
     <Card className="w-full">
@@ -185,7 +216,6 @@ const PaystackPaymentForm = ({ selectedTier, onSuccess, onCancel }: PaystackPaym
                 </div>
               </div>
               
-              {/* Summary */}
               <div className="rounded-md border p-4 bg-gray-50 space-y-3">
                 <h4 className="font-medium">Order Summary</h4>
                 <div className="flex justify-between text-sm">
@@ -240,7 +270,7 @@ const PaystackPaymentForm = ({ selectedTier, onSuccess, onCancel }: PaystackPaym
         <PaystackButton
           text="Complete Payment"
           email={email || 'demo@example.com'}
-          amount={amount * 100} // Convert to kobo
+          amount={amount * 100}
           reference={`ref-${Date.now()}`}
           publicKey={paystackPublicKey}
           className="w-full bg-gradient-to-r from-athleteBlue-600 to-athleteBlue-700 hover:from-athleteBlue-700 hover:to-athleteBlue-800 text-white"

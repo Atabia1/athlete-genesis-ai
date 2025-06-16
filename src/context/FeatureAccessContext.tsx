@@ -1,15 +1,15 @@
 
 import React, { createContext, useContext, useState } from 'react';
-
-// Define the available features
-export type Feature = 'coach_management' | 'team_management' | 'ai_features' | 'export_data' | 'premium_analytics';
+import { SubscriptionTier } from './PlanContext';
+import { Feature, getAvailableFeatures as utilsGetAvailableFeatures, hasFeatureAccess as utilsHasFeatureAccess } from '@/utils/feature-access';
 
 interface FeatureAccessContextType {
   hasFeatureAccess: (feature: Feature) => boolean;
   grantFeatureAccess: (feature: Feature) => void;
   revokeFeatureAccess: (feature: Feature) => void;
-  isOwner?: boolean; // Added isOwner property
-  setIsOwner?: (value: boolean) => void; // Method to set owner status
+  getAvailableFeatures: () => Feature[];
+  isOwner?: boolean;
+  setIsOwner?: (value: boolean) => void;
 }
 
 const FeatureAccessContext = createContext<FeatureAccessContextType | undefined>(undefined);
@@ -22,25 +22,28 @@ export const useFeatureAccess = () => {
   return context;
 };
 
-export const FeatureAccessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [accessibleFeatures, setAccessibleFeatures] = useState<Feature[]>([
-    'coach_management',
-    'team_management'
-  ]);
+export const FeatureAccessProvider: React.FC<{ 
+  children: React.ReactNode; 
+  userTier?: SubscriptionTier | null;
+}> = ({ children, userTier = null }) => {
   const [isOwner, setIsOwner] = useState<boolean>(false);
 
   const hasFeatureAccess = (feature: Feature) => {
-    return accessibleFeatures.includes(feature);
+    return utilsHasFeatureAccess(feature, userTier, isOwner);
   };
 
   const grantFeatureAccess = (feature: Feature) => {
-    if (!accessibleFeatures.includes(feature)) {
-      setAccessibleFeatures([...accessibleFeatures, feature]);
-    }
+    // This is now handled by the subscription tier logic
+    console.log(`Feature ${feature} access controlled by subscription tier`);
   };
 
   const revokeFeatureAccess = (feature: Feature) => {
-    setAccessibleFeatures(accessibleFeatures.filter(f => f !== feature));
+    // This is now handled by the subscription tier logic
+    console.log(`Feature ${feature} access controlled by subscription tier`);
+  };
+
+  const getAvailableFeatures = () => {
+    return utilsGetAvailableFeatures(userTier, isOwner);
   };
 
   return (
@@ -48,6 +51,7 @@ export const FeatureAccessProvider: React.FC<{ children: React.ReactNode }> = ({
       hasFeatureAccess, 
       grantFeatureAccess, 
       revokeFeatureAccess,
+      getAvailableFeatures,
       isOwner,
       setIsOwner
     }}>
