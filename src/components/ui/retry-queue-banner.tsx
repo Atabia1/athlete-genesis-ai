@@ -1,180 +1,127 @@
 
-/**
- * RetryQueueBanner: Component for displaying the status of pending retry operations
- */
-
-import React, { useState } from 'react';
-import { useRetryQueueContext } from '@/context/RetryQueueProvider';
-import { useNetworkStatus } from '@/hooks/use-network-status';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { 
-  RefreshCw, 
-  X, 
-  ChevronUp, 
-  ChevronDown,
-  CheckCircle2,
-  Clock,
-  AlertCircle
-} from 'lucide-react';
-import { 
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { toast } from 'sonner';
+} from '@/components/ui/collapsible';
+import {
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  X,
+} from 'lucide-react';
+import { useRetryQueue } from '@/hooks/use-retry-queue';
 
-/**
- * RetryQueueBanner component
- */
-const RetryQueueBanner: React.FC = () => {
-  const { 
-    queueItems: pendingOperations, 
-    isProcessing, 
-    retryAll: processQueue, 
-    clearQueue,
-  } = useRetryQueueContext();
-  
-  const { isOnline } = useNetworkStatus();
+interface RetryQueueBannerProps {
+  showDetails?: boolean;
+  autoRetry?: boolean;
+  className?: string;
+}
+
+const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
+  showDetails = true,
+  autoRetry = true,
+  className = '',
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const pendingCount = pendingOperations?.length || 0;
-  const showRetryBanner = pendingCount > 0;
-  
-  // If there are no pending operations or the banner is hidden, don't render
-  if (pendingCount === 0 || !showRetryBanner) {
+  const { 
+    queue, 
+    retryAll, 
+    retryItem, 
+    clearQueue, 
+    isRetrying 
+  } = useRetryQueue();
+
+  if (queue.length === 0) {
     return null;
   }
-  
-  // Calculate progress (simplified for now)
-  const completedCount = 0;
-  const failedCount = 0;
-  const totalCount = pendingCount + completedCount + failedCount;
-  const progressPercentage = totalCount > 0 ? ((completedCount / totalCount) * 100) : 0;
-  
-  // Get operation type counts (simplified)
-  const getTypeCount = (type: string) => {
-    return pendingOperations.filter(op => op.description.includes(type)).length;
+
+  const handleRetryAll = async () => {
+    await retryAll();
   };
-  
-  // Handle retry button click
-  const handleRetry = async () => {
-    if (!isOnline) {
-      toast("You're offline", {
-        description: "Please connect to the internet to retry operations.",
-      });
-      return;
-    }
-    
-    await processQueue();
+
+  const handleRetryItem = async (id: string) => {
+    await retryItem(id);
   };
-  
-  // Handle clear button click
-  const handleClear = async () => {
-    await clearQueue();
-  };
-  
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pointer-events-none">
-      <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden pointer-events-auto">
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                {isProcessing ? (
-                  <RefreshCw className="h-5 w-5 text-blue-500 animate-spin mr-2" />
-                ) : (
-                  <Clock className="h-5 w-5 text-yellow-500 mr-2" />
-                )}
-                <div>
-                  <h3 className="font-medium">
-                    {isProcessing 
-                      ? `Retrying operations (${completedCount}/${totalCount})` 
-                      : `Pending operations (${pendingCount})`}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {isOnline 
-                      ? (isProcessing ? "Retrying failed operations..." : "Waiting to retry operations") 
-                      : "Will retry when you're back online"}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
+    <Alert className={`border-blue-200 bg-blue-50 ${className}`}>
+      <Clock className="h-4 w-4 text-blue-600" />
+      <AlertDescription>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-blue-800">
+              {queue.length} action{queue.length !== 1 ? 's' : ''} pending
+            </span>
+            <Badge variant="secondary">{queue.length}</Badge>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRetryAll}
+              disabled={isRetrying}
+            >
+              <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
+              {isRetrying ? 'Retrying...' : 'Retry All'}
+            </Button>
+            
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => clearQueue()}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+            
+            {showDetails && (
+              <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button size="sm" variant="ghost">
                     {isOpen ? (
-                      <ChevronDown className="h-4 w-4" />
+                      <ChevronUp className="h-3 w-3" />
                     ) : (
-                      <ChevronUp className="h-4 w-4" />
+                      <ChevronDown className="h-3 w-3" />
                     )}
                   </Button>
                 </CollapsibleTrigger>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  onClick={() => {}}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            {isProcessing && (
-              <Progress value={progressPercentage} className="h-1 mt-2" />
+                
+                <CollapsibleContent className="mt-3">
+                  <div className="space-y-2">
+                    {queue.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{item.action}</p>
+                          <p className="text-xs text-gray-500">
+                            {item.attempts} attempt{item.attempts !== 1 ? 's' : ''} • 
+                            Last tried: {new Date(item.lastAttempt).toLocaleTimeString()}
+                          </p>
+                        </div>
+                        
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleRetryItem(item.id)}
+                          disabled={isRetrying}
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             )}
           </div>
-          
-          <CollapsibleContent>
-            <div className="px-4 pb-4">
-              <div className="mb-3 space-y-1">
-                {/* Operation type summary - simplified */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Pending operations</span>
-                  <span className="font-medium">{pendingCount}</span>
-                </div>
-              </div>
-              
-              {/* Operation list */}
-              <div className="max-h-40 overflow-y-auto mb-3 space-y-1">
-                {pendingOperations.slice(0, 5).map(operation => (
-                  <div key={operation.id} className="flex items-center text-xs py-1">
-                    <Clock className="h-4 w-4 text-yellow-500 mr-2" />
-                    <span className="ml-2 text-gray-700 dark:text-gray-300">
-                      {operation.description}
-                    </span>
-                  </div>
-                ))}
-                {pendingOperations.length > 5 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                    +{pendingOperations.length - 5} more operations
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex justify-between">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleClear}
-                >
-                  Clear All
-                </Button>
-                <Button 
-                  variant="default" 
-                  size="sm"
-                  onClick={handleRetry}
-                  disabled={!isOnline || isProcessing}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isProcessing ? 'animate-spin' : ''}`} />
-                  {isProcessing ? 'Retrying...' : 'Retry Now'}
-                </Button>
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-    </div>
+        </div>
+      </AlertDescription>
+    </Alert>
   );
 };
 

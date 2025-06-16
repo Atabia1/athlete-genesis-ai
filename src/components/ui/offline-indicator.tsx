@@ -1,122 +1,62 @@
-/**
- * OfflineIndicator Component
- * 
- * A reusable component that displays an offline status indicator with
- * contextual information about offline functionality.
- * 
- * Features:
- * - Visual indicator of offline status
- * - Optional contextual message
- * - Customizable appearance (banner, badge, etc.)
- * - Consistent styling with the application design system
- */
 
-import React from 'react';
-import { WifiOff, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { WifiOff, RefreshCw } from 'lucide-react';
+import { useNetworkStatus } from '@/hooks/use-network-status';
 
-export type OfflineIndicatorVariant = 'badge' | 'banner' | 'inline' | 'minimal';
-
-export interface OfflineIndicatorProps {
-  /** The variant determines the visual style of the indicator */
-  variant?: OfflineIndicatorVariant;
-  /** Optional custom message to display */
-  message?: string;
-  /** Whether to show the indicator (useful for conditional rendering) */
-  show?: boolean;
-  /** Additional CSS classes */
+interface OfflineIndicatorProps {
+  showRetryButton?: boolean;
+  onRetry?: () => void;
   className?: string;
-  /** Whether this is for a specific feature rather than general offline status */
-  featureSpecific?: boolean;
-  /** The name of the specific feature if featureSpecific is true */
-  featureName?: string;
 }
 
-/**
- * OfflineIndicator component
- */
-export function OfflineIndicator({
-  variant = 'badge',
-  message,
-  show = true,
-  className,
-  featureSpecific = false,
-  featureName = 'This content'
-}: OfflineIndicatorProps) {
-  if (!show) return null;
+const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
+  showRetryButton = true,
+  onRetry,
+  className = '',
+}) => {
+  const { isOnline, checkConnection } = useNetworkStatus();
 
-  // Default messages based on context
-  const defaultMessage = featureSpecific
-    ? `${featureName} is currently being viewed offline. Some features may be limited.`
-    : 'You are currently offline. Some features may be limited.';
-
-  // Use provided message or default
-  const displayMessage = message || defaultMessage;
-
-  // Render different variants
-  switch (variant) {
-    case 'banner':
-      return (
-        <Alert 
-          variant="warning" 
-          className={cn("border-yellow-500 bg-yellow-50 text-yellow-800", className)}
-        >
-          <WifiOff className="h-4 w-4 mr-2" />
-          <AlertTitle>Offline Mode</AlertTitle>
-          <AlertDescription>{displayMessage}</AlertDescription>
-        </Alert>
-      );
-
-    case 'inline':
-      return (
-        <div className={cn("flex items-center text-yellow-600 text-sm py-1 px-2", className)}>
-          <WifiOff className="h-4 w-4 mr-2" />
-          <span>{displayMessage}</span>
-        </div>
-      );
-
-    case 'minimal':
-      return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className={cn("inline-flex items-center text-yellow-600", className)}>
-                <WifiOff className="h-4 w-4" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="max-w-xs">{displayMessage}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-
-    case 'badge':
-    default:
-      return (
-        <Badge 
-          variant="outline" 
-          className={cn(
-            "bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-50 flex items-center gap-1",
-            className
-          )}
-        >
-          <WifiOff className="h-3 w-3" />
-          <span>Offline</span>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-3 w-3 ml-1 cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="max-w-xs">{displayMessage}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </Badge>
-      );
+  if (isOnline) {
+    return null;
   }
-}
+
+  const handleRetry = async () => {
+    if (onRetry) {
+      onRetry();
+    } else {
+      await checkConnection();
+    }
+  };
+
+  return (
+    <div className={`flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded-lg ${className}`}>
+      <WifiOff className="h-4 w-4 text-orange-600" />
+      
+      <div className="flex-1">
+        <span className="text-sm font-medium text-orange-800">You're offline</span>
+        <p className="text-xs text-orange-600">
+          Some features may be limited. Check your connection.
+        </p>
+      </div>
+      
+      {showRetryButton && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleRetry}
+          className="shrink-0"
+        >
+          <RefreshCw className="h-3 w-3 mr-1" />
+          Retry
+        </Button>
+      )}
+      
+      <Badge variant="secondary" className="shrink-0">
+        Offline
+      </Badge>
+    </div>
+  );
+};
+
+export default OfflineIndicator;

@@ -11,6 +11,11 @@ import { Button } from './button';
 import { cn } from '@/lib/utils';
 import { createComponent } from '@/shared/utils/component-factory';
 import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useForm, FieldValues, DefaultValues, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 /**
  * Custom form props
@@ -275,32 +280,34 @@ export const CustomFormField = createComponent(CustomFormFieldComponent, {
 /**
  * Custom form submit props
  */
-export interface CustomFormSubmitProps extends React.ComponentPropsWithoutRef<typeof Button> {
-  /**
-   * Loading text
-   */
-  loadingText?: string;
+export interface CustomFormSubmitProps {
+  onSubmit: SubmitHandler<FieldValues>;
+  submitText?: string;
+  isSubmitting?: boolean;
+  isLoading?: boolean;
+  disabled?: boolean;
 }
 
 /**
  * Custom form submit component
  */
-export const CustomFormSubmit = forwardRef<HTMLButtonElement, CustomFormSubmitProps>(
-  ({ className, disabled, isLoading, loadingText = 'Submitting...', children, ...props }, ref) => {
-    return (
-      <Button
-        ref={ref}
-        type="submit"
-        className={cn(className)}
-        disabled={disabled || isLoading}
-        {...props}
-      >
-        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isLoading ? loadingText : children}
-      </Button>
-    );
-  }
-);
+const CustomFormSubmit: React.FC<CustomFormSubmitProps> = ({
+  onSubmit,
+  submitText = 'Submit',
+  isSubmitting = false,
+  isLoading = false,
+  disabled = false,
+}) => {
+  return (
+    <Button 
+      type="submit" 
+      disabled={disabled || isSubmitting || isLoading}
+      className="w-full"
+    >
+      {isSubmitting || isLoading ? 'Loading...' : submitText}
+    </Button>
+  );
+};
 
 CustomFormSubmit.displayName = 'CustomFormSubmit';
 
@@ -312,3 +319,5 @@ export {
   FormDescription,
   FormMessage,
 };
+
+export default CustomForm;

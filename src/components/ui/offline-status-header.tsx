@@ -1,41 +1,50 @@
-/**
- * OfflineStatusHeader Component
- * 
- * A component that displays a prominent offline status indicator in the header.
- * This provides a persistent visual cue that the application is in offline mode.
- * 
- * Features:
- * - Prominent visual indicator in the header
- * - Consistent styling with the application design system
- * - Clear indication of offline status
- */
 
-import React from 'react';
-import { WifiOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { WifiOff, Wifi, RefreshCw } from 'lucide-react';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 
 interface OfflineStatusHeaderProps {
+  showRetryButton?: boolean;
   className?: string;
 }
 
-export function OfflineStatusHeader({ className }: OfflineStatusHeaderProps) {
-  const { isOnline } = useNetworkStatus();
-  
-  // Don't show anything when online
-  if (isOnline) {
-    return null;
-  }
-  
+const OfflineStatusHeader: React.FC<OfflineStatusHeaderProps> = ({
+  showRetryButton = true,
+  className = '',
+}) => {
+  const { isOnline, checkConnection } = useNetworkStatus();
+
+  const handleRetry = async () => {
+    await checkConnection();
+  };
+
   return (
-    <div 
-      className={cn(
-        "bg-orange-100 text-orange-800 px-3 py-1.5 flex items-center justify-center text-sm font-medium",
-        className
+    <div className={`flex items-center justify-between p-3 border-b bg-gray-50 ${className}`}>
+      <div className="flex items-center gap-2">
+        {isOnline ? (
+          <Wifi className="h-4 w-4 text-green-600" />
+        ) : (
+          <WifiOff className="h-4 w-4 text-orange-600" />
+        )}
+        
+        <span className="text-sm font-medium">
+          {isOnline ? 'Online' : 'Offline'}
+        </span>
+        
+        <Badge variant={isOnline ? 'secondary' : 'outline'}>
+          {isOnline ? 'Connected' : 'No Connection'}
+        </Badge>
+      </div>
+      
+      {!isOnline && showRetryButton && (
+        <Button size="sm" variant="ghost" onClick={handleRetry}>
+          <RefreshCw className="h-3 w-3 mr-1" />
+          Retry
+        </Button>
       )}
-    >
-      <WifiOff className="h-3.5 w-3.5 mr-1.5" />
-      <span>Offline Mode</span>
     </div>
   );
-}
+};
+
+export default OfflineStatusHeader;

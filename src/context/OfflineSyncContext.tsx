@@ -1,4 +1,3 @@
-
 /**
  * OfflineSyncContext
  * 
@@ -59,7 +58,7 @@ export enum SyncStatus {
 }
 
 // Define the context state interface
-interface OfflineSyncContextState {
+interface OfflineSyncState {
   // Network status
   isOnline: boolean;
   
@@ -72,9 +71,9 @@ interface OfflineSyncContextState {
   lastSyncTime: Date | null;
   
   // Offline workouts
-  offlineWorkouts: WorkoutTemplate[];
-  savedWorkouts: WorkoutTemplate[];
-  currentOfflineWorkout: WorkoutTemplate | null;
+  offlineWorkouts: WorkoutPlan[];
+  savedWorkouts: WorkoutPlan[];
+  currentOfflineWorkout: WorkoutPlan | null;
   isLoading: boolean;
   
   // Actions
@@ -84,17 +83,17 @@ interface OfflineSyncContextState {
   processQueue: () => Promise<void>;
   registerHandler: (type: RetryOperationType, handler: RetryHandler) => void;
   syncNow: () => Promise<void>;
-  saveCurrentPlanForOffline: (plan: WorkoutTemplate) => Promise<void>;
+  saveCurrentPlanForOffline: (plan: WorkoutPlan) => Promise<void>;
   selectOfflineWorkout: (workoutId: string) => void;
-  getSavedWorkoutById: (id: string) => WorkoutTemplate | null;
+  getSavedWorkoutById: (id: string) => WorkoutPlan | null;
   deleteSavedWorkout: (id: string) => Promise<void>;
   deleteMultipleSavedWorkouts: (ids: string[]) => Promise<void>;
   clearAllSavedWorkouts: () => Promise<void>;
-  saveMultipleWorkouts: (workouts: WorkoutTemplate[]) => Promise<void>;
+  saveMultipleWorkouts: (workouts: WorkoutPlan[]) => Promise<void>;
 }
 
 // Create the context with proper default values
-const OfflineSyncContext = createContext<OfflineSyncContextState | undefined>(undefined);
+const OfflineSyncContext = createContext<OfflineSyncState | undefined>(undefined);
 
 /**
  * OfflineSyncProvider component
@@ -113,9 +112,9 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   
   // Offline workouts
-  const [offlineWorkouts, setOfflineWorkouts] = useState<WorkoutTemplate[]>([]);
-  const [savedWorkouts, setSavedWorkouts] = useState<WorkoutTemplate[]>([]);
-  const [currentOfflineWorkout, setCurrentOfflineWorkout] = useState<WorkoutTemplate | null>(null);
+  const [offlineWorkouts, setOfflineWorkouts] = useState<WorkoutPlan[]>([]);
+  const [savedWorkouts, setSavedWorkouts] = useState<WorkoutPlan[]>([]);
+  const [currentOfflineWorkout, setCurrentOfflineWorkout] = useState<WorkoutPlan | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Monitor online status
@@ -183,9 +182,9 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
   }, []);
 
   // Load saved workouts from IndexedDB
-  const loadSavedWorkouts = async (): Promise<WorkoutTemplate[]> => {
+  const loadSavedWorkouts = async (): Promise<WorkoutPlan[]> => {
     try {
-      return await enhancedDbService.getAll<WorkoutTemplate>('savedWorkouts');
+      return await enhancedDbService.getAll<WorkoutPlan>('savedWorkouts');
     } catch (error) {
       console.error('Error loading saved workouts:', error);
       return [];
@@ -193,7 +192,7 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
   };
 
   // Load workout templates
-  const loadWorkoutTemplates = async (): Promise<WorkoutTemplate[]> => {
+  const loadWorkoutTemplates = async (): Promise<WorkoutPlan[]> => {
     // In a real implementation, these could be loaded from a JSON file or API
     // For now, we'll return an empty array
     return [];
@@ -405,7 +404,7 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
   }, [isOnline, processQueue]);
 
   // Save current plan for offline
-  const saveCurrentPlanForOffline = useCallback(async (plan: WorkoutTemplate) => {
+  const saveCurrentPlanForOffline = useCallback(async (plan: WorkoutPlan) => {
     try {
       // Standardize the workout plan
       const standardizedPlan = standardizeWorkoutPlan(plan);
@@ -455,7 +454,7 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
   }, [savedWorkouts, offlineWorkouts]);
 
   // Get saved workout by ID
-  const getSavedWorkoutById = useCallback((id: string): WorkoutTemplate | null => {
+  const getSavedWorkoutById = useCallback((id: string): WorkoutPlan | null => {
     return savedWorkouts.find(w => w.id === id) || null;
   }, [savedWorkouts]);
 
@@ -557,7 +556,7 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
   }, []);
 
   // Save multiple workouts
-  const saveMultipleWorkouts = useCallback(async (workouts: WorkoutTemplate[]) => {
+  const saveMultipleWorkouts = useCallback(async (workouts: WorkoutPlan[]) => {
     try {
       // Standardize all workout plans
       const standardizedPlans = workouts.map(standardizeWorkoutPlan);
@@ -596,8 +595,113 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
     }
   }, []);
 
+  // Add workout plan
+  const addWorkoutPlan = (plan: WorkoutPlan) => {
+    try {
+      // Standardize the workout plan
+      const standardizedPlan = standardizeWorkoutPlan(plan);
+      
+      // Save to IndexedDB
+      enhancedDbService.add('savedWorkouts', standardizedPlan).catch(error => {
+        console.error('Error saving workout:', error);
+      });
+      
+      // Update state
+      setSavedWorkouts(prev => {
+        // Check if workout already exists
+        const exists = prev.some(w => w.id === standardizedPlan.id);
+        if (exists) return prev;
+        return [...prev, standardizedPlan];
+      });
+      
+      toast({
+        title: "Workout Saved",
+        description: "Workout has been saved for offline use.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      
+      toast({
+        title: "Save Failed",
+        description: "An error occurred while saving the workout.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Update workout plan
+  const updateWorkoutPlan = (id: string, updates: Partial<WorkoutPlan>) => {
+    try {
+      // Standardize the updates
+      const standardizedUpdates = standardizeWorkoutPlan(updates);
+      
+      // Update in IndexedDB
+      enhancedDbService.update('savedWorkouts', { id, ...standardizedUpdates }).catch(error => {
+        console.error('Error updating workout:', error);
+      });
+      
+      // Update state
+      setSavedWorkouts(prev => {
+        // Find the workout to update
+        const workout = prev.find(w => w.id === id);
+        if (!workout) return prev;
+        
+        // Create a new workout with updated data
+        const updatedWorkout = {
+          ...workout,
+          ...standardizedUpdates,
+        };
+        
+        // Return the updated state
+        return prev.map(w => w.id === id ? updatedWorkout : w);
+      });
+      
+      toast({
+        title: "Workout Updated",
+        description: "Workout has been updated.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error updating workout:', error);
+      
+      toast({
+        title: "Update Failed",
+        description: "An error occurred while updating the workout.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Delete workout plan
+  const deleteWorkoutPlan = (id: string) => {
+    try {
+      // Delete from IndexedDB
+      enhancedDbService.delete('savedWorkouts', id).catch(error => {
+        console.error('Error deleting workout:', error);
+      });
+      
+      // Update state
+      setSavedWorkouts(prev => prev.filter(w => w.id !== id));
+      
+      toast({
+        title: "Workout Deleted",
+        description: "Workout has been deleted from offline storage.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      
+      toast({
+        title: "Delete Failed",
+        description: "An error occurred while deleting the workout.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Context value
-  const value: OfflineSyncContextState = {
+  const value: OfflineSyncState = {
     // State
     isOnline,
     retryQueue,
@@ -623,13 +727,16 @@ export function OfflineSyncProvider({ children }: { children: ReactNode }): JSX.
     deleteMultipleSavedWorkouts,
     clearAllSavedWorkouts,
     saveMultipleWorkouts,
+    addWorkoutPlan,
+    updateWorkoutPlan,
+    deleteWorkoutPlan,
   };
 
   return <OfflineSyncContext.Provider value={value}>{children}</OfflineSyncContext.Provider>;
 }
 
 // Export the main hook to access the full context
-export function useOfflineSync(): OfflineSyncContextState {
+export function useOfflineSync(): OfflineSyncState {
   const context = useContext(OfflineSyncContext);
   
   if (context === undefined) {

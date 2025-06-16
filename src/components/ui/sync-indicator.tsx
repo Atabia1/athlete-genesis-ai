@@ -1,277 +1,112 @@
-/**
- * SyncIndicator Component
- * 
- * A reusable component that displays the current synchronization status
- * with visual indicators and actions for manual synchronization.
- * 
- * Features:
- * - Visual indicator of sync status (pending, in progress, completed, failed)
- * - Manual sync trigger button
- * - Animated sync icon during synchronization
- * - Success/failure notifications
- * - Consistent styling with the application design system
- */
 
-import React from 'react';
-import { RefreshCw, Check, AlertTriangle, Cloud, CloudOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { 
+  RefreshCw, 
+  CheckCircle2, 
+  AlertCircle, 
+  Wifi,
+} from 'lucide-react';
+import { useSync } from '@/context/SyncContext';
 
-export type SyncStatus = 'idle' | 'pending' | 'syncing' | 'completed' | 'failed';
-
-export interface SyncIndicatorProps {
-  /** Current sync status */
-  status: SyncStatus;
-  /** Number of items pending synchronization */
-  pendingCount?: number;
-  /** Progress percentage (0-100) */
-  progress?: number;
-  /** Error message if sync failed */
-  errorMessage?: string;
-  /** Callback for manual sync trigger */
-  onSyncClick?: () => void;
-  /** The variant determines the visual style of the indicator */
-  variant?: 'badge' | 'banner' | 'inline' | 'minimal';
-  /** Additional CSS classes */
+interface SyncIndicatorProps {
+  variant?: 'badge' | 'button' | 'icon';
+  showLabel?: boolean;
+  showPendingCount?: boolean;
   className?: string;
-  /** Whether to show the indicator (useful for conditional rendering) */
-  show?: boolean;
-  /** Last successful sync time */
-  lastSyncTime?: Date | null;
+  onSyncClick?: () => void;
 }
 
-/**
- * SyncIndicator component
- */
-export function SyncIndicator({
-  status,
-  pendingCount = 0,
-  progress = 0,
-  errorMessage,
-  onSyncClick,
+const SyncIndicator: React.FC<SyncIndicatorProps> = ({
   variant = 'badge',
-  className,
-  show = true,
-  lastSyncTime
-}: SyncIndicatorProps) {
-  if (!show) return null;
+  showLabel = true,
+  showPendingCount = true,
+  className = '',
+  onSyncClick,
+}) => {
+  const { syncStatus, pendingCount, syncNow, lastSyncTime } = useSync();
 
-  // Format last sync time
-  const formattedLastSyncTime = lastSyncTime 
-    ? new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: 'numeric',
-        hour12: true
-      }).format(lastSyncTime)
-    : null;
-
-  // Get status text and icon based on current status
   const getStatusInfo = () => {
-    switch (status) {
-      case 'idle':
-        return {
-          text: formattedLastSyncTime ? `Synced at ${formattedLastSyncTime}` : 'All synced',
-          icon: Check,
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          hoverBgColor: 'hover:bg-green-50'
-        };
-      case 'pending':
-        return {
-          text: `${pendingCount} ${pendingCount === 1 ? 'item' : 'items'} pending sync`,
-          icon: Cloud,
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200',
-          hoverBgColor: 'hover:bg-blue-50'
-        };
+    switch (syncStatus) {
       case 'syncing':
         return {
-          text: 'Syncing...',
-          icon: RefreshCw,
+          icon: <RefreshCw className="h-3 w-3 animate-spin" />,
+          label: 'Syncing',
           color: 'text-blue-600',
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200',
-          hoverBgColor: 'hover:bg-blue-50',
-          animate: true
+          variant: 'secondary' as const,
         };
-      case 'completed':
+      case 'success':
         return {
-          text: 'Sync completed',
-          icon: Check,
+          icon: <CheckCircle2 className="h-3 w-3" />,
+          label: 'Synced',
           color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          hoverBgColor: 'hover:bg-green-50'
+          variant: 'secondary' as const,
         };
-      case 'failed':
+      case 'error':
         return {
-          text: 'Sync failed',
-          icon: AlertTriangle,
+          icon: <AlertCircle className="h-3 w-3" />,
+          label: 'Error',
           color: 'text-red-600',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200',
-          hoverBgColor: 'hover:bg-red-50'
+          variant: 'destructive' as const,
         };
       default:
         return {
-          text: 'Unknown status',
-          icon: Cloud,
+          icon: <Wifi className="h-3 w-3" />,
+          label: pendingCount > 0 ? 'Pending' : 'Idle',
           color: 'text-gray-600',
-          bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200',
-          hoverBgColor: 'hover:bg-gray-50'
+          variant: 'outline' as const,
         };
     }
   };
 
   const statusInfo = getStatusInfo();
-  const Icon = statusInfo.icon;
 
-  // Render different variants
-  switch (variant) {
-    case 'banner':
-      return (
-        <Alert 
-          className={cn(
-            statusInfo.bgColor, 
-            statusInfo.borderColor, 
-            statusInfo.color,
-            className
-          )}
-        >
-          <div className="flex items-center">
-            <Icon className={cn(
-              "h-4 w-4 mr-2",
-              statusInfo.animate && "animate-spin"
-            )} />
-            <AlertTitle>{statusInfo.text}</AlertTitle>
-          </div>
-          {status === 'syncing' && progress > 0 && (
-            <Progress value={progress} className="h-1 mt-2" />
-          )}
-          {status === 'failed' && errorMessage && (
-            <AlertDescription className="mt-2">
-              {errorMessage}
-            </AlertDescription>
-          )}
-          {(status === 'pending' || status === 'failed') && onSyncClick && (
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={onSyncClick}
-              className={cn(
-                "mt-2",
-                statusInfo.borderColor,
-                statusInfo.color,
-                statusInfo.hoverBgColor
-              )}
-            >
-              <RefreshCw className="h-3 w-3 mr-1" />
-              Sync Now
-            </Button>
-          )}
-        </Alert>
-      );
+  const handleClick = () => {
+    if (onSyncClick) {
+      onSyncClick();
+    } else {
+      syncNow();
+    }
+  };
 
-    case 'inline':
-      return (
-        <div className={cn(
-          "flex items-center text-sm py-1 px-2",
-          statusInfo.color,
-          className
-        )}>
-          <Icon className={cn(
-            "h-4 w-4 mr-2",
-            statusInfo.animate && "animate-spin"
-          )} />
-          <span>{statusInfo.text}</span>
-          {(status === 'pending' || status === 'failed') && onSyncClick && (
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              onClick={onSyncClick}
-              className="ml-2 h-6 px-2"
-            >
-              <RefreshCw className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-      );
-
-    case 'minimal':
-      return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div 
-                className={cn(
-                  "inline-flex items-center",
-                  statusInfo.color,
-                  className
-                )}
-                onClick={status !== 'syncing' && onSyncClick ? onSyncClick : undefined}
-                style={{ cursor: status !== 'syncing' && onSyncClick ? 'pointer' : 'default' }}
-              >
-                <Icon className={cn(
-                  "h-4 w-4",
-                  statusInfo.animate && "animate-spin"
-                )} />
-                {pendingCount > 0 && (
-                  <span className="ml-1 text-xs">{pendingCount}</span>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="text-sm">
-                <p>{statusInfo.text}</p>
-                {status === 'failed' && errorMessage && (
-                  <p className="text-red-500 text-xs mt-1">{errorMessage}</p>
-                )}
-                {formattedLastSyncTime && status !== 'idle' && (
-                  <p className="text-xs mt-1">Last synced: {formattedLastSyncTime}</p>
-                )}
-                {(status === 'pending' || status === 'failed') && onSyncClick && (
-                  <p className="text-xs mt-1">Click to sync now</p>
-                )}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-
-    case 'badge':
-    default:
-      return (
-        <Badge 
-          variant="outline" 
-          className={cn(
-            "flex items-center gap-1",
-            statusInfo.bgColor,
-            statusInfo.color,
-            statusInfo.borderColor,
-            statusInfo.hoverBgColor,
-            className
-          )}
-          onClick={status !== 'syncing' && onSyncClick ? onSyncClick : undefined}
-          style={{ cursor: status !== 'syncing' && onSyncClick ? 'pointer' : 'default' }}
-        >
-          <Icon className={cn(
-            "h-3 w-3",
-            statusInfo.animate && "animate-spin"
-          )} />
-          <span>{statusInfo.text}</span>
-          {(status === 'pending' || status === 'failed') && pendingCount > 0 && (
-            <span className="ml-1 text-xs bg-white rounded-full px-1 py-0.5">
-              {pendingCount}
-            </span>
-          )}
-        </Badge>
-      );
+  if (variant === 'icon') {
+    return (
+      <div className={`${statusInfo.color} ${className}`} title={statusInfo.label}>
+        {statusInfo.icon}
+      </div>
+    );
   }
-}
+
+  if (variant === 'button') {
+    return (
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={handleClick}
+        disabled={syncStatus === 'syncing'}
+        className={className}
+      >
+        {statusInfo.icon}
+        {showLabel && <span className="ml-1">{statusInfo.label}</span>}
+        {showPendingCount && pendingCount > 0 && (
+          <Badge variant="secondary" className="ml-1">
+            {pendingCount}
+          </Badge>
+        )}
+      </Button>
+    );
+  }
+
+  // Badge variant
+  return (
+    <Badge variant={statusInfo.variant} className={`flex items-center gap-1 ${className}`}>
+      {statusInfo.icon}
+      {showLabel && <span>{statusInfo.label}</span>}
+      {showPendingCount && pendingCount > 0 && (
+        <span className="ml-1">({pendingCount})</span>
+      )}
+    </Badge>
+  );
+};
+
+export default SyncIndicator;
