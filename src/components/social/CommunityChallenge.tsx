@@ -55,7 +55,6 @@ interface CommunityChallenge {
 }
 
 const CommunityChallenge: React.FC<CommunityChallenge> = ({
-  _id,
   title,
   description,
   startDate,
@@ -65,7 +64,6 @@ const CommunityChallenge: React.FC<CommunityChallenge> = ({
   progress,
   participantCount,
   joined,
-  _type,
   difficulty,
   creator,
   topParticipants = [],

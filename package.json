@@ -90,6 +90,7 @@
     "express": "^5.1.0",
     "firebase": "^10.10.0",
     "i18next": "^25.1.2",
+    "input-otp": "^1.4.2",
     "jest-axe": "^10.0.0",
     "lovable-tagger": "^1.1.8",
     "lucide-react": "^0.462.0",
