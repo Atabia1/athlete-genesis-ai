@@ -22,28 +22,28 @@ interface RetryItem {
 }
 
 interface UseRetryQueueResult {
-  pendingOperations: RetryItem[];
-  isProcessing: boolean;
-  processQueue: () => void;
-  clearQueue: () => void;
+  items: RetryItem[];
+  isRetrying: boolean;
+  retry: () => void;
+  clear: () => void;
 }
 
 const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
   className = '',
 }) => {
-  const { pendingOperations, isProcessing, processQueue, clearQueue } = useRetryQueue() as UseRetryQueueResult;
+  const { items, isRetrying, retry, clear } = useRetryQueue() as UseRetryQueueResult;
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!pendingOperations || pendingOperations.length === 0) {
+  if (!items || items.length === 0) {
     return null;
   }
 
   const handleRetry = () => {
-    processQueue();
+    retry();
   };
 
   const handleClear = () => {
-    clearQueue();
+    clear();
   };
 
   const getStatusIcon = (status: string) => {
@@ -63,12 +63,12 @@ const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
       <AlertDescription className="flex items-center justify-between">
         <div>
           <span className="font-medium text-orange-800">
-            {pendingOperations.length} items failed to sync
+            {items.length} items failed to sync
           </span>
           <p className="text-sm text-orange-700 mt-1">
             {isExpanded ? (
               <>
-                {pendingOperations.map((item) => (
+                {items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between py-1">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(item.status)}
@@ -80,9 +80,9 @@ const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
                           size="sm"
                           variant="outline"
                           onClick={handleRetry}
-                          disabled={isProcessing}
+                          disabled={isRetrying}
                         >
-                          {isProcessing ? (
+                          {isRetrying ? (
                             <>
                               <RefreshCw className="mr-2 h-3 w-3 animate-spin" />
                               Retrying...

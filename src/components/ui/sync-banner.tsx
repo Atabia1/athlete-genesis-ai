@@ -1,7 +1,7 @@
 
-import { useSync } from '@/features/offline/context/SyncContext';
-import { SyncIndicator } from '@/features/offline/components/SyncIndicator';
-import { cn } from '@/shared/utils/cn';
+import { useSync } from '@/context/SyncContext';
+import SyncIndicator from '@/components/ui/sync-indicator';
+import { cn } from '@/lib/utils';
 
 interface SyncBannerProps {
   className?: string;
@@ -26,10 +26,8 @@ export function SyncBanner({ className }: SyncBannerProps) {
       <SyncIndicator 
         status={syncStatus}
         pendingCount={pendingCount}
-        progress={syncProgress}
-        errorMessage={lastErrorMessage || undefined}
         onSyncClick={syncNow}
-        variant="banner"
+        className="w-full"
       />
     </div>
   );

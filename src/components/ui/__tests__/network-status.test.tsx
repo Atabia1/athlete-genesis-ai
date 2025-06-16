@@ -17,12 +17,14 @@ vi.mock('@/components/ui/sync-indicator', () => ({
 }));
 
 describe('NetworkStatus', () => {
-  const mockUseNetworkStatus = vi.mocked(
-    () => import('@/hooks/use-network-status').then(m => m.useNetworkStatus)
-  );
+  const mockUseNetworkStatus = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(require('@/hooks/use-network-status').useNetworkStatus).mockReturnValue({
+      isOnline: true,
+      wasOffline: false,
+    });
   });
 
   it('renders online status correctly', () => {
@@ -33,7 +35,7 @@ describe('NetworkStatus', () => {
   });
 
   it('renders offline status correctly', () => {
-    vi.mocked(mockUseNetworkStatus).mockReturnValue({
+    vi.mocked(require('@/hooks/use-network-status').useNetworkStatus).mockReturnValue({
       isOnline: false,
       wasOffline: true,
     });
@@ -45,17 +47,17 @@ describe('NetworkStatus', () => {
   });
 
   it('shows retry button when offline and showRetryButton is true', () => {
-    vi.mocked(mockUseNetworkStatus).mockReturnValue({
+    vi.mocked(require('@/hooks/use-network-status').useNetworkStatus).mockReturnValue({
       isOnline: false,
       wasOffline: true,
     });
 
-    const container = render(<NetworkStatus showRetryButton={true} />);
-    expect(container.getByText('Retry')).toBeInTheDocument();
+    render(<NetworkStatus showRetryButton={true} />);
+    expect(screen.getByText('Retry')).toBeInTheDocument();
   });
 
   it('hides retry button when showRetryButton is false', () => {
-    vi.mocked(mockUseNetworkStatus).mockReturnValue({
+    vi.mocked(require('@/hooks/use-network-status').useNetworkStatus).mockReturnValue({
       isOnline: false,
       wasOffline: true,
     });
