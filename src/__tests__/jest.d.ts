@@ -1,15 +1,15 @@
 
-/**
- * Type definitions for Jest to avoid TypeScript errors
- */
+import '@testing-library/jest-dom';
 
-declare namespace jest {
-  interface Matchers<R> {
-    toBeInTheDocument(): R;
-  }
-  
-  interface Expect {
-    extend(matchers: Record<string, any>): void;
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+      toHaveAttribute(attr: string, value?: string): R;
+      toHaveClass(...classNames: string[]): R;
+      toHaveTextContent(text: string | RegExp): R;
+      toHaveNoViolations(): R;
+    }
   }
 }
 

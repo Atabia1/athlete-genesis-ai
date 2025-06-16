@@ -15,7 +15,7 @@ const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
   onRetry,
   className = '',
 }) => {
-  const { isOnline, checkConnection } = useNetworkStatus();
+  const { isOnline } = useNetworkStatus();
 
   if (isOnline) {
     return null;
@@ -25,7 +25,8 @@ const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
     if (onRetry) {
       onRetry();
     } else {
-      await checkConnection();
+      // Simple retry by reloading
+      window.location.reload();
     }
   };
 

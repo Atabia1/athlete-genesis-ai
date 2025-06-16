@@ -13,10 +13,11 @@ const OfflineStatusHeader: React.FC<OfflineStatusHeaderProps> = ({
   showRetryButton = true,
   className = '',
 }) => {
-  const { isOnline, checkConnection } = useNetworkStatus();
+  const { isOnline } = useNetworkStatus();
 
   const handleRetry = async () => {
-    await checkConnection();
+    // Simple retry by reloading
+    window.location.reload();
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { usePlan } from "@/context/PlanContext";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -17,8 +16,8 @@ import WorkoutLogger from "./WorkoutLogger";
 import { useNavigate } from "react-router-dom";
 import { Exercise } from "@/types/workout";
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
-import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
+import OfflineIndicator from "@/components/ui/offline-indicator";
+import OfflineContentBadge from "@/components/ui/offline-content-badge";
 
 const TodayWorkout = () => {
   const { workoutPlan } = usePlan();

@@ -12,9 +12,9 @@ const FeatureFlagComponent: React.FC<FeatureFlagComponentProps> = ({
   children,
   fallback = null,
 }) => {
-  const { hasAccess } = useFeatureAccess();
+  const { canAccess } = useFeatureAccess();
 
-  if (hasAccess(feature)) {
+  if (canAccess(feature)) {
     return <>{children}</>;
   }
 

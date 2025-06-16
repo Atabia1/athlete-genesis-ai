@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { usePlan } from "@/context/PlanContext";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -15,8 +14,8 @@ import {
 import MealLogger from "./MealLogger";
 import { useNavigate } from "react-router-dom";
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
-import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
+import OfflineIndicator from "@/components/ui/offline-indicator";
+import OfflineContentBadge from "@/components/ui/offline-content-badge";
 
 const TodayMeal = () => {
   const { mealPlan } = usePlan();

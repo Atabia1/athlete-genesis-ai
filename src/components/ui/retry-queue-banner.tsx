@@ -1,124 +1,121 @@
-
 import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
+  WifiOff,
   RefreshCw,
-  ChevronDown,
-  ChevronUp,
-  Clock,
   X,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { useRetryQueue } from '@/hooks/use-retry-queue';
 
 interface RetryQueueBannerProps {
-  showDetails?: boolean;
-  autoRetry?: boolean;
   className?: string;
+  showProgress?: boolean;
+}
+
+interface UseRetryQueueResult {
+  // Define minimal interface based on actual usage
+  items: any[];
+  isRetrying: boolean;
+  retry: (id: string) => void;
+  clear: (id: string) => void;
 }
 
 const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
-  showDetails = true,
-  autoRetry = true,
   className = '',
+  showProgress = true,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { 
-    queue, 
-    retryAll, 
-    retryItem, 
-    clearQueue, 
-    isRetrying 
-  } = useRetryQueue();
+  const { items, isRetrying, retry, clear } = useRetryQueue() as UseRetryQueueResult;
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  if (queue.length === 0) {
+  if (!items || items.length === 0) {
     return null;
   }
 
-  const handleRetryAll = async () => {
-    await retryAll();
+  const handleRetry = (id: string) => {
+    retry(id);
   };
 
-  const handleRetryItem = async (id: string) => {
-    await retryItem(id);
+  const handleClear = (id: string) => {
+    clear(id);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="h-4 w-4 text-gray-500" />;
+      case 'success':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'error':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+    }
   };
 
   return (
-    <Alert className={`border-blue-200 bg-blue-50 ${className}`}>
-      <Clock className="h-4 w-4 text-blue-600" />
-      <AlertDescription>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-blue-800">
-              {queue.length} action{queue.length !== 1 ? 's' : ''} pending
-            </span>
-            <Badge variant="secondary">{queue.length}</Badge>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleRetryAll}
-              disabled={isRetrying}
-            >
-              <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-              {isRetrying ? 'Retrying...' : 'Retry All'}
-            </Button>
-            
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => clearQueue()}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-            
-            {showDetails && (
-              <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button size="sm" variant="ghost">
-                    {isOpen ? (
-                      <ChevronUp className="h-3 w-3" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent className="mt-3">
-                  <div className="space-y-2">
-                    {queue.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-2 bg-white rounded border">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{item.action}</p>
-                          <p className="text-xs text-gray-500">
-                            {item.attempts} attempt{item.attempts !== 1 ? 's' : ''} • 
-                            Last tried: {new Date(item.lastAttempt).toLocaleTimeString()}
-                          </p>
-                        </div>
-                        
+    <Alert className={`border-orange-200 bg-orange-50 ${className}`}>
+      <WifiOff className="h-4 w-4 text-orange-600" />
+      <AlertDescription className="flex items-center justify-between">
+        <div>
+          <span className="font-medium text-orange-800">
+            {items.length} items failed to sync
+          </span>
+          <p className="text-sm text-orange-700 mt-1">
+            {isExpanded ? (
+              <>
+                {items.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between py-1">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(item.status)}
+                      <span>{item.message}</span>
+                    </div>
+                    <div>
+                      {item.status === 'error' && (
                         <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleRetryItem(item.id)}
+                          size="xs"
+                          variant="outline"
+                          onClick={() => handleRetry(item.id)}
                           disabled={isRetrying}
                         >
-                          <RefreshCw className="h-3 w-3" />
+                          {isRetrying ? (
+                            <>
+                              <RefreshCw className="mr-2 h-3 w-3 animate-spin" />
+                              Retrying...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="mr-2 h-3 w-3" />
+                              Retry
+                            </>
+                          )}
                         </Button>
-                      </div>
-                    ))}
+                      )}
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        onClick={() => handleClear(item.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
+                ))}
+              </>
+            ) : (
+              'Tap to view details and retry.'
             )}
-          </div>
+          </p>
+        </div>
+        <div>
+          <Button size="sm" variant="outline" onClick={() => setIsExpanded(!isExpanded)}>
+            {isExpanded ? 'Hide Details' : 'Show Details'}
+          </Button>
         </div>
       </AlertDescription>
     </Alert>

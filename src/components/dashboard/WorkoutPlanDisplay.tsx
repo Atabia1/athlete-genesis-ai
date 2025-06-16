@@ -6,8 +6,8 @@ import { Dumbbell, ChevronDown, ChevronUp, Check, Info } from 'lucide-react';
 import { usePlan } from '@/context/PlanContext';
 import { WorkoutDay, Exercise } from '@/types/workout';
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
-import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
+import OfflineIndicator from "@/components/ui/offline-indicator";
+import OfflineContentBadge from "@/components/ui/offline-content-badge";
 
 const WorkoutPlanDisplay = () => {
   const { workoutPlan } = usePlan();
