@@ -33,10 +33,8 @@ import {
   ArrowUp, 
   ArrowDown, 
   Minus, 
-  Filter, 
   Calendar, 
   Footprints, 
-  Heart, 
   Dumbbell, 
   Clock 
 } from 'lucide-react';
@@ -161,7 +159,6 @@ const getTypeIcon = (type: string) => {
  * Community Leaderboard Component
  */
 const CommunityLeaderboard: React.FC<CommunityLeaderboardProps> = ({
-  communityId,
   type = 'steps',
   period = 'week',
   maxEntries = 10,
@@ -209,7 +206,7 @@ const CommunityLeaderboard: React.FC<CommunityLeaderboardProps> = ({
   // Generate mock leaderboard entries
   const generateMockLeaderboardEntries = (
     entryType: string,
-    entryPeriod: string
+    // entryPeriod parameter removed as it's not used
   ): LeaderboardEntry[] => {
     const mockEntries: LeaderboardEntry[] = [];
     
@@ -514,7 +511,7 @@ const CommunityLeaderboard: React.FC<CommunityLeaderboardProps> = ({
                   
                   {allowJoinChallenge && (
                     challenge.joined ? (
-                      <Badge variant="success">Joined</Badge>
+                      <Badge variant="secondary">Joined</Badge>
                     ) : (
                       <Button 
                         size="sm" 

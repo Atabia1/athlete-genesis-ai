@@ -25,14 +25,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   Tabs, 
-  TabsContent, 
   TabsList, 
   TabsTrigger 
 } from '@/components/ui/tabs';
 import { 
   Trophy, 
   Search, 
-  Filter, 
   Plus, 
   ChevronDown, 
   ArrowUpDown, 
@@ -371,7 +369,7 @@ const CommunityChallenges: React.FC<CommunityChallengesProps> = ({
                 userRank={challenge.userRank}
                 onJoin={() => handleJoinChallenge(challenge.id)}
                 onLeave={() => handleLeaveChallenge(challenge.id)}
-                onShare={(platform) => handleShareChallenge(challenge.id, platform)}
+                onShare={(platform: string) => handleShareChallenge(challenge.id, platform)}
               />
             ))}
           </div>
