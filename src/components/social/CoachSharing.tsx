@@ -330,7 +330,7 @@ const CoachSharing = () => {
                   
                   <div>
                     <label className="text-sm font-medium">Access Level</label>
-                    <Select value={accessType} onValueChange={setAccessType} className="mt-1">
+                    <Select value={accessType} onValueChange={setAccessType}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select access type" />
                       </SelectTrigger>
