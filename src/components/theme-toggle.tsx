@@ -1,3 +1,4 @@
+
 /**
  * Theme Toggle Component
  *
@@ -18,7 +19,7 @@ import {
 import { useEffect, useState } from "react"
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme()
+  const { setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   // Only render the theme toggle after the component has mounted

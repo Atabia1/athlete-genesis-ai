@@ -24,17 +24,6 @@ interface PaystackProps {
   onClose: () => void;
 }
 
-// Single global declaration for PaystackPop
-declare global {
-  interface Window {
-    PaystackPop?: {
-      setup: (options: any) => {
-        openIframe: () => void;
-      };
-    };
-  }
-}
-
 const PaystackButton: React.FC<PaystackProps> = ({
   text,
   email,
@@ -62,7 +51,10 @@ const PaystackButton: React.FC<PaystackProps> = ({
   }, []);
 
   const handlePayment = () => {
-    if (typeof window === 'undefined' || !window.PaystackPop) {
+    // Check if Paystack is available on window
+    const paystack = (window as any)?.PaystackPop;
+    
+    if (!paystack) {
       console.warn('Paystack not loaded, using demo mode');
       // Simulate successful payment for demo
       setTimeout(() => {
@@ -77,7 +69,7 @@ const PaystackButton: React.FC<PaystackProps> = ({
       return;
     }
 
-    const paystack = window.PaystackPop.setup({
+    const handler = paystack.setup({
       key: publicKey,
       email,
       amount,
@@ -91,7 +83,7 @@ const PaystackButton: React.FC<PaystackProps> = ({
       }
     });
 
-    paystack.openIframe();
+    handler.openIframe();
   };
 
   return (
