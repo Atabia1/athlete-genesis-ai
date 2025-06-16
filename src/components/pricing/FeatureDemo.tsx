@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,11 +14,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { TrendingUp, Zap, Shield, Brain } from 'lucide-react';
-import { usePlan } from '@/context/PlanContext';
 
 const FeatureDemo = () => {
-  const { subscriptionTier } = usePlan();
-  
   const performanceData = [
     { week: 'W1', performance: 65 },
     { week: 'W2', performance: 72 },

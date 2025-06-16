@@ -24,7 +24,7 @@ interface PaystackProps {
   onClose: () => void;
 }
 
-// Declare PaystackPop interface without conflicting with existing declaration
+// Single global declaration for PaystackPop
 declare global {
   interface Window {
     PaystackPop?: {
