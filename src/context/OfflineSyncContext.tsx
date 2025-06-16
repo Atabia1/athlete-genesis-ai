@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { EnhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
 import { workoutNormalizer } from '@/features/workout/utils/workout-normalizer';
 
@@ -109,7 +109,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     try {
-      await enhancedIndexedDBService.clearStore('workouts');
+      await enhancedIndexedDBService.clear('workouts');
       dispatch({ type: 'CLEAR_OFFLINE_DATA' });
     } catch (error: any) {
       console.error('Error clearing offline data:', error);
@@ -148,10 +148,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const deleteWorkout = useCallback(async (workoutId: string) => {
     try {
-      const tx = enhancedIndexedDBService.transaction(['workouts'], 'readwrite');
-      const store = tx.objectStore('workouts');
-      await store.delete(workoutId);
-      
+      await enhancedIndexedDBService.delete('workouts', workoutId);
       dispatch({ type: 'DELETE_WORKOUT', payload: workoutId });
       console.log('Workout deleted successfully');
     } catch (error) {
@@ -161,7 +158,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const clearAllWorkouts = useCallback(async () => {
     try {
-      await enhancedIndexedDBService.clearDatabase();
+      await enhancedIndexedDBService.clear('workouts');
       dispatch({ type: 'CLEAR_ALL_WORKOUTS' });
       console.log('All workouts cleared successfully');
     } catch (error) {
@@ -176,10 +173,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw new Error('Invalid workout plan format');
       }
 
-      const tx = enhancedIndexedDBService.transaction(['workouts'], 'readwrite');
-      const store = tx.objectStore('workouts');
-      await store.add(plan);
-      
+      await enhancedIndexedDBService.add('workouts', plan);
       dispatch({ type: 'ADD_WORKOUT', payload: plan });
       console.log('Workout saved successfully:', plan.title);
     } catch (error) {
@@ -194,10 +188,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw new Error('Invalid workout plan format');
       }
 
-      const tx = enhancedIndexedDBService.transaction(['workouts'], 'readwrite');
-      const store = tx.objectStore('workouts');
-      await store.put(standardizedPlan);
-      
+      await enhancedIndexedDBService.put('workouts', standardizedPlan);
       dispatch({ type: 'UPDATE_WORKOUT', payload: standardizedPlan });
       console.log('Workout updated successfully:', standardizedPlan.title);
     } catch (error) {
@@ -221,12 +212,8 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCurrentWorkout,
     deleteWorkout,
     clearAllWorkouts,
-    saveWorkout: async (plan: WorkoutPlan) => {
-      await saveWorkout(plan);
-    },
-    updateWorkout: async (plan: WorkoutPlan) => {
-      await updateWorkout(plan);
-    },
+    saveWorkout,
+    updateWorkout,
   };
 
   return (

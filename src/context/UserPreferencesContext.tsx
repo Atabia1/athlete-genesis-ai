@@ -25,7 +25,7 @@ const defaultPreferences: UserPreferences = {
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
 
 export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [preferences, setPreferences] = useLocalStorage<UserPreferences>('user-preferences', defaultPreferences);
+  const [preferences, setPreferences] = useLocalStorage('user-preferences', { defaultValue: defaultPreferences });
 
   const updatePreferences = useCallback((updates: Partial<UserPreferences>) => {
     setPreferences((prev: UserPreferences) => ({ ...prev, ...updates }));

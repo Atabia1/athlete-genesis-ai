@@ -28,7 +28,7 @@ const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Convert operations to items format
-  const items: RetryItem[] = pendingOperations.map(op => ({
+  const items: RetryItem[] = pendingOperations.map((op: any) => ({
     id: op.id,
     status: op.status,
     message: `${op.type} operation`,

@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 interface AuthUser {
   id: string;
@@ -26,7 +26,7 @@ interface UseAuthReturn {
 
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const setAuthToken = (token: string) => {
     localStorage.setItem('authToken', token);

@@ -112,7 +112,7 @@ export const OfflineWorkoutsProvider: React.FC<{ children: React.ReactNode }> = 
 
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const workouts = await enhancedIndexedDBService.getAll('workouts');
+      const workouts = await enhancedIndexedDBService.getAll('workouts') as WorkoutPlan[];
       dispatch({ type: 'SET_WORKOUTS', payload: workouts });
     } catch (error) {
       console.error('Error loading workouts:', error);
@@ -156,7 +156,7 @@ export const OfflineWorkoutsProvider: React.FC<{ children: React.ReactNode }> = 
     }
 
     try {
-      await enhancedIndexedDBService.clearStore('workouts');
+      await enhancedIndexedDBService.clear('workouts');
       dispatch({ type: 'CLEAR_ALL_WORKOUTS' });
     } catch (error) {
       console.error('Error clearing all workouts:', error);

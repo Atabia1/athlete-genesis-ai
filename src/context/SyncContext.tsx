@@ -1,5 +1,6 @@
+
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useRetryQueueContext } from '@/context/RetryQueueContext';
+import { useRetryQueue } from '@/context/RetryQueueContext';
 
 type SyncStatus = 'idle' | 'syncing' | 'error';
 
@@ -23,7 +24,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lastErrorMessage, setLastErrorMessage] = useState<string | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-  const retryQueue = useRetryQueueContext();
+  const retryQueue = useRetryQueue();
 
   const syncNow = useCallback(async () => {
     if (syncStatus === 'syncing') return;
@@ -33,11 +34,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLastErrorMessage(null);
 
     try {
-      // Simulate sync process
-      const onProgress = () => {
-        setSyncProgress(prev => Math.min(prev + 10, 90));
-      };
-
       // Process pending operations
       if (retryQueue.processQueue) {
         await retryQueue.processQueue();
@@ -53,7 +49,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [syncStatus, retryQueue]);
 
-  const addPendingOperation = useCallback((operation: any) => {
+  const addPendingOperation = useCallback((_operation: any) => {
     setPendingCount(prev => prev + 1);
   }, []);
 
@@ -66,7 +62,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Update pending count based on retry queue
-    setPendingCount(retryQueue.pendingCount);
+    setPendingCount(retryQueue.pendingCount || 0);
   }, [retryQueue.pendingCount]);
 
   const value: SyncContextType = {

@@ -126,10 +126,13 @@ export const RetryQueueProvider: React.FC<RetryQueueProviderProps> = ({ children
 /**
  * Custom hook to access the RetryQueueContext
  */
-export const useRetryQueueContext = (): RetryQueueContextType => {
+export const useRetryQueue = (): RetryQueueContextType => {
   const context = useContext(RetryQueueContext);
   if (context === undefined) {
-    throw new Error('useRetryQueueContext must be used within a RetryQueueProvider');
+    throw new Error('useRetryQueue must be used within a RetryQueueProvider');
   }
   return context;
 };
+
+// Export the original hook name as well for backward compatibility
+export const useRetryQueueContext = useRetryQueue;
