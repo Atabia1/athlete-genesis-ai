@@ -1,5 +1,5 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useState, useEffect, useCallback } from 'react';
+
+import { useCallback } from 'react';
 
 interface AuthUser {
   id: string;
@@ -10,6 +10,8 @@ interface AuthUser {
   first_name?: string;
   last_name?: string;
   user_type: string;
+  displayName?: string;
+  subscriptionTier?: string;
 }
 
 interface UseAuthReturn {
@@ -19,30 +21,26 @@ interface UseAuthReturn {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (email: string, password: string, userData?: any) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Function to store auth token in local storage
   const setAuthToken = (token: string) => {
     localStorage.setItem('authToken', token);
   };
 
-  // Function to remove auth token from local storage
   const removeAuthToken = () => {
     localStorage.removeItem('authToken');
   };
 
-  // Function to get auth token from local storage
   const getAuthToken = () => {
     return localStorage.getItem('authToken');
   };
 
-  // Function to fetch user profile
   const fetchUserProfile = async (token: string): Promise<any> => {
-    // Replace with your actual API endpoint and token
     const response = await fetch('https://api.example.com/profile', {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -56,43 +54,24 @@ export function useAuth(): UseAuthReturn {
     return response.json();
   };
 
-  const { refetch: fetchProfile } = useQuery(
-    'userProfile',
-    async () => {
-      const token = getAuthToken();
-      if (!token) {
-        return null;
-      }
-
-      const profile = await fetchUserProfile(token);
-      return profile;
-    },
-    {
-      enabled: false, // Disable automatic fetching
-      retry: false,
-      onSuccess: (profile) => {
-        if (profile) {
-          getUserProfile(profile).then(authUser => {
-            setUser(authUser);
-            setIsLoading(false);
-          });
-        } else {
-          setUser(null);
-          setIsLoading(false);
-        }
-      },
-      onError: () => {
-        setUser(null);
-        setIsLoading(false);
+  const refreshUser = useCallback(async () => {
+    const token = getAuthToken();
+    if (token) {
+      try {
+        const profile = await fetchUserProfile(token);
+        const authUser = await getUserProfile(profile);
+        setUser(authUser);
+      } catch (error) {
+        console.error('Error refreshing user:', error);
         removeAuthToken();
-      },
+        setUser(null);
+      }
     }
-  );
+  }, []);
 
-  // Login mutation
-  const loginMutation = useMutation(
-    async ({ email, password }: any) => {
-      // Replace with your actual API endpoint
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
       const response = await fetch('https://api.example.com/login', {
         method: 'POST',
         headers: {
@@ -105,25 +84,21 @@ export function useAuth(): UseAuthReturn {
         throw new Error('Login failed');
       }
 
-      return response.json();
-    },
-    {
-      onSuccess: (data) => {
-        setAuthToken(data.token);
-        fetchProfile();
-      },
-      onError: (error: any) => {
-        console.error('Login error:', error.message);
-        removeAuthToken();
-        setUser(null);
-      },
+      const data = await response.json();
+      setAuthToken(data.token);
+      await refreshUser();
+    } catch (error) {
+      console.error('Login error:', error);
+      removeAuthToken();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
-  );
+  };
 
-  // Register mutation
-  const registerMutation = useMutation(
-    async ({ email, password, userData }: any) => {
-      // Replace with your actual API endpoint
+  const register = async (email: string, password: string, userData?: any) => {
+    setIsLoading(true);
+    try {
       const response = await fetch('https://api.example.com/register', {
         method: 'POST',
         headers: {
@@ -136,51 +111,24 @@ export function useAuth(): UseAuthReturn {
         throw new Error('Registration failed');
       }
 
-      return response.json();
-    },
-    {
-      onSuccess: (data) => {
-        setAuthToken(data.token);
-        fetchProfile();
-      },
-      onError: (error: any) => {
-        console.error('Registration error:', error.message);
-        removeAuthToken();
-        setUser(null);
-      },
+      const data = await response.json();
+      setAuthToken(data.token);
+      await refreshUser();
+    } catch (error) {
+      console.error('Registration error:', error);
+      removeAuthToken();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
-  );
-
-  // Login function
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    await loginMutation.mutateAsync({ email, password });
   };
 
-  // Register function
-  const register = async (email: string, password: string, userData?: any) => {
-    setIsLoading(true);
-    await registerMutation.mutateAsync({ email, password, userData });
-  };
-
-  // Logout function
   const logout = async () => {
     removeAuthToken();
     setUser(null);
   };
 
-  useEffect(() => {
-    setIsLoading(true);
-    const token = getAuthToken();
-    if (token) {
-      fetchProfile();
-    } else {
-      setIsLoading(false);
-    }
-  }, [fetchProfile]);
-
   const getUserProfile = useCallback(async (user: any): Promise<AuthUser> => {
-    // Map profile data to AuthUser interface
     return {
       id: user.id,
       email: user.email,
@@ -190,6 +138,8 @@ export function useAuth(): UseAuthReturn {
       first_name: user.first_name,
       last_name: user.last_name,
       user_type: user.user_type || 'individual',
+      displayName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
+      subscriptionTier: user.subscription_tier || 'free',
     };
   }, []);
 
@@ -200,5 +150,8 @@ export function useAuth(): UseAuthReturn {
     login,
     logout,
     register,
+    refreshUser,
   };
 }
+
+export type { AuthUser, UseAuthReturn };

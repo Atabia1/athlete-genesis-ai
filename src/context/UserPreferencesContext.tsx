@@ -25,10 +25,10 @@ const defaultPreferences: UserPreferences = {
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
 
 export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [preferences, setPreferences] = useLocalStorage('user-preferences', defaultPreferences);
+  const [preferences, setPreferences] = useLocalStorage<UserPreferences>('user-preferences', defaultPreferences);
 
   const updatePreferences = useCallback((updates: Partial<UserPreferences>) => {
-    setPreferences(prev => ({ ...prev, ...updates }));
+    setPreferences((prev: UserPreferences) => ({ ...prev, ...updates }));
   }, [setPreferences]);
 
   const resetPreferences = useCallback(() => {
@@ -36,7 +36,7 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
   }, [setPreferences]);
 
   const value: UserPreferencesContextType = {
-    preferences,
+    preferences: preferences as UserPreferences,
     updatePreferences,
     resetPreferences,
   };

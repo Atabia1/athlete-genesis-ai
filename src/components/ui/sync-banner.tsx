@@ -11,8 +11,6 @@ export function SyncBanner({ className }: SyncBannerProps) {
   const { 
     syncStatus, 
     pendingCount, 
-    syncProgress, 
-    lastErrorMessage, 
     syncNow
   } = useSync();
   

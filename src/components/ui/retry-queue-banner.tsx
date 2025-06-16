@@ -9,7 +9,7 @@ import {
   Clock,
   XCircle,
 } from 'lucide-react';
-import { useRetryQueue } from '@/hooks/use-retry-queue';
+import { useRetryQueue } from '@/context/RetryQueueContext';
 
 interface RetryQueueBannerProps {
   className?: string;
@@ -21,29 +21,31 @@ interface RetryItem {
   message: string;
 }
 
-interface UseRetryQueueResult {
-  items: RetryItem[];
-  isRetrying: boolean;
-  retry: () => void;
-  clear: () => void;
-}
-
 const RetryQueueBanner: React.FC<RetryQueueBannerProps> = ({
   className = '',
 }) => {
-  const { items, isRetrying, retry, clear } = useRetryQueue() as UseRetryQueueResult;
+  const { pendingOperations, isProcessing, processQueue, clearQueue } = useRetryQueue();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Convert operations to items format
+  const items: RetryItem[] = pendingOperations.map(op => ({
+    id: op.id,
+    status: op.status,
+    message: `${op.type} operation`,
+  }));
+
+  const isRetrying = isProcessing;
 
   if (!items || items.length === 0) {
     return null;
   }
 
   const handleRetry = () => {
-    retry();
+    processQueue();
   };
 
   const handleClear = () => {
-    clear();
+    clearQueue();
   };
 
   const getStatusIcon = (status: string) => {

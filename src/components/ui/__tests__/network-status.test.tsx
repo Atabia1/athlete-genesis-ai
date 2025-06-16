@@ -17,8 +17,6 @@ vi.mock('@/components/ui/sync-indicator', () => ({
 }));
 
 describe('NetworkStatus', () => {
-  const mockUseNetworkStatus = vi.fn();
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(require('@/hooks/use-network-status').useNetworkStatus).mockReturnValue({

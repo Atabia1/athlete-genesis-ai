@@ -1,6 +1,5 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { enhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
-import { workoutNormalizer } from '@/utils/workout-normalizer';
+import { createContext, useContext, useReducer, useCallback } from 'react';
+import { EnhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
 
 interface WorkoutPlan {
   id: string;
@@ -91,6 +90,8 @@ const offlineWorkoutsReducer = (
   }
 };
 
+const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp', 1);
+
 const OfflineWorkoutsContext = createContext<OfflineWorkoutsContextType | undefined>(undefined);
 
 export const OfflineWorkoutsProvider: React.FC<{ children: React.ReactNode }> = ({ 
@@ -155,7 +156,7 @@ export const OfflineWorkoutsProvider: React.FC<{ children: React.ReactNode }> = 
     }
 
     try {
-      await enhancedIndexedDBService.clear('workouts');
+      await enhancedIndexedDBService.clearStore('workouts');
       dispatch({ type: 'CLEAR_ALL_WORKOUTS' });
     } catch (error) {
       console.error('Error clearing all workouts:', error);

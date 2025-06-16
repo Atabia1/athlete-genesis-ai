@@ -1,6 +1,6 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { enhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
-import { workoutNormalizer } from '@/utils/workout-normalizer';
+import { createContext, useContext, useReducer, useCallback } from 'react';
+import { EnhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
+import { workoutNormalizer } from '@/features/workout/utils/workout-normalizer';
 
 interface WorkoutPlan {
   id: string;
@@ -45,7 +45,8 @@ type OfflineSyncAction =
   | { type: 'SET_SELECTED_WORKOUT'; payload: string | null }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_LAST_SYNC_TIME'; payload: Date | null }
-  | { type: 'SET_PENDING_CHANGES'; payload: number };
+  | { type: 'SET_PENDING_CHANGES'; payload: number }
+  | { type: 'CLEAR_OFFLINE_DATA' };
 
 const initialState: OfflineSyncState = {
   offlineWorkouts: [],
@@ -83,24 +84,37 @@ const offlineSyncReducer = (state: OfflineSyncState, action: OfflineSyncAction):
       return { ...state, lastSyncTime: action.payload };
     case 'SET_PENDING_CHANGES':
       return { ...state, pendingChanges: action.payload };
+    case 'CLEAR_OFFLINE_DATA':
+      return { ...state, offlineWorkouts: [] };
     default:
       return state;
   }
 };
+
+const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp', 1);
 
 const OfflineSyncContext = createContext<OfflineSyncContextType | undefined>(undefined);
 
 export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(offlineSyncReducer, initialState);
 
+  const isIndexedDBSupported = useCallback(() => {
+    return typeof window !== 'undefined' && 'indexedDB' in window;
+  }, []);
+
   const clearAllOfflineData = useCallback(async () => {
+    if (!isIndexedDBSupported()) {
+      console.warn('IndexedDB not supported');
+      return;
+    }
+
     try {
-      await enhancedIndexedDBService.clearDatabase();
-      console.log('All offline data cleared successfully');
+      await enhancedIndexedDBService.clearStore('workouts');
+      dispatch({ type: 'CLEAR_OFFLINE_DATA' });
     } catch (error: any) {
       console.error('Error clearing offline data:', error);
     }
-  }, []);
+  }, [isIndexedDBSupported]);
 
   const loadOfflineWorkouts = useCallback(async () => {
     try {
