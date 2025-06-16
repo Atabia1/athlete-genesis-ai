@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useCallback } from 'react';
 
 export enum RetryStatus {
@@ -35,7 +36,7 @@ interface RetryQueueContextType {
   setShowRetryBanner: (show: boolean) => void;
   processQueue: () => Promise<void>;
   clearQueue: () => Promise<void>;
-  addOperation: (operation: Omit<RetryOperation, 'id' | 'status' | 'attempts' | 'createdAt' | 'updatedAt'>> => void;
+  addOperation: (operation: Omit<RetryOperation, 'id' | 'status' | 'attempts' | 'createdAt' | 'updatedAt'>) => void;
   updateOperationStatus: (id: string, status: RetryStatus, error?: any) => void;
 }
 
@@ -48,7 +49,7 @@ export const RetryQueueProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   
   const pendingCount = pendingOperations.filter(op => op.status === RetryStatus.PENDING).length;
   
-  const addOperation = useCallback((operation: Omit<RetryOperation, 'id' | 'status' | 'attempts' | 'createdAt' | 'updatedAt'>>) => {
+  const addOperation = useCallback((operation: Omit<RetryOperation, 'id' | 'status' | 'attempts' | 'createdAt' | 'updatedAt'>) => {
     const newOperation: RetryOperation = {
       id: Date.now().toString(),
       status: RetryStatus.PENDING,
