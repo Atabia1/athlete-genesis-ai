@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +47,6 @@ const mockEvents = [
 
 export default function TeamCalendar() {
   const [events] = useState(mockEvents);
-  const upcomingEvents = events.filter(event => new Date(event.date) >= new Date());
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
@@ -85,9 +84,9 @@ export default function TeamCalendar() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {upcomingEvents.length > 0 ? (
+            {events.length > 0 ? (
               <div className="space-y-4">
-                {upcomingEvents.map((event) => (
+                {events.map((event) => (
                   <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className="bg-blue-100 p-2 rounded-full">
