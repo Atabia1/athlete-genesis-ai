@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useReducer, useCallback } from 'react';
 import { EnhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
 
@@ -90,7 +91,7 @@ const offlineWorkoutsReducer = (
   }
 };
 
-const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp', 1);
+const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp');
 
 const OfflineWorkoutsContext = createContext<OfflineWorkoutsContextType | undefined>(undefined);
 
@@ -112,7 +113,7 @@ export const OfflineWorkoutsProvider: React.FC<{ children: React.ReactNode }> = 
 
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const workouts = await enhancedIndexedDBService.getAll('workouts') as WorkoutPlan[];
+      const workouts = await enhancedIndexedDBService.getAll<WorkoutPlan>('workouts');
       dispatch({ type: 'SET_WORKOUTS', payload: workouts });
     } catch (error) {
       console.error('Error loading workouts:', error);
@@ -142,7 +143,7 @@ export const OfflineWorkoutsProvider: React.FC<{ children: React.ReactNode }> = 
     }
 
     try {
-      await enhancedIndexedDBService.put('workouts', workout);
+      await enhancedIndexedDBService.update('workouts', workout);
       dispatch({ type: 'UPDATE_WORKOUT', payload: workout });
     } catch (error) {
       console.error('Error updating workout:', error);
@@ -156,7 +157,7 @@ export const OfflineWorkoutsProvider: React.FC<{ children: React.ReactNode }> = 
     }
 
     try {
-      await enhancedIndexedDBService.clear('workouts');
+      await enhancedIndexedDBService.clearAll('workouts');
       dispatch({ type: 'CLEAR_ALL_WORKOUTS' });
     } catch (error) {
       console.error('Error clearing all workouts:', error);

@@ -1,6 +1,7 @@
+
 import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { EnhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
-import { workoutNormalizer } from '@/features/workout/utils/workout-normalizer';
+import { standardizeWorkoutPlan } from '@/utils/workout-normalizer';
 
 interface WorkoutPlan {
   id: string;
@@ -91,7 +92,7 @@ const offlineSyncReducer = (state: OfflineSyncState, action: OfflineSyncAction):
   }
 };
 
-const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp', 1);
+const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp');
 
 const OfflineSyncContext = createContext<OfflineSyncContextType | undefined>(undefined);
 
@@ -109,7 +110,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     try {
-      await enhancedIndexedDBService.clear('workouts');
+      await enhancedIndexedDBService.clearAll('workouts');
       dispatch({ type: 'CLEAR_OFFLINE_DATA' });
     } catch (error: any) {
       console.error('Error clearing offline data:', error);
@@ -120,14 +121,14 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const workouts = await enhancedIndexedDBService.getAll('workouts');
       const validWorkouts = workouts.filter((workout): workout is WorkoutPlan => {
-        const standardizedPlan = workoutNormalizer(workout);
+        const standardizedPlan = standardizeWorkoutPlan(workout);
         return standardizedPlan !== null;
       });
       
       dispatch({ type: 'SET_WORKOUTS', payload: validWorkouts });
       
       validWorkouts.forEach(workout => {
-        const standardized = workoutNormalizer(workout);
+        const standardized = standardizeWorkoutPlan(workout);
         if (standardized) {
           console.log('Loaded workout:', standardized.title);
         }
@@ -158,7 +159,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const clearAllWorkouts = useCallback(async () => {
     try {
-      await enhancedIndexedDBService.clear('workouts');
+      await enhancedIndexedDBService.clearAll('workouts');
       dispatch({ type: 'CLEAR_ALL_WORKOUTS' });
       console.log('All workouts cleared successfully');
     } catch (error) {
@@ -168,7 +169,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const saveWorkout = useCallback(async (workout: WorkoutPlan) => {
     try {
-      const plan = workoutNormalizer(workout);
+      const plan = standardizeWorkoutPlan(workout);
       if (!plan) {
         throw new Error('Invalid workout plan format');
       }
@@ -183,12 +184,12 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const updateWorkout = useCallback(async (workout: WorkoutPlan) => {
     try {
-      const standardizedPlan = workoutNormalizer(workout);
+      const standardizedPlan = standardizeWorkoutPlan(workout);
       if (!standardizedPlan) {
         throw new Error('Invalid workout plan format');
       }
 
-      await enhancedIndexedDBService.put('workouts', standardizedPlan);
+      await enhancedIndexedDBService.update('workouts', standardizedPlan);
       dispatch({ type: 'UPDATE_WORKOUT', payload: standardizedPlan });
       console.log('Workout updated successfully:', standardizedPlan.title);
     } catch (error) {

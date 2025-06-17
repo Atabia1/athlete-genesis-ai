@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 
-interface AuthUser {
+export interface AuthUser {
   id: string;
   email: string;
   name: string;
@@ -14,7 +14,7 @@ interface AuthUser {
   subscriptionTier?: string;
 }
 
-interface UseAuthReturn {
+export interface UseAuthReturn {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;

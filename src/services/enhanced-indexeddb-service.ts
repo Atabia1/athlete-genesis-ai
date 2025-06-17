@@ -1,3 +1,4 @@
+
 /**
  * Enhanced IndexedDB service with transaction queue and improved error handling
  *
@@ -336,6 +337,19 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   async getById<T>(storeName: string, id: string): Promise<T | null> {
     return this.retryWithBackoff(async () => {
       return super.getById<T>(storeName, id);
+    });
+  }
+
+  /**
+   * Clear all items from a store with retry
+   * @param storeName The name of the object store
+   * @returns Promise that resolves when the store is cleared
+   */
+  async clearAll(storeName: string): Promise<void> {
+    return this.enqueueTransaction(async () => {
+      return this.retryWithBackoff(async () => {
+        return super.clear(storeName);
+      });
     });
   }
 
