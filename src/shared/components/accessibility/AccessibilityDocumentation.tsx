@@ -1,208 +1,153 @@
+
 /**
- * AccessibilityDocumentation Component
+ * Accessibility Documentation Component
  * 
- * This component displays the accessibility documentation in the application.
- * It's useful for developers and testers who need to understand the accessibility
- * features and guidelines.
+ * This component provides comprehensive documentation about accessibility
+ * features and guidelines for the application.
  */
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/shared/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/shared/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { ScrollArea } from '@/shared/components/ui/scroll-area';
-import { FileText, Code, CheckSquare, HelpCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, AlertCircle, Info, ExternalLink } from 'lucide-react';
 
-interface AccessibilityDocumentationProps {
-  /** Whether the documentation dialog is open */
-  open?: boolean;
-  /** Callback when the dialog is opened or closed */
-  onOpenChange?: (open: boolean) => void;
-}
+export function AccessibilityDocumentation() {
+  const features = [
+    {
+      title: 'Keyboard Navigation',
+      status: 'implemented',
+      description: 'Full keyboard support for all interactive elements',
+      details: [
+        'Tab navigation through all focusable elements',
+        'Arrow key navigation in menus and lists',
+        'Enter and Space activation for buttons',
+        'Escape key to close modals and dropdowns'
+      ]
+    },
+    {
+      title: 'Screen Reader Support',
+      status: 'implemented',
+      description: 'Comprehensive ARIA labels and semantic markup',
+      details: [
+        'Proper heading hierarchy (h1-h6)',
+        'ARIA labels for interactive elements',
+        'Live regions for dynamic content',
+        'Descriptive alt text for images'
+      ]
+    },
+    {
+      title: 'High Contrast Mode',
+      status: 'implemented',
+      description: 'Enhanced visibility for users with visual impairments',
+      details: [
+        'Increased color contrast ratios',
+        'Clear focus indicators',
+        'Readable text on all backgrounds',
+        'Distinctive interactive elements'
+      ]
+    },
+    {
+      title: 'Reduced Motion',
+      status: 'implemented',
+      description: 'Respect for users who prefer reduced motion',
+      details: [
+        'Disabled animations when requested',
+        'Static alternatives to moving content',
+        'Reduced parallax effects',
+        'Instant transitions option'
+      ]
+    }
+  ];
 
-/**
- * Component that displays accessibility documentation
- */
-export function AccessibilityDocumentation({
-  open,
-  onOpenChange,
-}: AccessibilityDocumentationProps) {
-  const [documentation, setDocumentation] = useState<string>('');
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'implemented':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'partial':
+        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
+      default:
+        return <Info className="h-4 w-4 text-blue-600" />;
+    }
+  };
 
-  // Fetch the documentation when the component mounts
-  useEffect(() => {
-    fetch('/src/shared/docs/ACCESSIBILITY.md')
-      .then(response => response.text())
-      .then(text => {
-        setDocumentation(text);
-      })
-      .catch(error => {
-        console.error('Failed to load accessibility documentation:', error);
-        setDocumentation('Failed to load documentation. Please check the console for errors.');
-      });
-  }, []);
-
-  // Parse the markdown into sections
-  const sections = {
-    introduction: extractSection(documentation, '## Introduction', '## Accessibility Features'),
-    features: extractSection(documentation, '## Accessibility Features', '## Development Guidelines'),
-    guidelines: extractSection(documentation, '## Development Guidelines', '## Testing'),
-    testing: extractSection(documentation, '## Testing', '## Resources'),
-    resources: extractSection(documentation, '## Resources', '')
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'implemented':
+        return <Badge variant="default" className="bg-green-100 text-green-800">Implemented</Badge>;
+      case 'partial':
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Partial</Badge>;
+      default:
+        return <Badge variant="outline">Planned</Badge>;
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Accessibility Documentation
-          </DialogTitle>
-          <DialogDescription>
-            Guidelines and resources for implementing accessibility features in the application.
-          </DialogDescription>
-        </DialogHeader>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Accessibility Documentation</h1>
+        <p className="text-gray-600">
+          Our commitment to making the application accessible to all users.
+        </p>
+      </div>
 
-        <Tabs defaultValue="introduction" className="flex-1 overflow-hidden">
-          <TabsList className="grid grid-cols-5">
-            <TabsTrigger value="introduction">
-              <HelpCircle className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Introduction</span>
-            </TabsTrigger>
-            <TabsTrigger value="features">
-              <CheckSquare className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Features</span>
-            </TabsTrigger>
-            <TabsTrigger value="guidelines">
-              <Code className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Guidelines</span>
-            </TabsTrigger>
-            <TabsTrigger value="testing">
-              <CheckSquare className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Testing</span>
-            </TabsTrigger>
-            <TabsTrigger value="resources">
-              <FileText className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Resources</span>
-            </TabsTrigger>
-          </TabsList>
+      <div className="grid gap-6">
+        {features.map((feature, index) => (
+          <Card key={index}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  {getStatusIcon(feature.status)}
+                  {feature.title}
+                </CardTitle>
+                {getStatusBadge(feature.status)}
+              </div>
+              <CardDescription>{feature.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {feature.details.map((detail, detailIndex) => (
+                  <li key={detailIndex} className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          <ScrollArea className="flex-1 mt-4">
-            <TabsContent value="introduction" className="markdown-content">
-              <MarkdownContent content={sections.introduction} />
-            </TabsContent>
-            <TabsContent value="features" className="markdown-content">
-              <MarkdownContent content={sections.features} />
-            </TabsContent>
-            <TabsContent value="guidelines" className="markdown-content">
-              <MarkdownContent content={sections.guidelines} />
-            </TabsContent>
-            <TabsContent value="testing" className="markdown-content">
-              <MarkdownContent content={sections.testing} />
-            </TabsContent>
-            <TabsContent value="resources" className="markdown-content">
-              <MarkdownContent content={sections.resources} />
-            </TabsContent>
-          </ScrollArea>
-        </Tabs>
-
-        <DialogFooter className="mt-4">
-          <DialogClose asChild>
-            <Button type="button">Close</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ExternalLink className="h-4 w-4" />
+            Additional Resources
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-semibold">WCAG 2.1 Guidelines</h4>
+              <p className="text-sm text-gray-600">
+                We follow the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA standards.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold">Keyboard Shortcuts</h4>
+              <p className="text-sm text-gray-600">
+                Press Alt + A to open accessibility settings from anywhere in the application.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold">Screen Reader Testing</h4>
+              <p className="text-sm text-gray-600">
+                This application has been tested with NVDA, JAWS, and VoiceOver.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
-/**
- * AccessibilityDocumentationButton Component
- * 
- * This component provides a button to open the accessibility documentation.
- */
-export function AccessibilityDocumentationButton({
-  className,
-}: {
-  className?: string;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <Button
-        variant="outline"
-        onClick={() => setOpen(true)}
-        className={className}
-      >
-        <FileText className="h-4 w-4 mr-2" />
-        Accessibility Docs
-      </Button>
-      <AccessibilityDocumentation
-        open={open}
-        onOpenChange={setOpen}
-      />
-    </>
-  );
-}
-
-/**
- * Extract a section from the markdown content
- */
-function extractSection(content: string, startHeading: string, endHeading: string): string {
-  const startIndex = content.indexOf(startHeading);
-  if (startIndex === -1) return '';
-
-  const endIndex = endHeading ? content.indexOf(endHeading) : content.length;
-  if (endIndex === -1) return content.slice(startIndex);
-
-  return content.slice(startIndex, endIndex);
-}
-
-/**
- * Simple markdown renderer
- */
-function MarkdownContent({ content }: { content: string }) {
-  // This is a very simple markdown renderer
-  // In a real application, you would use a proper markdown library
-  const html = content
-    // Convert headers
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    // Convert lists
-    .replace(/^\* (.*$)/gm, '<li>$1</li>')
-    .replace(/^- (.*$)/gm, '<li>$1</li>')
-    .replace(/^(\d+)\. (.*$)/gm, '<li>$2</li>')
-    // Convert code blocks
-    .replace(/```(.+?)```/gs, '<pre><code>$1</code></pre>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    // Convert paragraphs
-    .replace(/\n\n/g, '</p><p>')
-    // Convert links
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-  return (
-    <div
-      className="prose prose-sm dark:prose-invert max-w-none"
-      dangerouslySetInnerHTML={{ __html: `<p>${html}</p>` }}
-    />
-  );
-}
-
-/**
- * Example usage:
- * 
- * function DeveloperTools() {
- *   return (
- *     <div>
- *       <h2>Developer Tools</h2>
- *       <div className="flex gap-2">
- *         <AccessibilityDocumentationButton />
- *         <OtherDevTools />
- *       </div>
- *     </div>
- *   );
- * }
- */
+export default AccessibilityDocumentation;

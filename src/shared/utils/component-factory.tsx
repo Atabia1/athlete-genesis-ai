@@ -58,7 +58,7 @@ function withErrorBoundary<P extends Record<string, any>>(
 function withMemo<P extends Record<string, any>>(
   Component: React.ComponentType<P>
 ): React.ComponentType<P> {
-  return React.memo(Component) as React.ComponentType<P>;
+  return React.memo(Component);
 }
 
 /**
@@ -87,8 +87,8 @@ export function createComponent<P extends Record<string, any>>(
   }
   
   // Add default props
-  if (options.defaultProps) {
-    Component.defaultProps = options.defaultProps;
+  if (options.defaultProps && 'defaultProps' in Component) {
+    (Component as any).defaultProps = options.defaultProps;
   }
   
   // Add memoization
@@ -154,10 +154,10 @@ export function createProvider<T, P extends Record<string, any>>(
     return React.createElement(context.Provider, { value }, children);
   };
   
-  return createComponent(Provider, {
+  return createComponent(Provider as React.ComponentType<any>, {
     displayName: `${context.displayName || 'Unknown'}Provider`,
     ...options,
-  });
+  }) as React.ComponentType<P & { children: React.ReactNode }>;
 }
 
 /**
@@ -187,7 +187,7 @@ export function createLayout<P extends Record<string, any>>(
   slots: Record<string, React.ComponentType<any>>,
   options: ComponentFactoryOptions<P> = {}
 ): React.ComponentType<P> & { Slots: typeof slots } {
-  const LayoutComponent = createComponent(Layout, options) as React.ComponentType<P> & { Slots: typeof slots };
+  const LayoutComponent = createComponent(Layout as React.ComponentType<any>, options) as React.ComponentType<P> & { Slots: typeof slots };
   LayoutComponent.Slots = slots;
   
   return LayoutComponent;

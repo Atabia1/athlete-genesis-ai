@@ -7,8 +7,7 @@
  * utilities for formatting messages with parameters.
  */
 
-import { useTranslation as useI18nTranslation, UseTranslationResponse } from 'react-i18next';
-import { useLanguagePreference } from './use-language-preference';
+import { useTranslation as useI18nTranslation } from 'react-i18next';
 
 /**
  * Translation function type
@@ -18,11 +17,9 @@ export type TFunction = (key: string, options?: Record<string, any>) => string;
 /**
  * Enhanced translation hook that integrates with our language preference system
  */
-export function useTranslation(namespace?: string): UseTranslationResponse<string> {
-  const { language } = useLanguagePreference();
-  
+export function useTranslation() {
   // Use i18next's useTranslation hook
-  const translation = useI18nTranslation(namespace);
+  const translation = useI18nTranslation();
   
   return translation;
 }
@@ -30,8 +27,8 @@ export function useTranslation(namespace?: string): UseTranslationResponse<strin
 /**
  * Get a translation function for use outside of React components
  */
-export function getTranslation(namespace?: string): TFunction {
-  // This would typically use i18next.getFixedT() but we'll provide a simple implementation
+export function getTranslation(): TFunction {
+  // Simple fallback implementation
   return (key: string) => {
     // Simple fallback implementation
     return key;

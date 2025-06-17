@@ -1,3 +1,4 @@
+
 /**
  * Accessibility Settings Button
  *
@@ -5,7 +6,7 @@
  * It allows users to toggle high contrast mode, large text, and reduced motion.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Accessibility } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {

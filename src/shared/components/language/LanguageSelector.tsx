@@ -8,7 +8,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Globe } from 'lucide-react';
-import { useLanguagePreference } from '@/shared/hooks/use-language-preference';
+import { useTranslation } from 'react-i18next';
 
 const languages = [
   { code: 'en', name: 'English', nativeName: 'English' },
@@ -18,12 +18,16 @@ const languages = [
 ];
 
 export function LanguageSelector() {
-  const { language, setLanguage } = useLanguagePreference();
+  const { i18n } = useTranslation();
 
-  const currentLanguage = languages.find(lang => lang.code === language);
+  const currentLanguage = languages.find(lang => lang.code === i18n.language);
+
+  const handleLanguageChange = (languageCode: string) => {
+    i18n.changeLanguage(languageCode);
+  };
 
   return (
-    <Select value={language} onValueChange={setLanguage}>
+    <Select value={i18n.language} onValueChange={handleLanguageChange}>
       <SelectTrigger className="w-[180px]">
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4" />

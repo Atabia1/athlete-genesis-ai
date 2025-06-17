@@ -1,5 +1,5 @@
 
-import { useFeatureFlags } from '@/shared/utils/feature-flags';
+import { useFeatureFlag } from '@/shared/utils/feature-flags';
 
 interface FeatureFlagComponentProps {
   flag: string;
@@ -12,9 +12,9 @@ export function FeatureFlagComponent({
   children,
   fallback = null,
 }: FeatureFlagComponentProps) {
-  const { isEnabled } = useFeatureFlags();
+  const isEnabled = useFeatureFlag(flag as any);
   
-  if (isEnabled(flag)) {
+  if (isEnabled) {
     return <>{children}</>;
   }
   
