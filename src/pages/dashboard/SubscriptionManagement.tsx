@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Card,
@@ -26,10 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Download,
   Pause,
-  Play,
-  X,
-  CheckCircle,
-  Loader2
+  X
 } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 

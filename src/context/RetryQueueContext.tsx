@@ -1,3 +1,4 @@
+
 /**
  * RetryQueueContext: Context provider for the retry queue system
  * 
@@ -51,7 +52,7 @@ interface RetryQueueProviderProps {
  * RetryQueueProvider component
  */
 export const RetryQueueProvider: React.FC<RetryQueueProviderProps> = ({ children }) => {
-  const { isOnline, wasOffline } = useNetworkStatus();
+  const { isOnline } = useNetworkStatus();
   const [pendingOperations, setPendingOperations] = useState<RetryOperation[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showRetryBanner, setShowRetryBanner] = useState<boolean>(false);
@@ -79,9 +80,9 @@ export const RetryQueueProvider: React.FC<RetryQueueProviderProps> = ({ children
     };
   }, []);
   
-  // Handle online/offline status changes
+  // Handle online status changes
   useEffect(() => {
-    if (isOnline && wasOffline && pendingOperations.length > 0) {
+    if (isOnline && pendingOperations.length > 0) {
       // We just came back online and have pending operations
       toast({
         title: "Connection restored",
@@ -91,7 +92,7 @@ export const RetryQueueProvider: React.FC<RetryQueueProviderProps> = ({ children
       // Process the queue
       retryQueueService.processQueue();
     }
-  }, [isOnline, wasOffline, pendingOperations.length]);
+  }, [isOnline, pendingOperations.length]);
   
   // Context value
   const value: RetryQueueContextType = {

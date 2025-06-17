@@ -1,17 +1,14 @@
-
 import React, { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, Heart, Moon, Sun, Brain, Zap, Battery, BatteryMedium, BatteryLow, Clock, Calendar, Plus, ArrowRight, Dumbbell, Flame, Sparkles, Waves, TrendingUp } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area, Legend } from "recharts";
+import { Activity, Moon, Sun, Brain, Zap, Plus, ArrowRight, Dumbbell, Flame, Sparkles, Waves, TrendingUp } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area, Legend } from 'recharts';
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
-import { OfflineContentBadge } from "@/components/ui/offline-content-badge";
+import OfflineIndicator from "@/components/ui/offline-indicator";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 // Sample data for charts
 const sleepData = [
@@ -75,7 +72,6 @@ const meditationData = [
 
 const WellbeingDashboard = () => {
   const { isOnline } = useNetworkStatus();
-  const [activeTab, setActiveTab] = useState("sleep");
 
   // Calculate recovery status based on the latest recovery score
   const getRecoveryStatus = () => {
@@ -101,11 +97,7 @@ const WellbeingDashboard = () => {
             </p>
           </div>
           {!isOnline && (
-            <OfflineIndicator
-              variant="badge"
-              featureSpecific={true}
-              featureName="Wellbeing data"
-            />
+            <OfflineIndicator />
           )}
         </div>
       </div>

@@ -17,7 +17,7 @@ import {
   Utensils,
   Wheat
 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, Legend } from 'recharts';
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import { Input } from "@/components/ui/input";

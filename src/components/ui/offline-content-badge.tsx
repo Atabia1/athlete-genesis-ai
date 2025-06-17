@@ -1,42 +1,32 @@
 
 import { Badge } from '@/components/ui/badge';
-import { Download, CheckCircle } from 'lucide-react';
+import { WifiOff } from 'lucide-react';
 
 interface OfflineContentBadgeProps {
-  isDownloaded?: boolean;
-  isDownloading?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  contentType?: string;
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
   className?: string;
 }
 
 const OfflineContentBadge: React.FC<OfflineContentBadgeProps> = ({
-  isDownloaded = false,
-  isDownloading = false,
-  size = 'sm',
+  contentType = 'content',
+  position = 'top-right',
   className = '',
 }) => {
-  if (isDownloading) {
-    return (
-      <Badge variant="secondary" className={`flex items-center gap-1 ${className}`}>
-        <Download className={`animate-pulse ${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'}`} />
-        Downloading...
-      </Badge>
-    );
-  }
-
-  if (isDownloaded) {
-    return (
-      <Badge variant="secondary" className={`flex items-center gap-1 ${className}`}>
-        <CheckCircle className={`text-green-600 ${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'}`} />
-        Available Offline
-      </Badge>
-    );
-  }
+  const positionClasses = {
+    'top-right': 'absolute top-2 right-2',
+    'top-left': 'absolute top-2 left-2',
+    'bottom-right': 'absolute bottom-2 right-2',
+    'bottom-left': 'absolute bottom-2 left-2',
+  };
 
   return (
-    <Badge variant="outline" className={`flex items-center gap-1 ${className}`}>
-      <Download className={`${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'}`} />
-      Download for Offline
+    <Badge 
+      variant="secondary" 
+      className={`${positionClasses[position]} flex items-center gap-1 text-xs ${className}`}
+    >
+      <WifiOff className="h-3 w-3" />
+      Offline {contentType}
     </Badge>
   );
 };
