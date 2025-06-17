@@ -8,20 +8,22 @@
 import { renderHook, act } from '@testing-library/react';
 import { useWebSocket } from '../use-websocket';
 
-// Create a proper WebSocket mock constructor
-const MockWebSocketConstructor = jest.fn().mockImplementation(() => ({
-  close: jest.fn(),
-  send: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  readyState: 1, // WebSocket.OPEN
-}));
+// Create a proper WebSocket mock constructor function
+function MockWebSocketConstructor() {
+  return {
+    close: jest.fn(),
+    send: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    readyState: 1, // WebSocket.OPEN
+  };
+}
 
-// Add the static constants to the constructor function
-MockWebSocketConstructor.CONNECTING = 0;
-MockWebSocketConstructor.OPEN = 1;
-MockWebSocketConstructor.CLOSING = 2;
-MockWebSocketConstructor.CLOSED = 3;
+// Add the static constants directly to the constructor function
+(MockWebSocketConstructor as any).CONNECTING = 0;
+(MockWebSocketConstructor as any).OPEN = 1;
+(MockWebSocketConstructor as any).CLOSING = 2;
+(MockWebSocketConstructor as any).CLOSED = 3;
 
 global.WebSocket = MockWebSocketConstructor as any;
 

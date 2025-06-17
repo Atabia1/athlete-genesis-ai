@@ -23,7 +23,7 @@ interface AppConfig {
 // Declare the global APP_CONFIG property with correct type
 declare global {
   interface Window {
-    APP_CONFIG?: Partial<AppConfig>;
+    APP_CONFIG?: AppConfig;
   }
 }
 
