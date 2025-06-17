@@ -9,12 +9,20 @@
 import { HealthData } from '@/integrations/health-apps/types';
 import { dbService } from './indexeddb-service';
 import { supabaseService } from './supabase';
+import { generateConnectionCode, createHealthAppDeepLink } from '@/integrations/health-apps';
 
 interface SyncStatus {
   lastSync: Date;
   pendingSync: boolean;
   syncInProgress: boolean;
   errors: string[];
+}
+
+interface HealthDataItem {
+  id: string;
+  data: HealthData;
+  timestamp: Date;
+  synced: boolean;
 }
 
 class HealthSyncService {
@@ -40,6 +48,54 @@ class HealthSyncService {
   }
 
   /**
+   * Generate a QR code for connecting health apps
+   * @returns Promise that resolves with the connection URL
+   */
+  async generateConnectionQR(): Promise<string> {
+    try {
+      const connectionCode = generateConnectionCode();
+      const deepLinkUrl = createHealthAppDeepLink(connectionCode);
+      
+      // Store the connection code temporarily (you might want to implement expiration)
+      await dbService.add('connection_codes', {
+        id: connectionCode,
+        code: connectionCode,
+        timestamp: new Date(),
+        expires: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+      });
+
+      return deepLinkUrl;
+    } catch (error) {
+      console.error('Failed to generate connection QR:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get current health data
+   * @returns Promise that resolves with the latest health data
+   */
+  async getHealthData(): Promise<HealthData | null> {
+    try {
+      const healthDataItems = await dbService.getAll<HealthDataItem>('health_data');
+      
+      if (healthDataItems.length === 0) {
+        return null;
+      }
+
+      // Get the most recent health data
+      const latestItem = healthDataItems.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      )[0];
+
+      return latestItem?.data || null;
+    } catch (error) {
+      console.error('Failed to get health data:', error);
+      return null;
+    }
+  }
+
+  /**
    * Sync health data to local storage
    * @param data Health data to sync
    * @returns Promise that resolves when sync is complete
@@ -49,7 +105,8 @@ class HealthSyncService {
       this.syncStatus.syncInProgress = true;
 
       // Validate health data
-      if (!this.validateHealthData(data)) {
+      const isValid = this.validateHealthData(data);
+      if (!isValid) {
         throw new Error('Invalid health data');
       }
 
@@ -116,8 +173,8 @@ class HealthSyncService {
       this.syncStatus.syncInProgress = true;
 
       // Get all unsynced health data
-      const unsyncedData = await dbService.getAll('health_data');
-      const pendingData = unsyncedData.filter((item: any) => !item.synced);
+      const unsyncedData = await dbService.getAll<HealthDataItem>('health_data');
+      const pendingData = unsyncedData.filter((item: HealthDataItem) => !item.synced);
 
       if (pendingData.length === 0) {
         console.log('No pending data to sync');

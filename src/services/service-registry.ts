@@ -47,7 +47,18 @@ class ServiceRegistry implements IServiceRegistry {
 
     try {
       // Initialize core services
-      const dbService = new IndexedDBService('AthleteGenesisDB', []);
+      const dbService = new IndexedDBService('AthleteGenesisDB', [
+        {
+          name: 'health_data',
+          keyPath: 'id',
+          autoIncrement: false,
+        },
+        {
+          name: 'connection_codes',
+          keyPath: 'id',
+          autoIncrement: false,
+        }
+      ]);
       await dbService.initDatabase();
       this.register('indexedDBService', dbService);
 

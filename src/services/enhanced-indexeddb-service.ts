@@ -14,8 +14,7 @@ import {
   IndexedDBService,
   IndexedDBError,
   IndexedDBErrorType,
-  TransactionModes,
-  TransactionOperations
+  TransactionModes
 } from './indexeddb/index';
 import type {
   TransactionMode
@@ -171,7 +170,7 @@ export class EnhancedIndexedDBService extends IndexedDBService {
    * @param mode Transaction mode ('readonly' or 'readwrite')
    * @returns Transaction operations object
    */
-  async startTransaction(storeNames: string[], mode: TransactionMode = TransactionModes.READONLY): Promise<TransactionOperations> {
+  async startTransaction(storeNames: string[], mode: TransactionMode = TransactionModes.READONLY) {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
         return super.startTransaction(storeNames, mode);
@@ -345,7 +344,7 @@ export class EnhancedIndexedDBService extends IndexedDBService {
    * @param storeName The name of the object store
    * @returns Promise that resolves when the store is cleared
    */
-  async clearAll(storeName: string): Promise<void> {
+  async clear(storeName: string): Promise<void> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
         // Use the clear method directly from the parent class
