@@ -15,7 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
+
+interface DashboardLayoutProps {
+  children?: React.ReactNode;
+}
 
 /**
  * Dashboard Layout Component
@@ -23,7 +27,7 @@ import { useToast } from "@/components/ui/use-toast"
  * This component provides the main layout for the dashboard, including
  * the top navigation, main sidebar, and mobile sidebar.
  */
-const DashboardLayout: React.FC = () => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { logout } = useAuth();
   const { toast } = useToast();
@@ -67,7 +71,6 @@ const DashboardLayout: React.FC = () => {
           <a href="/dashboard/training-plans" className="block px-4 py-2 text-sm font-medium hover:bg-gray-100">
             Training Plans
           </a>
-          {/* Add more mobile navigation links here */}
         </nav>
         <Button variant="outline" onClick={handleLogout}>Logout</Button>
       </MobileSidebar>
@@ -98,7 +101,7 @@ const DashboardLayout: React.FC = () => {
 
         {/* Main Content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4">
-          <Outlet />
+          {children || <Outlet />}
         </main>
       </div>
     </div>
