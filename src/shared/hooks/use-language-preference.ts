@@ -33,7 +33,7 @@ export function useLanguagePreference() {
       const profile = await mockUserService.getUserProfile(userId);
 
       // If the user has a preferred language, apply it
-      if (profile.preferred_language) {
+      if (profile && profile.preferred_language) {
         i18n.changeLanguage(profile.preferred_language);
       }
     } catch (error) {
@@ -51,7 +51,7 @@ export function useLanguagePreference() {
         i18n.changeLanguage(language);
 
         // Save the preference to the user's profile using the available method
-        await mockUserService.updateProfile(user.id, { preferred_language: language });
+        await mockUserService.updateUserProfile(user.id, { preferred_language: language });
       } else {
         // If the user is not authenticated, just update the language
         i18n.changeLanguage(language);
