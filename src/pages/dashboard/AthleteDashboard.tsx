@@ -25,8 +25,7 @@ import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import { Link } from "react-router-dom";
-import { useTheme } from "@/context/UserPreferencesContext";
-import { useAccessibilitySettings } from "@/context/UserPreferencesContext";
+import { useTheme, useAccessibilitySettings } from "@/context/UserPreferencesContext";
 import { DashboardCustomizer, DashboardLayout as LayoutType, WidgetVisibility } from "@/components/dashboard/DashboardCustomizer";
 import { useLocalStorageValue, useLocalStorageObject } from "@/hooks/use-local-storage";
 

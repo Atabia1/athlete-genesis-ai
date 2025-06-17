@@ -24,6 +24,10 @@ interface UserPreferencesContextType {
     value: UserPreferences[K]
   ) => void;
   resetPreferences: () => void;
+  // Additional methods for compatibility
+  setHighContrast: (value: boolean) => void;
+  setReducedMotion: (value: boolean) => void;
+  setFontSize: (value: 'small' | 'medium' | 'large') => void;
 }
 
 const defaultPreferences: UserPreferences = {
@@ -73,12 +77,28 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('userPreferences');
   };
 
+  // Additional helper methods
+  const setHighContrast = (value: boolean) => {
+    updatePreference('highContrast', value);
+  };
+
+  const setReducedMotion = (value: boolean) => {
+    updatePreference('reducedMotion', value);
+  };
+
+  const setFontSize = (value: 'small' | 'medium' | 'large') => {
+    updatePreference('fontSize', value);
+  };
+
   return (
     <UserPreferencesContext.Provider
       value={{
         preferences,
         updatePreference,
         resetPreferences,
+        setHighContrast,
+        setReducedMotion,
+        setFontSize,
       }}
     >
       {children}
@@ -92,4 +112,26 @@ export function useUserPreferences() {
     throw new Error('useUserPreferences must be used within a UserPreferencesProvider');
   }
   return context;
+}
+
+// Theme hook for compatibility
+export function useTheme() {
+  const { preferences, updatePreference } = useUserPreferences();
+  return {
+    theme: preferences.theme,
+    resolvedTheme: preferences.theme === 'system' ? 'light' : preferences.theme,
+    setTheme: (theme: 'light' | 'dark' | 'system') => updatePreference('theme', theme),
+  };
+}
+
+// Accessibility settings hook for compatibility
+export function useAccessibilitySettings() {
+  const { preferences } = useUserPreferences();
+  return {
+    accessibilitySettings: {
+      highContrast: preferences.highContrast,
+      largeText: preferences.fontSize === 'large',
+      reduceMotion: preferences.reducedMotion,
+    },
+  };
 }
