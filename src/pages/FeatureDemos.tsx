@@ -11,9 +11,9 @@ import {
   ChevronRight, 
   Play 
 } from 'lucide-react';
-import { FeatureDemo } from '@/components/pricing/FeatureDemo';
-import { InjuryPreventionDemo } from '@/components/pricing/InjuryPreventionDemo';
-import { DynamicPlanDemo } from '@/components/pricing/DynamicPlanDemo';
+import FeatureDemo from '@/components/pricing/FeatureDemo';
+import InjuryPreventionDemo from '@/components/pricing/InjuryPreventionDemo';
+import DynamicPlanDemo from '@/components/pricing/DynamicPlanDemo';
 
 export type SubscriptionTier = 'free' | 'pro' | 'elite';
 

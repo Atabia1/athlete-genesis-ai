@@ -1,3 +1,4 @@
+
 /**
  * Supabase Client
  * 
@@ -5,15 +6,10 @@
  * In a production environment, this would be replaced with a real Supabase client.
  */
 
-import { createClient } from '@supabase/supabase-js';
-
 // Mock Supabase client for development
 // In a real application, you would use your actual Supabase URL and anon key
 const supabaseUrl = 'https://example.supabase.co';
 const supabaseAnonKey = 'your-anon-key';
-
-// Create a mock Supabase client
-export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
 // Mock data for translation contributions
 const mockTranslationContributions = [
@@ -68,119 +64,103 @@ const mockTranslationDialects = [
   },
 ];
 
-// Override Supabase methods with mock implementations
-supabaseClient.from = (table: string) => {
-  return {
-    select: (columns?: string) => {
-      return {
-        eq: (column: string, value: any) => {
-          return {
-            single: () => {
-              if (table === 'translation_contributions') {
-                const contribution = mockTranslationContributions.find(c => c[column as keyof typeof c] === value);
-                return Promise.resolve({ data: contribution, error: null });
-              }
-              return Promise.resolve({ data: null, error: null });
-            },
-            then: (callback: (result: any) => void) => {
-              if (table === 'translation_dialects') {
-                const dialects = mockTranslationDialects.filter(d => d[column as keyof typeof d] === value);
-                callback({ data: dialects, error: null });
-              } else if (table === 'translation_contributions') {
-                const contributions = mockTranslationContributions.filter(c => c[column as keyof typeof c] === value);
-                callback({ data: contributions, error: null });
-              } else {
-                callback({ data: [], error: null });
-              }
-            },
-          };
-        },
-        match: (filters: Record<string, any>) => {
-          return {
-            then: (callback: (result: any) => void) => {
-              if (table === 'translation_contributions') {
-                const contributions = mockTranslationContributions.filter(c => {
-                  return Object.entries(filters).every(([key, value]) => c[key as keyof typeof c] === value);
-                });
-                callback({ data: contributions, error: null });
-              } else {
-                callback({ data: [], error: null });
-              }
-            },
-          };
+// Simple mock client with basic functionality
+export const supabaseClient = {
+  from: (table: string) => ({
+    select: () => ({
+      eq: (column: string, value: any) => ({
+        single: () => {
+          if (table === 'translation_contributions') {
+            const contribution = mockTranslationContributions.find(c => c[column as keyof typeof c] === value);
+            return Promise.resolve({ data: contribution, error: null });
+          }
+          return Promise.resolve({ data: null, error: null });
         },
         then: (callback: (result: any) => void) => {
           if (table === 'translation_dialects') {
-            callback({ data: mockTranslationDialects, error: null });
+            const dialects = mockTranslationDialects.filter(d => d[column as keyof typeof d] === value);
+            callback({ data: dialects, error: null });
           } else if (table === 'translation_contributions') {
-            callback({ data: mockTranslationContributions, error: null });
+            const contributions = mockTranslationContributions.filter(c => c[column as keyof typeof c] === value);
+            callback({ data: contributions, error: null });
           } else {
             callback({ data: [], error: null });
           }
         },
-      };
-    },
-    insert: (data: any) => {
-      return {
-        select: () => {
-          return {
-            single: () => {
-              if (table === 'translation_contributions') {
-                const newContribution = {
-                  id: String(mockTranslationContributions.length + 1),
+      }),
+      match: (filters: Record<string, any>) => ({
+        then: (callback: (result: any) => void) => {
+          if (table === 'translation_contributions') {
+            const contributions = mockTranslationContributions.filter(c => {
+              return Object.entries(filters).every(([key, value]) => c[key as keyof typeof c] === value);
+            });
+            callback({ data: contributions, error: null });
+          } else {
+            callback({ data: [], error: null });
+          }
+        },
+      }),
+      then: (callback: (result: any) => void) => {
+        if (table === 'translation_dialects') {
+          callback({ data: mockTranslationDialects, error: null });
+        } else if (table === 'translation_contributions') {
+          callback({ data: mockTranslationContributions, error: null });
+        } else {
+          callback({ data: [], error: null });
+        }
+      },
+    }),
+    insert: (data: any) => ({
+      select: () => ({
+        single: () => {
+          if (table === 'translation_contributions') {
+            const newContribution = {
+              id: String(mockTranslationContributions.length + 1),
+              ...data,
+            };
+            mockTranslationContributions.push(newContribution);
+            return Promise.resolve({ data: newContribution, error: null });
+          } else if (table === 'translation_dialects') {
+            const newDialect = {
+              id: String(mockTranslationDialects.length + 1),
+              ...data,
+            };
+            mockTranslationDialects.push(newDialect);
+            return Promise.resolve({ data: newDialect, error: null });
+          }
+          return Promise.resolve({ data: null, error: null });
+        },
+      }),
+    }),
+    update: (data: any) => ({
+      eq: (column: string, value: any) => ({
+        select: () => ({
+          single: () => {
+            if (table === 'translation_contributions') {
+              const index = mockTranslationContributions.findIndex(c => c[column as keyof typeof c] === value);
+              if (index !== -1) {
+                mockTranslationContributions[index] = {
+                  ...mockTranslationContributions[index],
                   ...data,
                 };
-                mockTranslationContributions.push(newContribution);
-                return Promise.resolve({ data: newContribution, error: null });
-              } else if (table === 'translation_dialects') {
-                const newDialect = {
-                  id: String(mockTranslationDialects.length + 1),
-                  ...data,
-                };
-                mockTranslationDialects.push(newDialect);
-                return Promise.resolve({ data: newDialect, error: null });
+                return Promise.resolve({ data: mockTranslationContributions[index], error: null });
               }
-              return Promise.resolve({ data: null, error: null });
-            },
-          };
-        },
-      };
-    },
-    update: (data: any) => {
-      return {
-        eq: (column: string, value: any) => {
-          return {
-            select: () => {
-              return {
-                single: () => {
-                  if (table === 'translation_contributions') {
-                    const index = mockTranslationContributions.findIndex(c => c[column as keyof typeof c] === value);
-                    if (index !== -1) {
-                      mockTranslationContributions[index] = {
-                        ...mockTranslationContributions[index],
-                        ...data,
-                      };
-                      return Promise.resolve({ data: mockTranslationContributions[index], error: null });
-                    }
-                  } else if (table === 'translation_dialects') {
-                    const index = mockTranslationDialects.findIndex(d => d[column as keyof typeof d] === value);
-                    if (index !== -1) {
-                      mockTranslationDialects[index] = {
-                        ...mockTranslationDialects[index],
-                        ...data,
-                      };
-                      return Promise.resolve({ data: mockTranslationDialects[index], error: null });
-                    }
-                  }
-                  return Promise.resolve({ data: null, error: null });
-                },
-              };
-            },
-          };
-        },
-      };
-    },
-  };
+            } else if (table === 'translation_dialects') {
+              const index = mockTranslationDialects.findIndex(d => d[column as keyof typeof d] === value);
+              if (index !== -1) {
+                mockTranslationDialects[index] = {
+                  ...mockTranslationDialects[index],
+                  ...data,
+                };
+                return Promise.resolve({ data: mockTranslationDialects[index], error: null });
+              }
+            }
+            return Promise.resolve({ data: null, error: null });
+          },
+        }),
+      }),
+    }),
+  }),
 };
 
 // Mock data access methods

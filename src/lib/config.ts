@@ -1,3 +1,4 @@
+
 /**
  * Runtime Configuration
  * 
@@ -19,10 +20,10 @@ interface AppConfig {
   SUPABASE_ANON_KEY: string;
 }
 
-// Declare the global APP_CONFIG property
+// Declare the global APP_CONFIG property with correct type
 declare global {
   interface Window {
-    APP_CONFIG?: AppConfig;
+    APP_CONFIG?: Partial<AppConfig>;
   }
 }
 

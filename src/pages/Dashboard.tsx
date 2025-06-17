@@ -7,7 +7,6 @@ import {
   Target, 
   TrendingUp, 
   Calendar, 
-  Users,
   Trophy
 } from 'lucide-react';
 
