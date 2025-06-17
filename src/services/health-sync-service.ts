@@ -7,7 +7,7 @@
  */
 
 import { HealthData } from '@/integrations/health-apps/types';
-import { dbService } from './indexeddb-service';
+import { IndexedDBService } from './indexeddb-service';
 import { supabaseService } from './supabase';
 import { generateConnectionCode, createHealthAppDeepLink } from '@/integrations/health-apps';
 
@@ -33,13 +33,16 @@ class HealthSyncService {
     errors: []
   };
 
+  private dbService: IndexedDBService | null = null;
+
   /**
    * Initialize the health sync service
    */
-  async initialize(): Promise<void> {
+  async initialize(dbService?: IndexedDBService): Promise<void> {
     try {
-      // Initialize the database
-      await dbService.initDatabase();
+      if (dbService) {
+        this.dbService = dbService;
+      }
       console.log('Health sync service initialized');
     } catch (error) {
       console.error('Failed to initialize health sync service:', error);
@@ -56,13 +59,15 @@ class HealthSyncService {
       const connectionCode = generateConnectionCode();
       const deepLinkUrl = createHealthAppDeepLink(connectionCode);
       
-      // Store the connection code temporarily (you might want to implement expiration)
-      await dbService.add('connection_codes', {
-        id: connectionCode,
-        code: connectionCode,
-        timestamp: new Date(),
-        expires: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
-      });
+      // Store the connection code temporarily if database is available
+      if (this.dbService) {
+        await this.dbService.add('connection_codes', {
+          id: connectionCode,
+          code: connectionCode,
+          timestamp: new Date(),
+          expires: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+        });
+      }
 
       return deepLinkUrl;
     } catch (error) {
@@ -77,7 +82,11 @@ class HealthSyncService {
    */
   async getHealthData(): Promise<HealthData | null> {
     try {
-      const healthDataItems = await dbService.getAll<HealthDataItem>('health_data');
+      if (!this.dbService) {
+        return null;
+      }
+
+      const healthDataItems = await this.dbService.getAll<HealthDataItem>('health_data');
       
       if (healthDataItems.length === 0) {
         return null;
@@ -110,13 +119,15 @@ class HealthSyncService {
         throw new Error('Invalid health data');
       }
 
-      // Store data locally
-      await dbService.add('health_data', {
-        id: `health_${Date.now()}`,
-        data,
-        timestamp: new Date(),
-        synced: false
-      });
+      // Store data locally if database is available
+      if (this.dbService) {
+        await this.dbService.add('health_data', {
+          id: `health_${Date.now()}`,
+          data,
+          timestamp: new Date(),
+          synced: false
+        });
+      }
 
       // Update sync status
       this.syncStatus.lastSync = new Date();
@@ -172,8 +183,13 @@ class HealthSyncService {
     try {
       this.syncStatus.syncInProgress = true;
 
+      if (!this.dbService) {
+        console.log('No database service available for sync');
+        return;
+      }
+
       // Get all unsynced health data
-      const unsyncedData = await dbService.getAll<HealthDataItem>('health_data');
+      const unsyncedData = await this.dbService.getAll<HealthDataItem>('health_data');
       const pendingData = unsyncedData.filter((item: HealthDataItem) => !item.synced);
 
       if (pendingData.length === 0) {
@@ -193,7 +209,7 @@ class HealthSyncService {
           });
 
           // Mark as synced locally
-          await dbService.update('health_data', {
+          await this.dbService.update('health_data', {
             ...item,
             synced: true
           });
@@ -249,7 +265,9 @@ class HealthSyncService {
    */
   async clearLocalData(): Promise<void> {
     try {
-      await dbService.clear('health_data');
+      if (this.dbService) {
+        await this.dbService.clear('health_data');
+      }
       this.syncStatus = {
         lastSync: new Date(0),
         pendingSync: false,

@@ -1,3 +1,4 @@
+
 /**
  * useLanguagePreference Hook
  *
@@ -8,7 +9,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import i18n from '@/i18n';
-import { userService } from '@/services/api/user-service';
+import { mockUserService } from '@/services/api/user-service';
 
 /**
  * Hook to manage the user's language preference
@@ -29,7 +30,7 @@ export function useLanguagePreference() {
   const loadLanguagePreference = async (userId: string) => {
     try {
       // Get the user's profile
-      const profile = await userService.getProfile(userId);
+      const profile = await mockUserService.getProfile(userId);
 
       // If the user has a preferred language, apply it
       if (profile.preferred_language) {
@@ -50,7 +51,7 @@ export function useLanguagePreference() {
         i18n.changeLanguage(language);
 
         // Save the preference to the user's profile
-        await userService.updatePreferredLanguage(user.id, language);
+        await mockUserService.updatePreferredLanguage(user.id, language);
       } else {
         // If the user is not authenticated, just update the language
         i18n.changeLanguage(language);
