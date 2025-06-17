@@ -66,7 +66,7 @@ class ServiceRegistry implements IServiceRegistry {
       this.register('indexedDBService', dbService);
 
       // Initialize health sync service with database
-      await healthSyncService.initialize();
+      await healthSyncService.initialize(dbService);
       this.register('healthSyncService', healthSyncService);
 
       // Register other services
