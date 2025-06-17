@@ -1,72 +1,95 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-// Keep existing interfaces and context definition
+/**
+ * User Preferences Context
+ *
+ * This context manages user preferences including accessibility settings,
+ * theme preferences, and other user-specific configurations.
+ */
 
-interface AccessibilitySettings {
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+interface UserPreferences {
+  theme: 'light' | 'dark' | 'system';
+  fontSize: 'small' | 'medium' | 'large';
+  reducedMotion: boolean;
   highContrast: boolean;
-  largeText: boolean;
-  reduceMotion: boolean;
+  screenReader: boolean;
+  language: string;
 }
 
 interface UserPreferencesContextType {
-  theme: string;
-  accessibilitySettings: AccessibilitySettings;
-  setTheme: (theme: string) => void;
-  setAccessibilitySettings: (settings: AccessibilitySettings) => void;
+  preferences: UserPreferences;
+  updatePreference: <K extends keyof UserPreferences>(
+    key: K,
+    value: UserPreferences[K]
+  ) => void;
+  resetPreferences: () => void;
 }
+
+const defaultPreferences: UserPreferences = {
+  theme: 'system',
+  fontSize: 'medium',
+  reducedMotion: false,
+  highContrast: false,
+  screenReader: false,
+  language: 'en',
+};
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
 
-// Keep existing hooks
+export function UserPreferencesProvider({ children }: { children: ReactNode }) {
+  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
 
-export const useTheme = () => {
-  const context = useContext(UserPreferencesContext);
-  if (!context) {
-    return { resolvedTheme: 'light' };
-  }
-  return { resolvedTheme: context.theme };
-};
-
-export const useAccessibilitySettings = () => {
-  const context = useContext(UserPreferencesContext);
-  if (!context) {
-    return {
-      accessibilitySettings: {
-        highContrast: false,
-        largeText: false,
-        reduceMotion: false
+  // Load preferences from localStorage on mount
+  useEffect(() => {
+    const savedPreferences = localStorage.getItem('userPreferences');
+    if (savedPreferences) {
+      try {
+        const parsed = JSON.parse(savedPreferences);
+        setPreferences({ ...defaultPreferences, ...parsed });
+      } catch (error) {
+        console.error('Failed to parse saved preferences:', error);
       }
-    };
-  }
-  return { accessibilitySettings: context.accessibilitySettings };
-};
+    }
+  }, []);
 
-// Keep existing ProviderProps
+  // Save preferences to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+  }, [preferences]);
 
-interface UserPreferencesProviderProps {
-  children: ReactNode;
-}
+  const updatePreference = <K extends keyof UserPreferences>(
+    key: K,
+    value: UserPreferences[K]
+  ) => {
+    setPreferences(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
-// Keep existing Provider with hook modifications
-
-export const UserPreferencesProvider: React.FC<UserPreferencesProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState('light');
-  const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>({
-    highContrast: false,
-    largeText: false,
-    reduceMotion: false
-  });
-
-  const value = {
-    theme,
-    accessibilitySettings,
-    setTheme,
-    setAccessibilitySettings
+  const resetPreferences = () => {
+    setPreferences(defaultPreferences);
+    localStorage.removeItem('userPreferences');
   };
 
   return (
-    <UserPreferencesContext.Provider value={value}>
+    <UserPreferencesContext.Provider
+      value={{
+        preferences,
+        updatePreference,
+        resetPreferences,
+      }}
+    >
       {children}
     </UserPreferencesContext.Provider>
   );
-};
+}
+
+export function useUserPreferences() {
+  const context = useContext(UserPreferencesContext);
+  if (context === undefined) {
+    throw new Error('useUserPreferences must be used within a UserPreferencesProvider');
+  }
+  return context;
+}

@@ -1,53 +1,62 @@
+
 /**
  * LiveRegion Component
  * 
- * This component creates an ARIA live region that announces content changes
- * to screen readers. It's useful for dynamic content that updates without
- * a page reload, such as form validation messages, toast notifications,
- * and loading states.
+ * This component creates a live region that announces dynamic content changes
+ * to screen readers. It's useful for providing feedback about user actions,
+ * form validation errors, or other dynamic content updates.
  * 
- * The component supports different politeness levels:
- * - 'polite': Announces changes when the user is idle (default)
- * - 'assertive': Announces changes immediately, interrupting the current speech
+ * The component uses the aria-live attribute to control how and when content
+ * is announced by screen readers.
  */
 
-import React from 'react';
-import { cn } from '@/shared/utils/cn';
-
-export type LiveRegionPoliteness = 'polite' | 'assertive';
+import { useEffect, useRef } from 'react';
 
 export interface LiveRegionProps {
-  /** The content to announce */
-  children?: React.ReactNode;
-  /** How urgently the screen reader should announce the content */
-  politeness?: LiveRegionPoliteness;
-  /** Whether to hide the region visually */
-  visuallyHidden?: boolean;
+  /** The content to announce to screen readers */
+  children: React.ReactNode;
+  /** How assertive the announcement should be */
+  politeness?: 'off' | 'polite' | 'assertive';
+  /** Whether the entire region content should be announced or just changes */
+  atomic?: boolean;
+  /** What types of changes should be announced */
+  relevant?: 'additions' | 'removals' | 'text' | 'all';
   /** Additional CSS classes */
   className?: string;
-  /** Additional ARIA attributes */
-  'aria-atomic'?: boolean;
-  /** Additional ARIA attributes */
-  'aria-relevant'?: 'additions' | 'removals' | 'text' | 'all';
+  /** Whether the region should be visible */
+  visible?: boolean;
 }
 
 export function LiveRegion({
   children,
   politeness = 'polite',
-  visuallyHidden = true,
-  className,
-  'aria-atomic': ariaAtomic = true,
-  'aria-relevant': ariaRelevant = 'additions text',
+  atomic = false,
+  relevant = 'additions',
+  className = '',
+  visible = false,
 }: LiveRegionProps) {
+  const regionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Ensure the region is properly set up for screen readers
+    if (regionRef.current) {
+      regionRef.current.setAttribute('aria-live', politeness);
+      regionRef.current.setAttribute('aria-atomic', atomic.toString());
+      regionRef.current.setAttribute('aria-relevant', relevant);
+    }
+  }, [politeness, atomic, relevant]);
+
+  const regionStyles = visible 
+    ? className 
+    : `${className} sr-only absolute left-[-10000px] width-[1px] height-[1px] overflow-hidden`;
+
   return (
     <div
+      ref={regionRef}
+      className={regionStyles}
       aria-live={politeness}
-      aria-atomic={ariaAtomic}
-      aria-relevant={ariaRelevant}
-      className={cn(
-        visuallyHidden && 'sr-only',
-        className
-      )}
+      aria-atomic={atomic}
+      aria-relevant={relevant}
     >
       {children}
     </div>
@@ -57,28 +66,20 @@ export function LiveRegion({
 /**
  * Example usage:
  * 
- * function FormWithValidation() {
- *   const [error, setError] = useState('');
- *   
+ * function FormWithLiveRegion() {
+ *   const [message, setMessage] = useState('');
+ * 
+ *   const handleSubmit = () => {
+ *     setMessage('Form submitted successfully!');
+ *   };
+ * 
  *   return (
- *     <form>
- *       <input
- *         type="email"
- *         onChange={(e) => {
- *           if (!e.target.value.includes('@')) {
- *             setError('Please enter a valid email address');
- *           } else {
- *             setError('');
- *           }
- *         }}
- *       />
- *       
- *       {error && (
- *         <div className="error">
- *           {error}
- *           <LiveRegion politeness="assertive">{error}</LiveRegion>
- *         </div>
- *       )}
+ *     <form onSubmit={handleSubmit}>
+ *       <input type="text" />
+ *       <button type="submit">Submit</button>
+ *       <LiveRegion politeness="assertive">
+ *         {message}
+ *       </LiveRegion>
  *     </form>
  *   );
  * }
