@@ -1,3 +1,4 @@
+
 /**
  * Health Sync Service
  *
@@ -57,7 +58,7 @@ const validateHealthData = (data: HealthData): HealthDataValidationResult => {
 
   // Validate workouts if present
   if (data.workouts && Array.isArray(data.workouts)) {
-    data.workouts.forEach((workout, index) => {
+    data.workouts.forEach((workout: any, index: number) => {
       if (!workout.type) {
         errors.push(`Workout ${index + 1} must have a type`);
       }

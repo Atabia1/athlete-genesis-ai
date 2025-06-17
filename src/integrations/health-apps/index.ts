@@ -1,3 +1,4 @@
+
 /**
  * Health Apps Integration
  * 
@@ -52,7 +53,7 @@ export const parseHealthData = (data: any): HealthData => {
     
     // Parse workout dates if present
     if (parsedData.workouts && Array.isArray(parsedData.workouts)) {
-      parsedData.workouts = parsedData.workouts.map(workout => ({
+      parsedData.workouts = parsedData.workouts.map((workout: any) => ({
         ...workout,
         startDate: new Date(workout.startDate),
         endDate: new Date(workout.endDate),
