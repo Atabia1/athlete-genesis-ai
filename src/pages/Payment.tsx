@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,6 @@ import { CheckCircle } from 'lucide-react';
 
 export default function Payment() {
   const navigate = useNavigate();
-  const [selectedPlan] = useState('pro');
   
   const paymentOptions = [
     {

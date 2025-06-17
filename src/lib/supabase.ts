@@ -39,26 +39,24 @@ const mockTranslationDialects = [
 
 // Simple mock client with basic functionality
 export const supabaseClient = {
-  from: (table: string) => ({
+  from: (tableName: string) => ({
     select: () => ({
-      eq: (column: string, value: any) => ({
+      eq: (_column: string, _value: any) => ({
         single: () => Promise.resolve({ data: null, error: null }),
         then: (callback: (result: any) => void) => {
-          if (table === 'translation_dialects') {
-            const dialects = mockTranslationDialects.filter(d => d[column as keyof typeof d] === value);
-            callback({ data: dialects, error: null });
-          } else if (table === 'translation_contributions') {
-            const contributions = mockTranslationContributions.filter(c => c[column as keyof typeof c] === value);
-            callback({ data: contributions, error: null });
+          if (tableName === 'translation_dialects') {
+            callback({ data: mockTranslationDialects, error: null });
+          } else if (tableName === 'translation_contributions') {
+            callback({ data: mockTranslationContributions, error: null });
           } else {
             callback({ data: [], error: null });
           }
         },
       }),
       then: (callback: (result: any) => void) => {
-        if (table === 'translation_dialects') {
+        if (tableName === 'translation_dialects') {
           callback({ data: mockTranslationDialects, error: null });
-        } else if (table === 'translation_contributions') {
+        } else if (tableName === 'translation_contributions') {
           callback({ data: mockTranslationContributions, error: null });
         } else {
           callback({ data: [], error: null });
@@ -71,7 +69,7 @@ export const supabaseClient = {
       }),
     }),
     update: (data: any) => ({
-      eq: (column: string, value: any) => ({
+      eq: (_column: string, _value: any) => ({
         select: () => ({
           single: () => Promise.resolve({ data: { ...data }, error: null }),
         }),
@@ -82,15 +80,15 @@ export const supabaseClient = {
 
 // Mock data access methods
 export const mockSupabase = {
-  getData: async (table: string, options?: any) => {
-    if (table === 'translation_dialects') {
+  getData: async (tableName: string, _options?: any) => {
+    if (tableName === 'translation_dialects') {
       return mockTranslationDialects;
-    } else if (table === 'translation_contributions') {
+    } else if (tableName === 'translation_contributions') {
       return mockTranslationContributions;
     }
     return [];
   },
-  updateData: async (table: string, id: string, data: any) => {
+  updateData: async (_tableName: string, id: string, data: any) => {
     return { id, ...data };
   },
 };

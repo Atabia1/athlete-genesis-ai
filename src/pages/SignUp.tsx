@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
@@ -9,8 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
   User, 
-  Users, 
-  Check 
+  Users
 } from 'lucide-react';
 import { useForm } from '@/hooks/use-form';
 
@@ -48,7 +48,7 @@ export default function SignUp() {
         alert("Passwords do not match");
         return;
       }
-      await register(data.email);
+      await register(data.email, data.password);
       navigate('/dashboard');
     } catch (error) {
       console.error('Registration failed:', error);
