@@ -1,197 +1,280 @@
 /**
- * Supabase Client
+ * Supabase Service
  * 
- * This module provides a Supabase client instance configured with
- * environment variables from the env-config utility.
+ * This service provides a unified interface for interacting with Supabase
+ * across the application.
  */
 
-import { createClient } from '@supabase/supabase-js';
-import { getSupabaseConfig } from '@/utils/env-config';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { config } from '@/lib/config';
 
-// Get Supabase configuration from environment
-const { url, anonKey } = getSupabaseConfig();
+interface SupabaseQueryOptions {
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  ascending?: boolean;
+  filters?: Array<{ column: string; operator: string; value: any }>;
+}
 
-// Create Supabase client
-export const supabase = createClient(url, anonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
+export class SupabaseService {
+  private client: SupabaseClient;
 
-/**
- * Authentication service using Supabase
- */
-export const authService = {
-  /**
-   * Sign up with email and password
-   */
-  signUp: async (email: string, password: string, metadata?: Record<string, any>) => {
-    return supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-      },
+  constructor() {
+    this.client = createClient(
+      config.SUPABASE_URL,
+      config.SUPABASE_ANON_KEY
+    );
+  }
+
+  getClient(): SupabaseClient {
+    return this.client;
+  }
+
+  async signUp(email: string, password: string) {
+    const { data, error } = await this.client.auth.signUp({
+      email: email,
+      password: password,
     });
-  },
 
-  /**
-   * Sign in with email and password
-   */
-  signIn: async (email: string, password: string) => {
-    return supabase.auth.signInWithPassword({
-      email,
-      password,
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+
+  async signIn(email: string, password: string) {
+    const { data, error } = await this.client.auth.signInWithPassword({
+      email: email,
+      password: password,
     });
-  },
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+
+  async signOut() {
+    const { error } = await this.client.auth.signOut();
+
+    if (error) {
+      throw error;
+    }
+  }
 
   /**
-   * Sign in with OAuth provider
+   * Get workout plans for a user
    */
-  signInWithOAuth: async (provider: 'google' | 'facebook' | 'twitter' | 'github') => {
-    return supabase.auth.signInWithOAuth({
-      provider,
-    });
-  },
+  async getWorkoutPlans<T = any>(userId: string): Promise<T[]> {
+    const { data, error } = await this.client
+      .from('workout_plans')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return data as T[];
+  }
 
   /**
-   * Sign out
+   * Create a workout plan
    */
-  signOut: async () => {
-    return supabase.auth.signOut();
-  },
+  async createWorkoutPlan<T = any>(workoutPlan: Partial<T>): Promise<T> {
+    const { data, error } = await this.client
+      .from('workout_plans')
+      .insert(workoutPlan)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as T;
+  }
 
   /**
-   * Get current session
+   * Update a workout plan
    */
-  getSession: async () => {
-    return supabase.auth.getSession();
-  },
+  async updateWorkoutPlan<T = any>(id: string, updates: Partial<T>): Promise<T> {
+    const { data, error } = await this.client
+      .from('workout_plans')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as T;
+  }
 
   /**
-   * Get current user
+   * Delete a workout plan
    */
-  getUser: async () => {
-    const { data } = await supabase.auth.getUser();
-    return data.user;
-  },
+  async deleteWorkoutPlan<T = any>(id: string): Promise<void> {
+    const { error } = await this.client
+      .from('workout_plans')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
 
   /**
-   * Reset password
+   * Get nutrition logs for a user
    */
-  resetPassword: async (email: string) => {
-    return supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-  },
+  async getNutritionLogs<T = any>(userId: string): Promise<T[]> {
+    const { data, error } = await this.client
+      .from('nutrition_logs')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return data as T[];
+  }
 
   /**
-   * Update password
+   * Create a nutrition log entry
    */
-  updatePassword: async (password: string) => {
-    return supabase.auth.updateUser({
-      password,
-    });
-  },
+  async createNutritionLog<T = any>(nutritionLog: Partial<T>): Promise<T> {
+    const { data, error } = await this.client
+      .from('nutrition_logs')
+      .insert(nutritionLog)
+      .select()
+      .single();
 
-  /**
-   * Update user metadata
-   */
-  updateUser: async (attributes: { email?: string; password?: string; data?: Record<string, any> }) => {
-    return supabase.auth.updateUser(attributes);
-  },
-};
+    if (error) throw error;
+    return data as T;
+  }
 
-/**
- * Database service using Supabase
- */
-export const dbService = {
-  /**
-   * Get all records from a table
-   */
-  getAll: async <T>(table: string) => {
-    return supabase.from<T>(table).select('*');
-  },
+  async fetchData<T>(table: string, options: SupabaseQueryOptions = {}): Promise<T[]> {
+    try {
+      let query = this.client
+        .from(table)
+        .select('*');
 
-  /**
-   * Get a record by ID
-   */
-  getById: async <T>(table: string, id: string) => {
-    return supabase.from<T>(table).select('*').eq('id', id).single();
-  },
+      // Apply filters
+      if (options.filters) {
+        options.filters.forEach(filter => {
+          query = query.filter(filter.column, filter.operator, filter.value);
+        });
+      }
 
-  /**
-   * Create a record
-   */
-  create: async <T>(table: string, data: Partial<T>) => {
-    return supabase.from<T>(table).insert(data).select().single();
-  },
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
 
-  /**
-   * Update a record
-   */
-  update: async <T>(table: string, id: string, data: Partial<T>) => {
-    return supabase.from<T>(table).update(data).eq('id', id).select().single();
-  },
+      if (options.orderBy) {
+        query = query.order(options.orderBy, { ascending: options.ascending });
+      }
 
-  /**
-   * Delete a record
-   */
-  delete: async <T>(table: string, id: string) => {
-    return supabase.from<T>(table).delete().eq('id', id);
-  },
+      const { data, error } = await query;
 
-  /**
-   * Query records
-   */
-  query: async <T>(table: string) => {
-    return supabase.from<T>(table).select();
-  },
-};
+      if (error) {
+        throw error;
+      }
 
-/**
- * Storage service using Supabase
- */
-export const storageService = {
-  /**
-   * Upload a file
-   */
-  upload: async (bucket: string, path: string, file: File) => {
-    return supabase.storage.from(bucket).upload(path, file, {
-      cacheControl: '3600',
-      upsert: true,
-    });
-  },
+      return (data || []) as T[];
+    } catch (error) {
+      console.error(`Error fetching data from ${table}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
+    }
+  }
 
-  /**
-   * Download a file
-   */
-  download: async (bucket: string, path: string) => {
-    return supabase.storage.from(bucket).download(path);
-  },
+  async insertData<T>(table: string, data: Partial<T>): Promise<T> {
+    try {
+      const { data: insertedData, error } = await this.client
+        .from(table)
+        .insert(data)
+        .select()
+        .single();
 
-  /**
-   * Get a public URL for a file
-   */
-  getPublicUrl: (bucket: string, path: string) => {
-    return supabase.storage.from(bucket).getPublicUrl(path);
-  },
+      if (error) {
+        throw error;
+      }
 
-  /**
-   * Delete a file
-   */
-  delete: async (bucket: string, path: string) => {
-    return supabase.storage.from(bucket).remove([path]);
-  },
+      return insertedData as T;
+    } catch (error) {
+      console.error(`Error inserting data into ${table}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
+    }
+  }
 
-  /**
-   * List files in a bucket
-   */
-  list: async (bucket: string, path?: string) => {
-    return supabase.storage.from(bucket).list(path);
-  },
-};
+  async updateData<T>(table: string, id: string, data: Partial<T>): Promise<T> {
+    try {
+      const { data: updatedData, error } = await this.client
+        .from(table)
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
 
-export default supabase;
+      if (error) {
+        throw error;
+      }
+
+      return updatedData as T;
+    } catch (error) {
+      console.error(`Error updating data in ${table}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
+    }
+  }
+
+  async deleteData(table: string, id: string): Promise<void> {
+    try {
+      const { error } = await this.client
+        .from(table)
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error(`Error deleting data from ${table}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
+    }
+  }
+
+  async query<T>(table: string, query: (queryBuilder: any) => any): Promise<T[]> {
+    try {
+      let queryBuilder = this.client.from(table).select('*');
+      queryBuilder = query(queryBuilder);
+
+      const { data, error } = await queryBuilder;
+
+      if (error) {
+        throw error;
+      }
+
+      return (data || []) as T[];
+    } catch (error) {
+      console.error(`Error executing query on ${table}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
+    }
+  }
+
+  async executeFunction<T>(functionName: string, params: Record<string, any> = {}): Promise<T> {
+    try {
+      const { data, error } = await this.client
+        .rpc(functionName, params);
+
+      if (error) {
+        throw error;
+      }
+
+      return data as T;
+    } catch (error) {
+      console.error(`Error executing function ${functionName}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
+    }
+  }
+}
+
+// Export singleton instance
+export const supabaseService = new SupabaseService();
+export default supabaseService;

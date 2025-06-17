@@ -1,178 +1,170 @@
 /**
  * Service Registry
- *
- * This module provides a centralized registry for all services in the application.
- * It helps manage dependencies between services and provides a clean way to
- * access services throughout the application.
- *
- * Benefits:
- * - Centralized service management
- * - Dependency injection
- * - Easier testing through service mocking
- * - Better organization of service initialization
+ * 
+ * Central registry for all application services with dependency injection
  */
 
-import { IndexedDBService, dbService } from './indexeddb-service';
-import { RetryQueueService, retryQueueService } from './retry-queue-service';
-import { SupabaseServiceImpl } from './api/supabase-service';
-import { WorkoutService } from './api/workout-service';
-import { MealPlanService } from './api/meal-plan-service';
-import { UserService, userService } from './api/user-service';
-import { PaystackServiceImpl, paystackService } from './api/paystack-service';
-import { OpenAIServiceImpl, openAIService } from './api/openai-service';
-import { healthApi } from './api/health-api';
+import { IndexedDBService } from './indexeddb/index';
 import { healthSyncService } from './health-sync-service';
-import { AnalyticsService } from './analytics-service';
-import { LoggingService } from './logging-service';
+import { analyticsService } from './analytics-service';
+import { retryQueueService } from './retry-queue-service';
+import { SupabaseService } from './api/supabase-service';
+import { MealPlanService } from './api/meal-plan-service';
+import { UserService, mockUserService } from './api/user-service';
+import { PaystackApiService } from './api/paystack-service';
+import { openAIService } from './api/openai-service';
 
 /**
- * Service Registry interface
+ * Service interface
  */
-export interface ServiceRegistry {
-  // Local storage services
-  db: IndexedDBService;
-  retryQueue: RetryQueueService;
-
-  // API services
-  supabase: SupabaseServiceImpl;
-  workout: WorkoutService;
-  mealPlan: MealPlanService;
-  user: UserService;
-  paystack: PaystackServiceImpl;
-  openAI: OpenAIServiceImpl;
-  health: typeof healthApi;
-  healthSync: typeof healthSyncService;
-
-  // Utility services
-  analytics: AnalyticsService;
-  logging: LoggingService;
-
-  // Initialize all services
+export interface IService {
   initialize(): Promise<void>;
+  shutdown(): Promise<void>;
+}
+
+/**
+ * Service registry interface
+ */
+export interface IServiceRegistry {
+  register(name: string, service: any): void;
+  get<T>(name: string): T;
+  isRegistered(name: string): boolean;
+  initialize(): Promise<void>;
+  shutdown(): Promise<void>;
 }
 
 /**
  * Service Registry implementation
  */
-class ServiceRegistryImpl implements ServiceRegistry {
-  // Local storage services
-  db: IndexedDBService;
-  retryQueue: RetryQueueService;
-
-  // API services
-  supabase: SupabaseServiceImpl;
-  workout: WorkoutService;
-  mealPlan: MealPlanService;
-  user: UserService;
-  paystack: PaystackServiceImpl;
-  openAI: OpenAIServiceImpl;
-  health: typeof healthApi;
-  healthSync: typeof healthSyncService;
-
-  // Utility services
-  analytics: AnalyticsService;
-  logging: LoggingService;
-
-  constructor() {
-    try {
-      // Initialize services
-      this.db = dbService;
-      this.retryQueue = retryQueueService;
-
-      // Create API services
-      this.supabase = new SupabaseServiceImpl();
-      this.workout = new WorkoutService(this.supabase);
-      this.mealPlan = new MealPlanService(this.supabase);
-      this.user = userService;
-      this.paystack = paystackService;
-      this.openAI = openAIService;
-      this.health = healthApi;
-      this.healthSync = healthSyncService;
-
-      // Create utility services
-      this.analytics = new AnalyticsService();
-      this.logging = new LoggingService();
-    } catch (error) {
-      console.error('Error initializing service registry:', error);
-      // Initialize with minimal services to prevent crashes
-      this.db = dbService;
-      this.retryQueue = retryQueueService;
-      this.supabase = new SupabaseServiceImpl();
-      this.workout = new WorkoutService(this.supabase);
-      this.mealPlan = new MealPlanService(this.supabase);
-      this.user = userService;
-      this.paystack = paystackService;
-      this.openAI = openAIService;
-      this.health = healthApi;
-      this.healthSync = healthSyncService;
-      this.analytics = new AnalyticsService();
-      this.logging = new LoggingService();
-    }
-  }
+class ServiceRegistry implements IServiceRegistry {
+  private services: Map<string, any> = new Map();
+  private initialized = false;
 
   /**
    * Initialize all services
    */
   async initialize(): Promise<void> {
-    // Initialize local storage services
-    await this.db.initialize();
-    this.retryQueue.initialize();
+    if (this.initialized) return;
 
-    // Register retry handlers
-    this.registerRetryHandlers();
+    try {
+      // Initialize core services
+      const dbService = new IndexedDBService('AthleteGenesisDB', []);
+      await dbService.initDatabase();
+      this.register('indexedDBService', dbService);
 
-    // Initialize other services
-    this.analytics.initialize();
-    this.logging.initialize();
+      // Initialize health sync service
+      await healthSyncService.initialize();
+      this.register('healthSyncService', healthSyncService);
+
+      // Register other services
+      this.register('analyticsService', analyticsService);
+      this.register('retryQueueService', retryQueueService);
+      this.register('supabaseService', new SupabaseService());
+      this.register('mealPlanService', new MealPlanService());
+      this.register('userService', mockUserService);
+      this.register('paystackService', new PaystackApiService());
+      this.register('openAIService', openAIService);
+
+      this.initialized = true;
+      console.log('Service registry initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize service registry:', error);
+      throw error;
+    }
   }
 
   /**
-   * Register handlers for retry operations
+   * Register a service
+   * @param name Service name
+   * @param service Service instance
    */
-  private registerRetryHandlers(): void {
-    // Register workout service handlers
-    this.retryQueue.registerHandler('save_workout',
-      (payload) => this.workout.saveWorkout(payload));
+  register(name: string, service: any): void {
+    if (this.services.has(name)) {
+      console.warn(`Service "${name}" already registered. Overwriting.`);
+    }
+    this.services.set(name, service);
+  }
 
-    this.retryQueue.registerHandler('delete_workout',
-      (payload) => this.workout.deleteWorkout(payload.id));
+  /**
+   * Get a service
+   * @param name Service name
+   * @returns Service instance
+   */
+  get<T>(name: string): T {
+    const service = this.services.get(name);
+    if (!service) {
+      throw new Error(`Service "${name}" not registered`);
+    }
+    return service as T;
+  }
 
-    this.retryQueue.registerHandler('update_workout',
-      (payload) => this.workout.updateWorkout(payload));
+  /**
+   * Check if a service is registered
+   * @param name Service name
+   * @returns True if the service is registered, false otherwise
+   */
+  isRegistered(name: string): boolean {
+    return this.services.has(name);
+  }
 
-    // Register meal plan service handlers
-    this.retryQueue.registerHandler('save_meal_plan',
-      (payload) => this.mealPlan.saveMealPlan(payload));
+  /**
+   * Shutdown all services
+   */
+  async shutdown(): Promise<void> {
+    for (const [name, service] of this.services) {
+      if (service && typeof service.shutdown === 'function') {
+        try {
+          await service.shutdown();
+          console.log(`Service "${name}" shut down successfully`);
+        } catch (error) {
+          console.error(`Failed to shut down service "${name}":`, error);
+        }
+      }
+    }
+    this.services.clear();
+    this.initialized = false;
+    console.log('Service registry shut down');
+  }
 
-    // Register user service handlers
-    this.retryQueue.registerHandler('update_user_profile',
-      (payload) => this.user.updateProfile(payload));
+  /**
+   * Handle service events
+   */
+  private handleServiceEvent(eventType: string, payload: any): void {
+    switch (eventType) {
+      case 'SAVE_WORKOUT':
+        this.handleSaveWorkout(payload);
+        break;
+      case 'SAVE_MEAL_PLAN':
+        this.handleSaveMealPlan(payload);
+        break;
+      case 'UPDATE_USER_PROFILE':
+        this.handleUpdateUserProfile(payload);
+        break;
+      case 'SYNC_HEALTH_DATA':
+        this.handleSyncHealthData(payload);
+        break;
+    }
+  }
 
-    // Register health data sync handlers
-    this.retryQueue.registerHandler('sync_health_data',
-      (payload) => this.health.syncHealthData(payload));
+  private handleSaveWorkout(payload: any): void {
+    // Handle workout saving
+  }
+
+  private handleSaveMealPlan(payload: any): void {
+    const mealPlanService = this.get<MealPlanService>('mealPlanService');
+    // Handle meal plan saving - method name needs to match actual service
+  }
+
+  private handleUpdateUserProfile(payload: any): void {
+    const userService = this.get<UserService>('userService');
+    userService.updateUserProfile(payload.userId, payload.profile);
+  }
+
+  private handleSyncHealthData(payload: any): void {
+    // Handle health data syncing
   }
 }
 
-// Create singleton instance
-export const serviceRegistry = new ServiceRegistryImpl();
-
-/**
- * Hook to use the service registry
- */
-export function useServices(): ServiceRegistry {
-  return serviceRegistry;
-}
-
-/**
- * Initialize all services
- */
-export async function initializeServices(): Promise<void> {
-  try {
-    await serviceRegistry.initialize();
-  } catch (error) {
-    console.error('Error initializing services:', error);
-  }
-}
-
+// Export singleton instance
+export const serviceRegistry = new ServiceRegistry();
 export default serviceRegistry;

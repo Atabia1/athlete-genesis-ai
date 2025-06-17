@@ -1,4 +1,3 @@
-
 /**
  * Enhanced IndexedDB service with transaction queue and improved error handling
  *
@@ -348,7 +347,21 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   async clearAll(storeName: string): Promise<void> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
-        return super.clear(storeName);
+        // Use the startTransaction method to clear the store
+        const transaction = await super.startTransaction([storeName], TransactionModes.READWRITE);
+        const store = transaction.getStore(storeName);
+        
+        return new Promise<void>((resolve, reject) => {
+          const request = store.clear();
+          
+          request.onsuccess = () => {
+            resolve();
+          };
+          
+          request.onerror = () => {
+            reject(new Error(`Failed to clear store ${storeName}`));
+          };
+        });
       });
     });
   }

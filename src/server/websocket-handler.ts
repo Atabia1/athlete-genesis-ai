@@ -235,7 +235,6 @@ export class WebSocketHandler {
         quality: 'good'
       },
       weight: 75.5,
-      bodyFat: 18.2,
       hydration: 65
     };
     

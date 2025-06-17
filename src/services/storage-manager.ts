@@ -1,7 +1,8 @@
 /**
- * Storage Manager
- * 
- * Manages storage quota and cleanup operations for IndexedDB
+ * Storage Manager Service
+ *
+ * This service manages browser storage quotas and provides utilities for
+ * checking storage usage, cleaning up old data, and handling storage-related errors.
  */
 
 /**
@@ -31,46 +32,60 @@ interface StorageInfo {
   /**
    * Percentage of storage used
    */
-  percentUsed: number;
+  usagePercentage: number;
+  
+  /**
+   * Available storage in bytes
+   */
+  available: number;
 }
 
 /**
  * Storage Manager Class
  */
 class StorageManager {
+  private readonly STORAGE_QUOTA_THRESHOLD = 0.8; // 80% usage threshold
+  private readonly CRITICAL_STORAGE_THRESHOLD = 0.95; // 95% usage threshold
+  private readonly OLD_DATA_THRESHOLD_DAYS = 30; // Clean data older than 30 days
+
   /**
    * Check storage status
-   * @param detailed Whether to return detailed storage information
+   * @param showDetails Whether to include detailed information (optional parameter)
    * @returns Storage information or null if not available
    */
-  async checkStorage(detailed = false): Promise<StorageInfo | null> {
+  async checkStorage(showDetails?: boolean): Promise<StorageInfo | null> {
     try {
-      // Check if the Storage API is available
-      if (!navigator.storage || !navigator.storage.estimate) {
-        console.warn('Storage API not available');
+      if (!('storage' in navigator) || !('estimate' in navigator.storage)) {
         return null;
       }
-      
+
       const estimate = await navigator.storage.estimate();
       const usage = estimate.usage || 0;
       const quota = estimate.quota || 0;
-      const percentUsed = quota > 0 ? (usage / quota) * 100 : 0;
-      
-      // Consider storage low if over 80% full
-      const isLow = percentUsed > 80;
-      
-      // Consider storage critical if over 90% full
-      const isCritical = percentUsed > 90;
-      
-      console.log(`Storage: ${Math.round(percentUsed)}% used (${this.formatBytes(usage)} / ${this.formatBytes(quota)})`);
-      
-      return {
-        isLow,
-        isCritical,
+
+      if (quota === 0) {
+        return null;
+      }
+
+      const usagePercentage = usage / quota;
+      const isLow = usagePercentage > this.STORAGE_QUOTA_THRESHOLD;
+      const isCritical = usagePercentage > this.CRITICAL_STORAGE_THRESHOLD;
+
+      const storageInfo: StorageInfo = {
         usage,
         quota,
-        percentUsed
+        usagePercentage,
+        isLow,
+        isCritical,
+        available: quota - usage,
       };
+
+      // Log details if requested
+      if (showDetails) {
+        console.log('Storage info:', storageInfo);
+      }
+
+      return storageInfo;
     } catch (error) {
       console.error('Error checking storage:', error);
       return null;
@@ -144,4 +159,5 @@ class StorageManager {
   }
 }
 
+// Export singleton instance
 export const storageManager = new StorageManager();
