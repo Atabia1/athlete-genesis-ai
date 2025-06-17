@@ -1,21 +1,9 @@
 
-/**
- * OfflineWorkouts: Page for managing and accessing offline workouts
- *
- * This page provides a dedicated interface for:
- * 1. Viewing and selecting pre-defined workout templates
- * 2. Managing saved workout plans for offline use
- * 3. Viewing the currently selected offline workout
- *
- * It's designed to ensure users always have access to workout content,
- * even when they have no internet connection.
- */
-
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import OfflineWorkoutsDisplay from "@/components/dashboard/OfflineWorkoutsDisplay";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { WifiOff, Info, Wifi, WifiLow, Zap, AlertTriangle, RefreshCw, Lock, ExternalLink } from "lucide-react";
+import { WifiOff, Info, WifiLow, AlertTriangle, RefreshCw, Lock, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +11,7 @@ import { Button } from "@/components/ui/button";
 type ConnectionQuality = 'offline' | 'poor' | 'good' | 'excellent' | 'captive-portal' | 'unknown';
 
 const OfflineWorkouts = () => {
-  const { isOnline, checkNetworkReachability } = useNetworkStatus();
+  const { isOnline } = useNetworkStatus();
   const [connectionQuality, setConnectionQuality] = useState<ConnectionQuality>(
     isOnline ? 'good' : 'offline'
   );
@@ -35,7 +23,7 @@ const OfflineWorkouts = () => {
     switch (connectionQuality) {
       case 'captive-portal':
         return (
-          <Alert variant="warning" className="bg-purple-50 border-purple-200">
+          <Alert className="bg-purple-50 border-purple-200">
             <Lock className="h-4 w-4 text-purple-600" />
             <AlertTitle className="text-purple-800">WiFi Login Required</AlertTitle>
             <AlertDescription className="text-purple-700">
@@ -56,7 +44,7 @@ const OfflineWorkouts = () => {
         );
       case 'offline':
         return (
-          <Alert variant="warning" className="bg-orange-50 border-orange-200">
+          <Alert className="bg-orange-50 border-orange-200">
             <WifiOff className="h-4 w-4 text-orange-600" />
             <AlertTitle className="text-orange-800">You're currently offline</AlertTitle>
             <AlertDescription className="text-orange-700">
@@ -66,7 +54,7 @@ const OfflineWorkouts = () => {
         );
       case 'poor':
         return (
-          <Alert variant="warning" className="bg-yellow-50 border-yellow-200">
+          <Alert className="bg-yellow-50 border-yellow-200">
             <WifiLow className="h-4 w-4 text-yellow-600" />
             <AlertTitle className="text-yellow-800">Poor connection detected</AlertTitle>
             <AlertDescription className="text-yellow-700">
@@ -77,7 +65,7 @@ const OfflineWorkouts = () => {
       case 'good':
       case 'excellent':
         return (
-          <Alert variant="default" className="bg-blue-50 border-blue-200">
+          <Alert className="bg-blue-50 border-blue-200">
             <Info className="h-4 w-4 text-blue-600" />
             <AlertTitle className="text-blue-800">Offline Workouts</AlertTitle>
             <AlertDescription className="text-blue-700">
@@ -87,7 +75,7 @@ const OfflineWorkouts = () => {
         );
       default:
         return (
-          <Alert variant="default" className="bg-gray-50 border-gray-200">
+          <Alert className="bg-gray-50 border-gray-200">
             <AlertTriangle className="h-4 w-4 text-gray-600" />
             <AlertTitle className="text-gray-800">Checking connection status</AlertTitle>
             <AlertDescription className="text-gray-700">
@@ -107,25 +95,9 @@ const OfflineWorkouts = () => {
   const handleCheckConnection = async () => {
     setIsChecking(true);
     try {
-      const result = await checkNetworkReachability();
-      // Update connection quality based on reachability result
-      if (result) {
-        // Simple quality determination based on navigator.connection if available
-        if (navigator.connection) {
-          const conn = navigator.connection as any;
-          if (conn.effectiveType === '4g') {
-            setConnectionQuality('excellent');
-          } else if (conn.effectiveType === '3g') {
-            setConnectionQuality('good');
-          } else {
-            setConnectionQuality('poor');
-          }
-        } else {
-          setConnectionQuality('good');
-        }
-      } else {
-        setConnectionQuality('offline');
-      }
+      // Simple connection check
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setConnectionQuality(isOnline ? 'good' : 'offline');
     } catch (error) {
       console.error("Error checking connection:", error);
       setConnectionQuality('unknown');

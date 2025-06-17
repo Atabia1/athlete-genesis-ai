@@ -1,36 +1,44 @@
 
-/**
- * Hook for tracking network status
- */
 import { useState, useEffect } from 'react';
 
 interface NetworkStatus {
   isOnline: boolean;
-  wasOffline: boolean;
+  isSlowConnection: boolean;
 }
 
-export function useNetworkStatus(): NetworkStatus {
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const [wasOffline, setWasOffline] = useState<boolean>(!navigator.onLine);
-  
+export const useNetworkStatus = (): NetworkStatus => {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSlowConnection, setIsSlowConnection] = useState(false);
+
   useEffect(() => {
-    function handleOnline() {
-      setWasOffline(!isOnline);
-      setIsOnline(true);
-    }
-    
-    function handleOffline() {
-      setIsOnline(false);
-    }
-    
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
+    // Check connection speed if available
+    if ('connection' in navigator) {
+      const connection = (navigator as any).connection;
+      const updateConnectionSpeed = () => {
+        setIsSlowConnection(connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g');
+      };
+      
+      updateConnectionSpeed();
+      connection.addEventListener('change', updateConnectionSpeed);
+      
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+        connection.removeEventListener('change', updateConnectionSpeed);
+      };
+    }
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [isOnline]);
-  
-  return { isOnline, wasOffline };
-}
+  }, []);
+
+  return { isOnline, isSlowConnection };
+};

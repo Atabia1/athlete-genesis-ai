@@ -1,31 +1,25 @@
 import React, { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import {
   Apple,
-  Beef,
-  Calendar,
   ChevronRight,
-  Clock,
   Coffee,
-  Droplet,
   Egg,
   Fish,
   Flame,
-  Leaf,
   Plus,
   Search,
   Utensils,
   Wheat
 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import OfflineIndicator from "@/components/ui/offline-indicator";
 import { Input } from "@/components/ui/input";
 
 // Mock data for charts and metrics
@@ -105,9 +99,6 @@ const mealPlan = [
 
 /**
  * NutritionDashboard: Dashboard for tracking nutrition and meal planning
- *
- * This dashboard provides comprehensive nutrition tracking, macronutrient analysis,
- * hydration monitoring, and meal planning features.
  */
 const NutritionDashboard = () => {
   const { isOnline } = useNetworkStatus();
@@ -150,11 +141,7 @@ const NutritionDashboard = () => {
               />
             </div>
             {!isOnline && (
-              <OfflineIndicator
-                variant="badge"
-                featureSpecific={true}
-                featureName="Nutrition data"
-              />
+              <OfflineIndicator />
             )}
           </div>
         </div>
