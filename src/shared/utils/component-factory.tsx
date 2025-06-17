@@ -1,291 +1,206 @@
+
 /**
- * Component Factory
+ * Component Factory Utilities
  *
- * This utility provides a standardized way to create React components with:
- * - Built-in error handling
- * - Performance optimizations
- * - Consistent API
- * - TypeScript type safety
- *
- * Use this factory to create components that need error handling or performance optimizations.
+ * This module provides utilities for creating reusable components with
+ * consistent patterns for error boundaries, memoization, and composition.
  */
 
 import * as React from 'react';
-import {
-  ComponentType,
-  memo,
-  useCallback,
-  useState,
-  forwardRef,
-  safeForwardRef
-} from '../utils/react-utils';
-import { logError, showErrorToast } from './error-handling';
+import { safeForwardRef } from './react-utils';
 
 /**
- * Options for creating a component
+ * Generic component props type
  */
-interface CreateComponentOptions {
-  /**
-   * Name of the component for debugging
-   */
-  displayName: string;
-
-  /**
-   * Whether to wrap the component in React.memo
-   * @default true
-   */
-  memo?: boolean;
-
-  /**
-   * Whether to add error handling to the component
-   * @default true
-   */
-  withErrorHandling?: boolean;
-
-  /**
-   * Whether to forward refs to the component
-   * @default false
-   */
-  forwardRef?: boolean;
-}
+export type ComponentProps<T = Record<string, any>> = T & {
+  children?: React.ReactNode;
+  className?: string;
+};
 
 /**
  * Error boundary props
  */
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
+export interface ErrorBoundaryProps {
   fallback?: React.ReactNode;
   onError?: (error: Error) => void;
 }
 
 /**
- * Error boundary state
+ * Component factory options
  */
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
+export interface ComponentFactoryOptions<P = Record<string, any>> {
+  displayName?: string;
+  memo?: boolean;
+  errorBoundary?: boolean;
+  defaultProps?: Partial<P>;
 }
 
 /**
- * Error boundary component
+ * Create a component with error boundary support
  */
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, _info: React.ErrorInfo): void {
-    logError(error, 'ErrorBoundary');
-
-    if (this.props.onError) {
-      this.props.onError(error);
-    }
-  }
-
-  render(): React.ReactNode {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
-      return (
-        <div className="p-4 border border-red-300 bg-red-50 rounded">
-          <h3 className="text-red-800 font-medium">Something went wrong</h3>
-          <p className="text-red-600">
-            {this.state.error?.message || 'An unknown error occurred'}
-          </p>
-          <button
-            className="mt-2 px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
-            onClick={() => this.setState({ hasError: false, error: null })}
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-/**
- * Create a component with error handling
- */
-function withErrorHandling<P extends object>(
-  Component: ComponentType<P>,
-  displayName: string
-): ComponentType<P & { fallback?: React.ReactNode; onError?: (error: Error) => void }> {
-  function WithErrorHandling(
-    props: P & { fallback?: React.ReactNode; onError?: (error: Error) => void }
-  ): JSX.Element {
+function withErrorBoundary<P extends Record<string, any>>(
+  Component: React.ComponentType<P>
+): React.ComponentType<P & ErrorBoundaryProps> {
+  return function ErrorBoundaryWrapper(props: P & ErrorBoundaryProps) {
     const { fallback, onError, ...componentProps } = props;
-
+    
     return (
-      <ErrorBoundary fallback={fallback} onError={onError}>
-        <Component {...componentProps as P} />
-      </ErrorBoundary>
+      <React.Suspense fallback={fallback || <div>Loading...</div>}>
+        <Component {...(componentProps as P)} />
+      </React.Suspense>
     );
-  }
-
-  WithErrorHandling.displayName = `WithErrorHandling(${displayName})`;
-
-  return WithErrorHandling;
+  };
 }
 
 /**
- * Create a component with try-catch error handling
+ * Create a memoized component
  */
-function withTryCatch<P extends object>(
-  Component: ComponentType<P>,
-  displayName: string
-): ComponentType<P> {
-  function WithTryCatch(props: P): JSX.Element {
-    const [hasError, setHasError] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
-
-    const resetError = useCallback(() => {
-      setHasError(false);
-      setError(null);
-    }, []);
-
-    if (hasError) {
-      return (
-        <div className="p-4 border border-red-300 bg-red-50 rounded">
-          <h3 className="text-red-800 font-medium">Something went wrong</h3>
-          <p className="text-red-600">
-            {error?.message || 'An unknown error occurred'}
-          </p>
-          <button
-            className="mt-2 px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
-            onClick={resetError}
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
-
-    try {
-      return <Component {...props} />;
-    } catch (caughtError) {
-      const error = caughtError instanceof Error ? caughtError : new Error(String(caughtError));
-      logError(error, displayName);
-      showErrorToast(error);
-      setError(error);
-      setHasError(true);
-      return (
-        <div className="p-4 border border-red-300 bg-red-50 rounded">
-          <h3 className="text-red-800 font-medium">Something went wrong</h3>
-          <p className="text-red-600">
-            {error.message || 'An unknown error occurred'}
-          </p>
-          <button
-            className="mt-2 px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
-            onClick={resetError}
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
-  }
-
-  WithTryCatch.displayName = `WithTryCatch(${displayName})`;
-
-  return WithTryCatch;
+function withMemo<P extends Record<string, any>>(
+  Component: React.ComponentType<P>
+): React.ComponentType<P> {
+  return React.memo(Component) as React.ComponentType<P>;
 }
 
 /**
- * Create a component with standardized behavior
+ * Create a component with ref forwarding
  */
-export function createComponent<P extends object>(
-  Component: ComponentType<P>,
-  options: CreateComponentOptions
-): ComponentType<P> {
-  const {
-    displayName,
-    memo: shouldMemo = true,
-    withErrorHandling: shouldAddErrorHandling = true,
-    forwardRef: shouldForwardRef = false,
-  } = options;
+function withRef<T, P extends Record<string, any>>(
+  Component: React.ComponentType<P>
+) {
+  return safeForwardRef<T, P>((props, ref) => (
+    <Component {...props} ref={ref} />
+  ));
+}
 
+/**
+ * Factory function to create components with various enhancements
+ */
+export function createComponent<P extends Record<string, any>>(
+  component: React.ComponentType<P>,
+  options: ComponentFactoryOptions<P> = {}
+): React.ComponentType<P> {
+  let Component = component;
+  
   // Set display name
-  Component.displayName = displayName;
-
-  // Add error handling if requested
-  let EnhancedComponent = shouldAddErrorHandling
-    ? withErrorHandling(Component, displayName)
-    : Component;
-
-  // Add memo if requested
-  if (shouldMemo) {
-    EnhancedComponent = memo(EnhancedComponent);
+  if (options.displayName) {
+    Component.displayName = options.displayName;
   }
-
-  // Add forward ref if requested
-  if (shouldForwardRef) {
-    EnhancedComponent = safeForwardRef<any, P>((props: P, ref) => (
-      <EnhancedComponent {...props} ref={ref} />
-    )) as unknown as ComponentType<P>;
-
-    // Set display name for the forwarded ref component
-    EnhancedComponent.displayName = `ForwardRef(${displayName})`;
+  
+  // Add default props
+  if (options.defaultProps) {
+    Component.defaultProps = options.defaultProps;
   }
-
-  return EnhancedComponent;
+  
+  // Add memoization
+  if (options.memo) {
+    Component = withMemo(Component);
+  }
+  
+  // Add error boundary
+  if (options.errorBoundary) {
+    Component = withErrorBoundary(Component) as React.ComponentType<P>;
+  }
+  
+  return Component;
 }
 
 /**
- * Create a component with try-catch error handling
+ * Create a simple functional component
  */
-export function createTryCatchComponent<P extends object>(
-  Component: ComponentType<P>,
-  options: CreateComponentOptions
-): ComponentType<P> {
-  const {
-    displayName,
-    memo: shouldMemo = true,
-    forwardRef: shouldForwardRef = false,
-  } = options;
-
-  // Set display name
-  Component.displayName = displayName;
-
-  // Add try-catch error handling
-  let EnhancedComponent = withTryCatch(Component, displayName);
-
-  // Add memo if requested
-  if (shouldMemo) {
-    EnhancedComponent = memo(EnhancedComponent);
-  }
-
-  // Add forward ref if requested
-  if (shouldForwardRef) {
-    EnhancedComponent = safeForwardRef<any, P>((props: P, ref) => (
-      <EnhancedComponent {...props} ref={ref} />
-    )) as unknown as ComponentType<P>;
-
-    // Set display name for the forwarded ref component
-    EnhancedComponent.displayName = `ForwardRef(${displayName})`;
-  }
-
-  return EnhancedComponent;
+export function createFunctionalComponent<P extends Record<string, any>>(
+  render: (props: P) => React.ReactElement | null,
+  options: ComponentFactoryOptions<P> = {}
+): React.ComponentType<P> {
+  const Component: React.FunctionComponent<P> = (props) => {
+    return render(props);
+  };
+  
+  return createComponent(Component, options);
 }
 
 /**
- * Create a safe component that catches errors
+ * Create a compound component (component with sub-components)
  */
-export function createSafeComponent<P extends object>(
-  Component: ComponentType<P>,
-  options: Omit<CreateComponentOptions, 'withErrorHandling'>
-): ComponentType<P> {
-  return createComponent(Component, {
+export function createCompoundComponent<
+  P extends Record<string, any>,
+  SubComponents extends Record<string, React.ComponentType<any>>
+>(
+  MainComponent: React.ComponentType<P>,
+  subComponents: SubComponents,
+  options: ComponentFactoryOptions<P> = {}
+): React.ComponentType<P> & SubComponents {
+  const Component = createComponent(MainComponent, options) as React.ComponentType<P> & SubComponents;
+  
+  // Attach sub-components
+  Object.keys(subComponents).forEach((key) => {
+    (Component as any)[key] = subComponents[key];
+  });
+  
+  return Component;
+}
+
+/**
+ * Create a provider component
+ */
+export function createProvider<T, P extends Record<string, any>>(
+  context: React.Context<T>,
+  useValue: (props: P) => T,
+  options: ComponentFactoryOptions<P> = {}
+): React.ComponentType<P & { children: React.ReactNode }> {
+  const Provider: React.FunctionComponent<P & { children: React.ReactNode }> = (props) => {
+    const { children, ...providerProps } = props;
+    const value = useValue(providerProps as P);
+    
+    return React.createElement(context.Provider, { value }, children);
+  };
+  
+  return createComponent(Provider, {
+    displayName: `${context.displayName || 'Unknown'}Provider`,
     ...options,
-    withErrorHandling: true,
   });
 }
+
+/**
+ * Create a consumer component
+ */
+export function createConsumer<T>(
+  context: React.Context<T>,
+  render: (value: T) => React.ReactElement | null,
+  options: ComponentFactoryOptions = {}
+): React.ComponentType {
+  const Consumer: React.FunctionComponent = () => {
+    const value = React.useContext(context);
+    return render(value);
+  };
+  
+  return createComponent(Consumer, {
+    displayName: `${context.displayName || 'Unknown'}Consumer`,
+    ...options,
+  });
+}
+
+/**
+ * Create a layout component with slots
+ */
+export function createLayout<P extends Record<string, any>>(
+  Layout: React.ComponentType<P & { children: React.ReactNode }>,
+  slots: Record<string, React.ComponentType<any>>,
+  options: ComponentFactoryOptions<P> = {}
+): React.ComponentType<P> & { Slots: typeof slots } {
+  const LayoutComponent = createComponent(Layout, options) as React.ComponentType<P> & { Slots: typeof slots };
+  LayoutComponent.Slots = slots;
+  
+  return LayoutComponent;
+}
+
+export default {
+  createComponent,
+  createFunctionalComponent,
+  createCompoundComponent,
+  createProvider,
+  createConsumer,
+  createLayout,
+  withErrorBoundary,
+  withMemo,
+  withRef,
+};

@@ -1,6 +1,6 @@
 
 import { Component, ComponentType, ErrorInfo } from 'react';
-import ErrorFallback from './ErrorFallback';
+import { ErrorFallback } from './ErrorFallback';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -49,6 +49,8 @@ function withErrorBoundary<P extends object>(
       return <WrappedComponent {...this.props} />;
     }
   }
+
+  ComponentErrorBoundary.displayName = `withErrorBoundary(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
 
   return ComponentErrorBoundary;
 }

@@ -1,121 +1,47 @@
+
 /**
- * LanguageSelector Component
- *
- * This component provides a dropdown menu for selecting the application language.
- * It displays languages with their native names and flags, and handles language switching.
- * It also supports dialects for Ghanaian languages.
+ * Language Selector Component
+ * 
+ * This component provides a dropdown selector for changing the application language.
+ * It supports multiple languages and persists the selection in localStorage.
  */
 
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Globe } from 'lucide-react';
-import { languages, Language } from '@/shared/utils/i18n';
-import { useLanguagePreferenceContext } from '@/shared/context/LanguagePreferenceContext';
+import { useLanguagePreference } from '@/shared/hooks/use-language-preference';
 
-export interface LanguageSelectorProps {
-  /** Whether to show the language name */
-  showName?: boolean;
-  /** Whether to show the language region */
-  showRegion?: boolean;
-  /** The size of the button */
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-  /** The variant of the button */
-  variant?: 'default' | 'outline' | 'ghost' | 'link';
-  /** Additional CSS classes */
-  className?: string;
-}
+const languages = [
+  { code: 'en', name: 'English', nativeName: 'English' },
+  { code: 'tw', name: 'Twi', nativeName: 'Twi' },
+  { code: 'ga', name: 'Ga', nativeName: 'Ga' },
+  { code: 'ewe', name: 'Ewe', nativeName: 'Eʋegbe' },
+];
 
-/**
- * A component for selecting the application language
- */
-export function LanguageSelector({
-  showName = true,
-  showRegion = false,
-  size = 'default',
-  variant = 'outline',
-  className = '',
-}: LanguageSelectorProps) {
-  const { i18n } = useTranslation();
-  const { updateLanguagePreference } = useLanguagePreferenceContext();
-  const currentLanguage = i18n.language as Language;
+export function LanguageSelector() {
+  const { language, setLanguage } = useLanguagePreference();
 
-  // Get the current language info
-  const currentLanguageInfo = languages[currentLanguage] || languages.en;
-
-  // Handle language change
-  const handleLanguageChange = (language: Language) => {
-    // Update language preference using our custom hook
-    updateLanguagePreference(language);
-  };
+  const currentLanguage = languages.find(lang => lang.code === language);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant={variant}
-          size={size}
-          className={className}
-          aria-label="Select language"
-        >
-          <Globe className="h-4 w-4 mr-2" />
-          {showName && (
-            <span>{currentLanguageInfo.nativeName}</span>
-          )}
-          {showRegion && currentLanguageInfo.region && (
-            <span className="ml-1 text-xs text-muted-foreground">
-              ({currentLanguageInfo.region})
-            </span>
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {Object.values(languages).map((lang) => (
-          <DropdownMenuItem
-            key={lang.code}
-            onClick={() => handleLanguageChange(lang.code)}
-            className={`flex items-center gap-2 ${
-              currentLanguage === lang.code ? 'bg-accent text-accent-foreground' : ''
-            }`}
-          >
-            <span className="font-medium">{lang.nativeName}</span>
-            <span className="text-xs text-muted-foreground">
-              {lang.name !== lang.nativeName && `(${lang.name})`}
-            </span>
-            {lang.region && (
-              <span className="text-xs text-muted-foreground ml-1">
-                - {lang.region}
-              </span>
-            )}
-            {lang.populationPercentage && (
-              <span className="ml-auto text-xs text-muted-foreground">
-                {lang.populationPercentage}%
-              </span>
-            )}
-          </DropdownMenuItem>
+    <Select value={language} onValueChange={setLanguage}>
+      <SelectTrigger className="w-[180px]">
+        <div className="flex items-center gap-2">
+          <Globe className="h-4 w-4" />
+          <SelectValue>
+            {currentLanguage?.nativeName || 'Select Language'}
+          </SelectValue>
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        {languages.map((lang) => (
+          <SelectItem key={lang.code} value={lang.code}>
+            <div className="flex flex-col items-start">
+              <span>{lang.nativeName}</span>
+              <span className="text-xs text-muted-foreground">{lang.name}</span>
+            </div>
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SelectContent>
+    </Select>
   );
 }
-
-/**
- * Example usage:
- *
- * ```tsx
- * // Basic usage
- * <LanguageSelector />
- *
- * // With region
- * <LanguageSelector showRegion />
- *
- * // Icon only
- * <LanguageSelector showName={false} size="icon" />
- * ```
- */

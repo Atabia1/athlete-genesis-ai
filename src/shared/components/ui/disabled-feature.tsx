@@ -1,59 +1,32 @@
-/**
- * Disabled Feature Component
- * 
- * This component displays a message for disabled features.
- * It's used as a fallback for feature-flagged content.
- */
 
-import React from 'react';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert';
+import { cn } from '@/shared/utils/cn';
+import { Alert, AlertDescription } from './alert';
+import { Lock } from 'lucide-react';
 
 interface DisabledFeatureProps {
-  /** The name of the disabled feature */
-  name: string;
-  
-  /** Optional description of the feature */
-  description?: string;
-  
-  /** Optional message to display */
+  children?: React.ReactNode;
   message?: string;
-  
-  /** Optional variant for the alert */
-  variant?: 'default' | 'destructive' | 'info';
+  variant?: 'default' | 'destructive';
+  className?: string;
 }
 
-/**
- * Displays a message for disabled features
- */
 export function DisabledFeature({
-  name,
-  description,
-  message = 'This feature is currently disabled.',
-  variant = 'info',
+  children,
+  message = 'This feature is not available in your current plan.',
+  variant = 'default',
+  className,
 }: DisabledFeatureProps) {
   return (
-    <Alert variant={variant} className="mb-4">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle className="ml-2">{name} Unavailable</AlertTitle>
-      {description && (
-        <AlertDescription className="mt-2 text-sm text-muted-foreground">
-          {description}
-        </AlertDescription>
+    <div className={cn('relative', className)}>
+      {children && (
+        <div className="opacity-50 pointer-events-none">
+          {children}
+        </div>
       )}
-      <AlertDescription className="mt-2">
-        {message}
-      </AlertDescription>
-    </Alert>
+      <Alert variant={variant} className="mt-2">
+        <Lock className="h-4 w-4" />
+        <AlertDescription>{message}</AlertDescription>
+      </Alert>
+    </div>
   );
 }
-
-/**
- * Example usage:
- * 
- * <DisabledFeature 
- *   name="Analytics Dashboard" 
- *   description="View detailed analytics about your workouts and progress."
- *   message="Analytics are only available in the premium version."
- * />
- */

@@ -1,101 +1,50 @@
-/**
- * Error Fallback Component
- * 
- * This component is displayed when an error occurs in a component tree.
- * It provides a user-friendly error message and options to recover.
- */
 
-import React from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { getUserFriendlyMessage } from '@/shared/utils/error-handling';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
 interface ErrorFallbackProps {
   error: Error;
-  resetError?: () => void;
-  title?: string;
-  showHomeButton?: boolean;
-  showResetButton?: boolean;
-  className?: string;
+  resetError: () => void;
 }
 
-export function ErrorFallback({
-  error,
-  resetError,
-  title = 'Something went wrong',
-  showHomeButton = true,
-  showResetButton = true,
-  className = '',
-}: ErrorFallbackProps) {
-  const navigate = useNavigate();
-  const errorMessage = getUserFriendlyMessage(error);
-  
-  const handleReset = () => {
-    if (resetError) {
-      resetError();
-    } else {
-      window.location.reload();
-    }
-  };
-  
-  const handleGoHome = () => {
-    navigate('/');
-  };
-  
+const ErrorFallback = ({ error, resetError }: ErrorFallbackProps) => {
   return (
-    <div className={`flex items-center justify-center p-6 min-h-[400px] ${className}`}>
-      <Card className="w-full max-w-md shadow-lg border-red-200">
-        <CardHeader className="pb-3">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-6 w-6 text-red-500" />
-            <CardTitle className="text-xl text-red-700">{title}</CardTitle>
-          </div>
-          <CardDescription className="text-gray-600">
-            We're sorry, but an error occurred while trying to display this content.
+    <div className="flex flex-col items-center justify-center h-full">
+      <Card className="w-full max-w-md border-red-500 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold flex items-center justify-center text-red-600">
+            <AlertTriangle className="h-5 w-5 mr-2" />
+            Oops! Something went wrong.
+          </CardTitle>
+          <CardDescription className="text-center text-gray-500">
+            We've encountered an error. Please try again or contact support.
           </CardDescription>
         </CardHeader>
-        
-        <CardContent>
-          <div className="bg-red-50 p-4 rounded-md border border-red-100 text-red-800">
-            <p className="font-medium mb-2">Error details:</p>
-            <p className="text-sm">{errorMessage}</p>
-            
-            {process.env.NODE_ENV !== 'production' && (
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-medium">Technical details</summary>
-                <pre className="mt-2 text-xs bg-white p-2 rounded overflow-auto max-h-[200px]">
-                  {error.stack || error.message}
-                </pre>
-              </details>
-            )}
-          </div>
+        <CardContent className="text-center">
+          <p className="text-red-700 font-bold mb-4">
+            {error.message}
+          </p>
+          <p className="text-sm text-gray-600">
+            {error.stack?.substring(0, 300)}...
+          </p>
         </CardContent>
-        
-        <CardFooter className="flex justify-end space-x-2 pt-2">
-          {showHomeButton && (
-            <Button
-              variant="outline"
-              onClick={handleGoHome}
-              className="flex items-center"
-            >
+        <div className="flex justify-center space-x-4 p-4">
+          <Button variant="outline" onClick={resetError}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+          </Button>
+          <Button variant="secondary" asChild>
+            <a href="/">
               <Home className="h-4 w-4 mr-2" />
-              Go to Home
-            </Button>
-          )}
-          
-          {showResetButton && (
-            <Button
-              onClick={handleReset}
-              className="flex items-center bg-red-600 hover:bg-red-700"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
-            </Button>
-          )}
-        </CardFooter>
+              Go Home
+            </a>
+          </Button>
+        </div>
       </Card>
     </div>
   );
-}
+};
+
+export { ErrorFallback };
+export default ErrorFallback;

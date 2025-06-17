@@ -1,3 +1,4 @@
+
 /**
  * SkipToContent Component
  * 
@@ -10,7 +11,6 @@
  * becomes visible so the user can see it.
  */
 
-import React from 'react';
 import { cn } from '@/shared/utils/cn';
 
 export interface SkipToContentProps {
@@ -44,20 +44,3 @@ export function SkipToContent({
     </a>
   );
 }
-
-/**
- * Example usage:
- * 
- * function Layout({ children }) {
- *   return (
- *     <>
- *       <SkipToContent />
- *       <header>...</header>
- *       <main id="main-content">
- *         {children}
- *       </main>
- *       <footer>...</footer>
- *     </>
- *   );
- * }
- */
