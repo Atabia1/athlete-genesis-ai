@@ -1,3 +1,4 @@
+
 /**
  * API Service
  *
@@ -7,8 +8,8 @@
 
 import { ApiClient, RequestInterceptor, ResponseInterceptor, ErrorInterceptor } from './api-client';
 import { logError } from '@/shared/utils/error-handling';
-import { getApiBaseUrl, getPaystackPublicKey, getSupabaseConfig } from '@/utils/env-config';
-import { getConfig } from '@/lib/config';
+import { getApiBaseUrl } from '@/utils/env-config';
+import { HealthData } from '@/integrations/health-apps/types';
 
 // Authentication token storage key
 const AUTH_TOKEN_KEY = 'auth_token';
@@ -59,7 +60,7 @@ const authRequestInterceptor: RequestInterceptor = async (url, options) => {
 /**
  * Authentication response interceptor
  */
-const authResponseInterceptor: ResponseInterceptor = async (response, request) => {
+const authResponseInterceptor: ResponseInterceptor = async (response) => {
   // Check for authentication token in response headers
   const authToken = response.headers.get('X-Auth-Token');
 
@@ -73,7 +74,7 @@ const authResponseInterceptor: ResponseInterceptor = async (response, request) =
 /**
  * Authentication error interceptor
  */
-const authErrorInterceptor: ErrorInterceptor = async (error, request) => {
+const authErrorInterceptor: ErrorInterceptor = async (error) => {
   // Handle 401 Unauthorized errors
   if (error instanceof Response && error.status === 401) {
     // Clear the authentication token
@@ -119,11 +120,11 @@ const loggingResponseInterceptor: ResponseInterceptor = async (response, request
 /**
  * Logging error interceptor
  */
-const loggingErrorInterceptor: ErrorInterceptor = async (error, request) => {
+const loggingErrorInterceptor: ErrorInterceptor = async (error) => {
   logError(error, 'ApiService');
 
   if (import.meta.env.DEV) {
-    console.error(`API Error: ${request.options.method} ${request.url}`, error);
+    console.error(`API Error:`, error);
   }
 
   return error;

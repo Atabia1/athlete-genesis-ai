@@ -1,7 +1,5 @@
-import { ApiClient } from '@/services/api-client';
-import { WorkoutPlan } from '@/types/workout';
 
-const apiClient = new ApiClient({ baseURL: '/api' });
+import { WorkoutPlan, WorkoutGoal } from '@/types/workout';
 
 // Mock function to generate a workout plan
 const generateMockWorkoutPlan = async (userProfile: any): Promise<WorkoutPlan> => {
@@ -20,6 +18,7 @@ const generateMockWorkoutPlan = async (userProfile: any): Promise<WorkoutPlan> =
           {
             id: 'w1',
             name: 'Strength Training',
+            date: new Date().toISOString(),
             exercises: [
               { id: 'e1', name: 'Squats', sets: 3, reps: 10 },
               { id: 'e2', name: 'Bench Press', sets: 3, reps: 8 },
@@ -46,6 +45,7 @@ const generateMockWorkoutPlan = async (userProfile: any): Promise<WorkoutPlan> =
           {
             id: 'w2',
             name: 'Cardio',
+            date: new Date().toISOString(),
             exercises: [
               { id: 'e3', name: 'Running', duration: 30 },
             ],
@@ -69,7 +69,7 @@ const generateMockWorkoutPlan = async (userProfile: any): Promise<WorkoutPlan> =
     author: 'AI Fitness',
     level: 'intermediate',
     duration: 4,
-    goal: 'strength',
+    goal: WorkoutGoal.STRENGTH,
     equipment: ['dumbbells', 'bench'],
     isTemplate: false,
     createdAt: new Date().toISOString(),

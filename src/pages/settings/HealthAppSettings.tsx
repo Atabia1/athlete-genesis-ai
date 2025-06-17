@@ -1,5 +1,3 @@
-
-
 /**
  * Health App Settings Page
  *
@@ -15,7 +13,7 @@ import { Activity, RefreshCw, Heart, Info } from 'lucide-react';
 import HealthAppQRConnect from '@/components/features/HealthAppQRConnect';
 import ConnectedHealthDevices from '@/components/features/ConnectedHealthDevices';
 import { healthSyncService } from '@/services/health-sync-service';
-import { healthApi } from '@/services/api';
+import { ApiService } from '@/services/api';
 import { HealthData } from '@/integrations/health-apps/types';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -36,6 +34,9 @@ const HealthAppSettings = () => {
     connectedDevices: 0,
   });
 
+  // Create API service instance
+  const apiService = new ApiService();
+
   // Fetch health data and connected devices
   const fetchData = async () => {
     try {
@@ -46,7 +47,7 @@ const HealthAppSettings = () => {
       // Fetch connected devices count and sync status
       if (user) {
         try {
-          const devices = await healthApi.getConnectedDevices();
+          const devices = await apiService.getConnectedDevices();
           setSyncStatus(prev => ({
             ...prev,
             connectedDevices: devices.length

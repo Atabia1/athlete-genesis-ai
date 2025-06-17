@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
-import paystackService, { PaymentTransaction } from '@/services/api/paystack-service';
+import paystackService, { PaystackTransaction } from '@/services/api/paystack-service';
 import { 
   Card, 
   CardContent, 
@@ -69,7 +69,7 @@ const formatTime = (dateString: string) => {
 const ReceiptPage = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const [transaction, setTransaction] = useState<PaymentTransaction | null>(null);
+  const [transaction, setTransaction] = useState<PaystackTransaction | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -90,7 +90,7 @@ const ReceiptPage = () => {
         const transactionData = await paystackService.verifyTransaction(id);
         
         // Check if the transaction belongs to the current user
-        if (transactionData.customerId !== user?.id) {
+        if (transactionData.customer.email !== user?.email) {
           setError('You do not have permission to view this receipt');
           setIsLoading(false);
           return;
@@ -259,18 +259,18 @@ const ReceiptPage = () => {
                   <div className="font-mono">{transaction.reference}</div>
                   
                   <div className="text-gray-600">Date:</div>
-                  <div>{formatDate(transaction.createdAt)}</div>
+                  <div>{formatDate(transaction.created_at)}</div>
                   
                   <div className="text-gray-600">Time:</div>
-                  <div>{formatTime(transaction.createdAt)}</div>
+                  <div>{formatTime(transaction.created_at)}</div>
                   
                   <div className="text-gray-600">Type:</div>
-                  <div>{transaction.type === 'subscription' ? 'Subscription' : 'One-time Payment'}</div>
+                  <div>{transaction.plan ? 'Subscription' : 'One-time Payment'}</div>
                   
-                  {transaction.planId && (
+                  {transaction.plan && (
                     <>
                       <div className="text-gray-600">Plan:</div>
-                      <div>{transaction.metadata?.planName || transaction.planId}</div>
+                      <div>{transaction.plan}</div>
                     </>
                   )}
                 </div>
@@ -280,11 +280,8 @@ const ReceiptPage = () => {
               <div>
                 <h3 className="font-medium text-gray-900 mb-3">Customer Details</h3>
                 <div className="grid grid-cols-2 gap-y-2">
-                  <div className="text-gray-600">Name:</div>
-                  <div>{transaction.customerName || user?.name || 'N/A'}</div>
-                  
                   <div className="text-gray-600">Email:</div>
-                  <div>{transaction.customerEmail}</div>
+                  <div>{transaction.customer.email}</div>
                 </div>
               </div>
               
@@ -294,28 +291,9 @@ const ReceiptPage = () => {
               <div>
                 <h3 className="font-medium text-gray-900 mb-3">Payment Details</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal:</span>
-                    <span>{formatCurrency(transaction.amount, transaction.currency)}</span>
-                  </div>
-                  
-                  {transaction.discountAmount && transaction.discountAmount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount ({transaction.discountCode}):</span>
-                      <span>-{formatCurrency(transaction.discountAmount, transaction.currency)}</span>
-                    </div>
-                  )}
-                  
-                  <Separator />
-                  
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span>
-                      {formatCurrency(
-                        transaction.amount - (transaction.discountAmount || 0),
-                        transaction.currency
-                      )}
-                    </span>
+                    <span>{formatAmount(transaction.amount)}</span>
                   </div>
                 </div>
               </div>
@@ -325,22 +303,11 @@ const ReceiptPage = () => {
                 <h3 className="font-medium text-gray-900 mb-3">Payment Method</h3>
                 <div className="flex items-center">
                   <div className="flex-1">
-                    <p className="font-medium">
-                      {transaction.metadata?.paymentMethod || 'Card Payment'}
-                    </p>
-                    {transaction.metadata?.last4 && (
+                    <p className="font-medium">Card Payment</p>
+                    {transaction.authorization?.last4 && (
                       <p className="text-gray-600 text-sm">
-                        **** **** **** {transaction.metadata.last4}
+                        **** **** **** {transaction.authorization.last4}
                       </p>
-                    )}
-                  </div>
-                  <div>
-                    {transaction.metadata?.cardBrand && (
-                      <img 
-                        src={`/card-brands/${transaction.metadata.cardBrand.toLowerCase()}.svg`}
-                        alt={transaction.metadata.cardBrand}
-                        className="h-8 w-auto"
-                      />
                     )}
                   </div>
                 </div>
@@ -353,7 +320,7 @@ const ReceiptPage = () => {
               This is an automatically generated receipt. For any questions, please contact support.
             </p>
             <p className="text-center text-gray-400 text-xs">
-              Athlete GPT • Receipt #{transaction.id} • {formatDate(transaction.createdAt)}
+              Athlete GPT • Receipt #{transaction.id} • {formatDate(transaction.created_at)}
             </p>
           </CardFooter>
         </Card>
@@ -361,5 +328,13 @@ const ReceiptPage = () => {
     </div>
   );
 };
+
+function formatAmount(amount: number): string {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 2
+  }).format(amount / 100);
+}
 
 export default ReceiptPage;

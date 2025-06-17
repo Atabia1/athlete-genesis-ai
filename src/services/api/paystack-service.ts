@@ -1,5 +1,5 @@
+
 import { ApiClient } from '../api-client';
-import { getConfig } from '@/lib/config';
 
 export interface PaystackPlan {
   id: string;
@@ -147,20 +147,21 @@ export interface PaystackDiscountRequest {
 
 export class PaystackApiService {
   private apiClient: ApiClient;
-  private publicKey: string;
-  private secretKey: string;
   private apiUrl: string;
 
   constructor() {
-    const config = getConfig();
-    this.publicKey = config.paystack.publicKey;
-    this.secretKey = config.paystack.secretKey;
     this.apiUrl = 'https://api.paystack.co';
 
     this.apiClient = new ApiClient({
-      baseURL: this.apiUrl,
-      timeout: 30000,
-      retries: 3,
+      baseUrl: this.apiUrl,
+      defaultOptions: {
+        timeout: 30000,
+        retry: {
+          maxRetries: 3,
+          retryDelay: 1000,
+          retryStatusCodes: [408, 429, 500, 502, 503, 504],
+        },
+      },
     });
   }
 
@@ -171,7 +172,7 @@ export class PaystackApiService {
   ): Promise<T> {
     try {
       const headers = {
-        Authorization: `Bearer ${this.secretKey}`,
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY || ''}`,
         'Content-Type': 'application/json',
       };
 
@@ -190,7 +191,7 @@ export class PaystackApiService {
         });
       }
 
-      return response.data.data;
+      return response.data;
     } catch (error) {
       console.error(`Paystack API error (${endpoint}):`, error);
       throw error;
