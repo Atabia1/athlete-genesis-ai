@@ -1,150 +1,114 @@
-/**
- * useWebSocket Hook
- * 
- * This hook provides a convenient way to use the WebSocket service in React components.
- * It handles connection management, event listeners, and status updates.
- */
 
-import { useState, useEffect, useCallback } from 'react';
-import websocketService, { 
-  WebSocketStatus, 
-  WebSocketEventType,
-  WebSocketMessage
-} from '@/services/websocket-service';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-interface UseWebSocketOptions {
-  /** Connect automatically on mount */
-  autoConnect?: boolean;
-  /** Reconnect automatically when connection is lost */
-  autoReconnect?: boolean;
-  /** Authentication token */
-  authToken?: string | null;
+export interface WebSocketConfig {
+  url: string;
+  protocols?: string | string[];
+  reconnectAttempts?: number;
+  reconnectInterval?: number;
 }
 
-interface UseWebSocketResult {
-  /** Current connection status */
-  status: WebSocketStatus;
-  /** Connect to the WebSocket server */
-  connect: () => void;
-  /** Disconnect from the WebSocket server */
+export interface UseWebSocketReturn {
+  socket: WebSocket | null;
+  connectionStatus: 'Connecting' | 'Open' | 'Closing' | 'Closed';
+  lastMessage: MessageEvent | null;
+  sendMessage: (message: string) => void;
+  sendJsonMessage: (message: object) => void;
+  reconnect: () => void;
   disconnect: () => void;
-  /** Send a message to the WebSocket server */
-  send: <T>(type: WebSocketEventType, data: T) => boolean;
-  /** Add an event listener */
-  addEventListener: <T>(type: WebSocketEventType, listener: (data: T) => void) => void;
-  /** Remove an event listener */
-  removeEventListener: <T>(type: WebSocketEventType, listener: (data: T) => void) => void;
 }
 
-/**
- * useWebSocket hook
- * @param options Hook options
- * @returns WebSocket utilities
- */
-export function useWebSocket({
-  autoConnect = true,
-  autoReconnect = true,
-  authToken = null,
-}: UseWebSocketOptions = {}): UseWebSocketResult {
-  const [status, setStatus] = useState<WebSocketStatus>(websocketService.getStatus());
+export function useWebSocket(config: WebSocketConfig): UseWebSocketReturn {
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'Connecting' | 'Open' | 'Closing' | 'Closed'>('Closed');
+  const [lastMessage, setLastMessage] = useState<MessageEvent | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const socketRef = useRef<WebSocket | null>(null);
 
-  // Set auth token
-  useEffect(() => {
-    websocketService.setAuthToken(authToken);
-  }, [authToken]);
+  const { url, protocols, reconnectAttempts = 5, reconnectInterval = 3000 } = config;
 
-  // Connect on mount if autoConnect is true
-  useEffect(() => {
-    if (autoConnect) {
-      websocketService.connect();
+  const connect = useCallback(() => {
+    try {
+      const ws = new WebSocket(url, protocols);
+      socketRef.current = ws;
+      setSocket(ws);
+      setConnectionStatus('Connecting');
+
+      ws.onopen = () => {
+        setConnectionStatus('Open');
+        reconnectAttemptsRef.current = 0;
+      };
+
+      ws.onclose = () => {
+        setConnectionStatus('Closed');
+        setSocket(null);
+        socketRef.current = null;
+
+        // Auto-reconnect logic
+        if (reconnectAttemptsRef.current < reconnectAttempts) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectAttemptsRef.current++;
+            connect();
+          }, reconnectInterval);
+        }
+      };
+
+      ws.onerror = () => {
+        setConnectionStatus('Closed');
+      };
+
+      ws.onmessage = (event) => {
+        setLastMessage(event);
+      };
+    } catch {
+      setConnectionStatus('Closed');
     }
+  }, [url, protocols, reconnectAttempts, reconnectInterval]);
 
-    // Add status listener
-    const statusListener = (newStatus: WebSocketStatus) => {
-      setStatus(newStatus);
-    };
-    websocketService.addStatusListener(statusListener);
+  const disconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
+  }, []);
 
-    // Clean up on unmount
+  const reconnect = useCallback(() => {
+    disconnect();
+    setTimeout(connect, 100);
+  }, [disconnect, connect]);
+
+  const sendMessage = useCallback((message: string) => {
+    if (socket?.readyState === WebSocket.OPEN) {
+      socket.send(message);
+    }
+  }, [socket]);
+
+  const sendJsonMessage = useCallback((message: object) => {
+    sendMessage(JSON.stringify(message));
+  }, [sendMessage]);
+
+  useEffect(() => {
+    connect();
     return () => {
-      websocketService.removeStatusListener(statusListener);
-      
-      // Only disconnect if autoReconnect is false
-      if (!autoReconnect) {
-        websocketService.disconnect();
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (socketRef.current) {
+        socketRef.current.close();
       }
     };
-  }, [autoConnect, autoReconnect]);
-
-  // Connect method
-  const connect = useCallback(() => {
-    websocketService.connect();
-  }, []);
-
-  // Disconnect method
-  const disconnect = useCallback(() => {
-    websocketService.disconnect();
-  }, []);
-
-  // Send method
-  const send = useCallback(<T,>(type: WebSocketEventType, data: T): boolean => {
-    return websocketService.send(type, data);
-  }, []);
-
-  // Add event listener method
-  const addEventListener = useCallback(<T,>(
-    type: WebSocketEventType, 
-    listener: (data: T) => void
-  ) => {
-    websocketService.addEventListener(type, listener);
-  }, []);
-
-  // Remove event listener method
-  const removeEventListener = useCallback(<T,>(
-    type: WebSocketEventType, 
-    listener: (data: T) => void
-  ) => {
-    websocketService.removeEventListener(type, listener);
-  }, []);
+  }, [connect]);
 
   return {
-    status,
-    connect,
+    socket,
+    connectionStatus,
+    lastMessage,
+    sendMessage,
+    sendJsonMessage,
+    reconnect,
     disconnect,
-    send,
-    addEventListener,
-    removeEventListener,
   };
 }
-
-/**
- * useWebSocketEvent hook
- * 
- * This hook subscribes to a specific WebSocket event and provides the latest data.
- * 
- * @param eventType The event type to subscribe to
- * @param initialData Initial data value
- * @returns The latest event data
- */
-export function useWebSocketEvent<T>(
-  eventType: WebSocketEventType,
-  initialData: T
-): T {
-  const [data, setData] = useState<T>(initialData);
-  
-  useEffect(() => {
-    const handleEvent = (eventData: T) => {
-      setData(eventData);
-    };
-    
-    websocketService.addEventListener(eventType, handleEvent);
-    
-    return () => {
-      websocketService.removeEventListener(eventType, handleEvent);
-    };
-  }, [eventType]);
-  
-  return data;
-}
-
-export default useWebSocket;

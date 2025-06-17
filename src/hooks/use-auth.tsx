@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, createContext, useContext, ReactNode } from 'react';
 
 export interface AuthUser {
   id: string;
@@ -25,7 +25,21 @@ export interface UseAuthReturn {
   refreshUser: () => Promise<void>;
 }
 
+const AuthContext = createContext<UseAuthReturn | undefined>(undefined);
+
 export function useAuth(): UseAuthReturn {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -79,7 +93,7 @@ export function useAuth(): UseAuthReturn {
     // Mock refresh implementation
   };
 
-  return {
+  const value: UseAuthReturn = {
     user,
     isLoading,
     isAuthenticated: !!user,
@@ -88,4 +102,10 @@ export function useAuth(): UseAuthReturn {
     register,
     refreshUser,
   };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
