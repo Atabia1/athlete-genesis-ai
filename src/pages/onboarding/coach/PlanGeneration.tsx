@@ -97,8 +97,8 @@ const CoachPlanGeneration = () => {
       await simulateProgress(75, 100);
 
       // Generate mock data for the plans
-      const mockWorkoutPlan = generateMockWorkoutPlan(coachProfile);
-      const mockMealPlan = generateMockMealPlan(coachProfile);
+      const mockWorkoutPlan = generateMockWorkoutPlan();
+      const mockMealPlan = generateMockMealPlan();
 
       // Set the plans in context
       setWorkoutPlan(mockWorkoutPlan);
@@ -133,15 +133,24 @@ const CoachPlanGeneration = () => {
   };
 
   // Generate mock workout plan based on coach profile
-  const generateMockWorkoutPlan = (coachProfile: any) => {
+  const generateMockWorkoutPlan = () => {
     // This would be replaced with actual API response data
     return {
       id: 'wp-' + Date.now(),
+      name: 'Team Training Program',
       title: 'Team Training Program',
       description: 'Comprehensive training system based on your coaching philosophy',
-      level: coachProfile.trainingApproach?.periodizationModel || 'linear',
+      level: 'intermediate',
       duration: '12 weeks',
       createdAt: new Date().toISOString(),
+      schedule: {
+        frequency: 'weekly',
+        sessions: 3
+      },
+      nutrition: {
+        guidelines: 'Team nutrition recommendations',
+        calories: 2500
+      },
       weeks: [
         {
           weekNumber: 1,
@@ -155,17 +164,15 @@ const CoachPlanGeneration = () => {
                 { name: 'Strength Baseline Testing', duration: '30 min', intensity: 'Assessment' },
                 { name: 'Team Building Activity', duration: '15 min', intensity: 'Light' }
               ]
-            },
-            // More days would be included here
+            }
           ]
         }
-        // More weeks would be included here
       ]
     };
   };
 
   // Generate mock meal plan based on coach profile
-  const generateMockMealPlan = (coachProfile: any) => {
+  const generateMockMealPlan = () => {
     // This would be replaced with actual API response data
     return {
       id: 'mp-' + Date.now(),
@@ -181,11 +188,9 @@ const CoachPlanGeneration = () => {
               title: 'Performance Fuel',
               description: 'Balanced meal with complex carbs, lean protein, and healthy fats',
               nutrients: { calories: 450, protein: '25g', carbs: '50g', fat: '15g' }
-            },
-            // More meals would be included here
+            }
           ]
         }
-        // More days would be included here
       ]
     };
   };

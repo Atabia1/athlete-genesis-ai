@@ -1,25 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Dumbbell, Utensils, Loader2, BrainCircuit, RefreshCw, AlertTriangle, AlertCircle, WifiOff, Heart, Brain } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Dumbbell, Loader2, BrainCircuit, RefreshCw, AlertCircle, WifiOff, Heart, Brain } from 'lucide-react';
 import OnboardingLayout from '@/components/onboarding/OnboardingLayout';
 import { usePlan } from '@/context/PlanContext';
 import { toast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-
-/**
- * Plan Generation Step for Fitness Enthusiasts
- *
- * This is the fifth step in the custom onboarding flow for fitness enthusiasts.
- * It generates a holistic wellness plan that includes:
- * - Customized workout routines
- * - Nutrition guidance
- * - Mindfulness practices
- * - Sleep optimization
- * - Habit building strategies
- */
 
 const IndividualPlanGeneration = () => {
   const navigate = useNavigate();
@@ -29,7 +17,6 @@ const IndividualPlanGeneration = () => {
     setMealPlan,
   } = usePlan();
 
-  // Redirect if not a fitness enthusiast
   if (userType !== 'individual') {
     navigate('/onboarding');
     return null;
@@ -42,7 +29,6 @@ const IndividualPlanGeneration = () => {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [currentlyGenerating, setCurrentlyGenerating] = useState<string>('');
 
-  // Simulate plan generation with progress updates
   const generatePlan = async () => {
     setIsLoading(true);
     setError(null);
@@ -50,58 +36,37 @@ const IndividualPlanGeneration = () => {
     setGenerationProgress(0);
 
     try {
-      // Check for network connectivity
       if (!navigator.onLine) {
         setIsNetworkError(true);
         setError("You appear to be offline. Please check your internet connection and try again.");
         throw new Error('Network offline');
       }
 
-      // Get data from local storage
       const healthMetrics = JSON.parse(localStorage.getItem('healthMetrics') || '{}');
       const lifestyleHabits = JSON.parse(localStorage.getItem('lifestyleHabits') || '{}');
       const fitnessHistory = JSON.parse(localStorage.getItem('fitnessHistory') || '{}');
       const wellnessGoals = JSON.parse(localStorage.getItem('wellnessGoals') || '{}');
 
-      // Combine all data for the API call
-      const userProfile = {
-        userType,
-        healthMetrics,
-        lifestyleHabits,
-        fitnessHistory,
-        wellnessGoals
-      };
+      console.log('Generating wellness plan with profile:', { userType, healthMetrics, lifestyleHabits, fitnessHistory, wellnessGoals });
 
-      console.log('Generating wellness plan with profile:', userProfile);
-
-      // Simulate API call with progress updates
-      // In a real implementation, this would be an actual API call
-
-      // Step 1: Analyzing health data
       setCurrentlyGenerating('Analyzing your health profile...');
       await simulateProgress(0, 20);
 
-      // Step 2: Creating fitness plan
       setCurrentlyGenerating('Creating your personalized fitness plan...');
       await simulateProgress(20, 40);
 
-      // Step 3: Developing nutrition guidance
       setCurrentlyGenerating('Developing nutrition guidance based on your goals...');
       await simulateProgress(40, 60);
 
-      // Step 4: Building mindfulness practices
       setCurrentlyGenerating('Building mindfulness and stress management practices...');
       await simulateProgress(60, 80);
 
-      // Step 5: Finalizing holistic plan
       setCurrentlyGenerating('Finalizing your holistic wellness plan...');
       await simulateProgress(80, 100);
 
-      // Generate mock data for the plans
-      const mockWorkoutPlan = generateMockWorkoutPlan(userProfile);
-      const mockMealPlan = generateMockMealPlan(userProfile);
+      const mockWorkoutPlan = generateMockWorkoutPlan();
+      const mockMealPlan = generateMockMealPlan();
 
-      // Set the plans in context
       setWorkoutPlan(mockWorkoutPlan);
       setMealPlan(mockMealPlan);
 
@@ -120,11 +85,10 @@ const IndividualPlanGeneration = () => {
     }
   };
 
-  // Simulate progress updates
   const simulateProgress = async (from: number, to: number) => {
     const steps = 10;
     const increment = (to - from) / steps;
-    const delay = 300; // milliseconds
+    const delay = 300;
 
     for (let i = 0; i <= steps; i++) {
       const progress = Math.min(from + (increment * i), to);
@@ -133,16 +97,23 @@ const IndividualPlanGeneration = () => {
     }
   };
 
-  // Generate mock workout plan based on user profile
-  const generateMockWorkoutPlan = (userProfile: any) => {
-    // This would be replaced with actual API response data
+  const generateMockWorkoutPlan = () => {
     return {
       id: 'wp-' + Date.now(),
+      name: 'Holistic Wellness Program',
       title: 'Holistic Wellness Program',
       description: 'A balanced approach to fitness, mindfulness, and overall wellbeing',
-      level: userProfile.fitnessHistory?.exerciseHistory || 'beginner',
+      level: 'beginner',
       duration: '12 weeks',
       createdAt: new Date().toISOString(),
+      schedule: {
+        frequency: 'weekly',
+        sessions: 3
+      },
+      nutrition: {
+        guidelines: 'Balanced nutrition for wellness',
+        calories: 2000
+      },
       weeks: [
         {
           weekNumber: 1,
@@ -156,18 +127,14 @@ const IndividualPlanGeneration = () => {
                 { name: 'Deep Breathing', duration: '5 min', intensity: 'Light' },
                 { name: 'Stretching', duration: '10 min', intensity: 'Light' }
               ]
-            },
-            // More days would be included here
+            }
           ]
         }
-        // More weeks would be included here
       ]
     };
   };
 
-  // Generate mock meal plan based on user profile
-  const generateMockMealPlan = (userProfile: any) => {
-    // This would be replaced with actual API response data
+  const generateMockMealPlan = () => {
     return {
       id: 'mp-' + Date.now(),
       title: 'Balanced Nutrition Plan',
@@ -182,21 +149,17 @@ const IndividualPlanGeneration = () => {
               title: 'Energizing Morning Bowl',
               description: 'Greek yogurt with berries, nuts, and honey',
               nutrients: { calories: 350, protein: '20g', carbs: '30g', fat: '15g' }
-            },
-            // More meals would be included here
+            }
           ]
         }
-        // More days would be included here
       ]
     };
   };
 
-  // Start generation on component mount
   useEffect(() => {
     generatePlan();
   }, []);
 
-  // Handle navigation
   const handleBack = () => {
     navigate('/onboarding/individual/wellness-goals');
   };
@@ -255,7 +218,7 @@ const IndividualPlanGeneration = () => {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center">
-                    <Utensils className="h-4 w-4 mr-2 text-teal-600" />
+                    <utensils className="h-4 w-4 mr-2 text-teal-600" />
                     Nutrition Guidance
                   </CardTitle>
                 </CardHeader>
@@ -356,7 +319,7 @@ const IndividualPlanGeneration = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Utensils className="h-5 w-5 mr-2 text-teal-600" />
+                    <utensils className="h-5 w-5 mr-2 text-teal-600" />
                     Nutrition & Lifestyle
                   </CardTitle>
                   <CardDescription>

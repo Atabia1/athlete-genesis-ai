@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -7,15 +6,7 @@ import OnboardingLayout from '@/components/onboarding/OnboardingLayout';
 import { usePlan } from '@/context/PlanContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { toast } from '@/components/ui/use-toast';
-
-/**
- * Payment Page for Fitness Enthusiasts
- * 
- * This is the final step in the custom onboarding flow for fitness enthusiasts.
- * It presents subscription options tailored to wellness-focused individuals.
- */
 
 interface SubscriptionPlan {
   id: string;
@@ -32,7 +23,6 @@ const IndividualPaymentPage = () => {
   const navigate = useNavigate();
   const { userType, setSubscriptionTier } = usePlan();
   
-  // Redirect if not a fitness enthusiast
   if (userType !== 'individual') {
     navigate('/onboarding');
     return null;
@@ -114,9 +104,6 @@ const IndividualPaymentPage = () => {
     navigate('/dashboard');
   };
 
-  // Temporarily remove any code that depends on the OfflineSyncProvider
-  // No usePaystack usage here, so we're good
-
   return (
     <OnboardingLayout 
       step={5} 
@@ -124,6 +111,7 @@ const IndividualPaymentPage = () => {
       title="Choose Your Wellness Journey"
       subtitle="Select the plan that best fits your wellness goals"
     >
+      {/* Keep existing code, component content similar to coach payment page */}
       <div className="space-y-6 mb-8">
         <div className="bg-gradient-to-r from-teal-50 to-green-50 p-4 rounded-lg border border-teal-100">
           <div className="flex items-start">
@@ -233,13 +221,13 @@ const IndividualPaymentPage = () => {
           ))}
         </RadioGroup>
 
-        {/* Payment Security Notice */}
         <div className="flex items-center justify-center text-sm text-gray-500 mt-6">
           <Shield className="h-4 w-4 mr-2 text-gray-400" />
           <span>Secure payment processing. Cancel anytime.</span>
         </div>
       </div>
 
+      {/* Navigation Buttons */}
       <div className="flex justify-between">
         <Button
           variant="outline"

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -7,15 +6,7 @@ import OnboardingLayout from '@/components/onboarding/OnboardingLayout';
 import { usePlan } from '@/context/PlanContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { toast } from '@/components/ui/use-toast';
-
-/**
- * Payment Page for Coaches
- * 
- * This is the final step in the custom onboarding flow for coaches.
- * It presents subscription options tailored to coaching professionals.
- */
 
 interface SubscriptionPlan {
   id: string;
@@ -32,13 +23,11 @@ const CoachPaymentPage = () => {
   const navigate = useNavigate();
   const { userType, setSubscriptionTier } = usePlan();
   
-  // Redirect if not a coach
   if (userType !== 'coach') {
     navigate('/onboarding');
     return null;
   }
 
-  // Subscription plans specifically for coaches
   const subscriptionPlans: SubscriptionPlan[] = [
     {
       id: 'free',
@@ -97,27 +86,20 @@ const CoachPaymentPage = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>('coach');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-  // Handle navigation
   const handleBack = () => {
     navigate('/onboarding/coach/plan-generation');
   };
 
   const handleContinue = () => {
-    // Set subscription tier in context
     setSubscriptionTier(selectedPlan as any);
     
-    // Show success toast
     toast({
       title: "Subscription Selected",
       description: `You've selected the ${subscriptionPlans.find(p => p.id === selectedPlan)?.name} plan.`,
     });
     
-    // Navigate to dashboard
     navigate('/dashboard');
   };
-
-  // Temporarily remove any code that depends on the OfflineSyncProvider
-  // No usePaystack usage here, so we're good
 
   return (
     <OnboardingLayout 
@@ -140,7 +122,6 @@ const CoachPaymentPage = () => {
           </div>
         </div>
 
-        {/* Billing Cycle Selection */}
         <div className="flex justify-center mb-6">
           <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
             <button
@@ -166,7 +147,6 @@ const CoachPaymentPage = () => {
           </div>
         </div>
 
-        {/* Subscription Plans */}
         <RadioGroup
           value={selectedPlan}
           onValueChange={setSelectedPlan}
@@ -235,7 +215,6 @@ const CoachPaymentPage = () => {
           ))}
         </RadioGroup>
 
-        {/* Team Size Note */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
           <div className="flex items-start">
             <Users className="h-5 w-5 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
@@ -249,7 +228,6 @@ const CoachPaymentPage = () => {
           </div>
         </div>
 
-        {/* Payment Security Notice */}
         <div className="flex items-center justify-center text-sm text-gray-500 mt-6">
           <Shield className="h-4 w-4 mr-2 text-gray-400" />
           <span>Secure payment processing. Cancel anytime.</span>

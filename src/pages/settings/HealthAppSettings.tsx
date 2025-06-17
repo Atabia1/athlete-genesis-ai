@@ -1,4 +1,5 @@
 
+
 /**
  * Health App Settings Page
  *
@@ -7,7 +8,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +16,6 @@ import HealthAppQRConnect from '@/components/features/HealthAppQRConnect';
 import ConnectedHealthDevices from '@/components/features/ConnectedHealthDevices';
 import { healthSyncService } from '@/services/health-sync-service';
 import { healthApi } from '@/services/api';
-import { useToast } from '@/hooks/use-toast';
 import { HealthData } from '@/integrations/health-apps/types';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -24,7 +23,6 @@ import { useAuth } from '@/hooks/use-auth';
  * Health App Settings Page
  */
 const HealthAppSettings = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [healthData, setHealthData] = useState<HealthData | null>(null);
