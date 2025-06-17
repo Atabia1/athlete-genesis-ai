@@ -1,3 +1,4 @@
+
 /**
  * Enhanced IndexedDB service with transaction queue and improved error handling
  *
