@@ -1,17 +1,16 @@
+
 import type { Meta, StoryObj } from '@storybook/react';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { Search, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 /**
- * The Input component is used to get user input in a text field.
+ * The Input component is used for text input fields.
  * 
  * ## Features
  * 
- * - Support for all standard input types (text, email, password, etc.)
+ * - Support for different input types (text, email, password, etc.)
  * - Support for disabled state
- * - Support for readonly state
  * - Support for placeholder text
  * - Customizable appearance through className
  * 
@@ -22,7 +21,7 @@ import { useState } from 'react';
  * import { Label } from '@/shared/components/ui/label';
  * 
  * // Basic usage
- * <Input placeholder="Enter your name" />
+ * <Input placeholder="Enter text..." />
  * 
  * // With label
  * <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -30,11 +29,8 @@ import { useState } from 'react';
  *   <Input type="email" id="email" placeholder="Email" />
  * </div>
  * 
- * // With icon
- * <div className="relative">
- *   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
- *   <Input className="pl-8" type="search" placeholder="Search..." />
- * </div>
+ * // Disabled
+ * <Input disabled placeholder="Disabled input" />
  * ```
  */
 const meta: Meta<typeof Input> = {
@@ -47,7 +43,7 @@ const meta: Meta<typeof Input> = {
   argTypes: {
     type: {
       control: 'select',
-      options: ['text', 'email', 'password', 'number', 'search', 'tel', 'url', 'date', 'time', 'datetime-local', 'month', 'week'],
+      options: ['text', 'email', 'password', 'number', 'tel', 'url', 'search'],
       description: 'The type of the input',
       table: {
         type: { summary: 'string' },
@@ -56,7 +52,7 @@ const meta: Meta<typeof Input> = {
     },
     placeholder: {
       control: 'text',
-      description: 'Placeholder text',
+      description: 'Placeholder text for the input',
       table: {
         type: { summary: 'string' },
       },
@@ -66,15 +62,7 @@ const meta: Meta<typeof Input> = {
       description: 'Whether the input is disabled',
       table: {
         type: { summary: 'boolean' },
-        defaultValue: { summary: false },
-      },
-    },
-    readOnly: {
-      control: 'boolean',
-      description: 'Whether the input is read-only',
-      table: {
-        type: { summary: 'boolean' },
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     className: {
@@ -95,7 +83,57 @@ type Story = StoryObj<typeof Input>;
  */
 export const Default: Story = {
   args: {
-    placeholder: 'Enter text here...',
+    placeholder: 'Type something...',
+  },
+};
+
+/**
+ * An email input field.
+ */
+export const Email: Story = {
+  args: {
+    type: 'email',
+    placeholder: 'Enter your email',
+  },
+};
+
+/**
+ * A password input field.
+ */
+export const Password: Story = {
+  args: {
+    type: 'password',
+    placeholder: 'Enter your password',
+  },
+};
+
+/**
+ * A number input field.
+ */
+export const Number: Story = {
+  args: {
+    type: 'number',
+    placeholder: 'Enter a number',
+  },
+};
+
+/**
+ * A disabled input field.
+ */
+export const Disabled: Story = {
+  args: {
+    disabled: true,
+    placeholder: 'Disabled input',
+  },
+};
+
+/**
+ * A disabled input with a value.
+ */
+export const DisabledWithValue: Story = {
+  args: {
+    disabled: true,
+    defaultValue: 'Can\'t edit this',
   },
 };
 
@@ -105,93 +143,10 @@ export const Default: Story = {
 export const WithLabel: Story = {
   render: () => (
     <div className="grid w-full max-w-sm items-center gap-1.5">
-      <Label htmlFor="name">Name</Label>
-      <Input id="name" placeholder="Enter your name" />
+      <Label htmlFor="email">Email</Label>
+      <Input type="email" id="email" placeholder="Email" />
     </div>
   ),
-};
-
-/**
- * An input with an icon.
- */
-export const WithIcon: Story = {
-  render: () => (
-    <div className="relative w-full max-w-sm">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-      <Input className="pl-8" type="search" placeholder="Search..." />
-    </div>
-  ),
-};
-
-/**
- * A disabled input.
- */
-export const Disabled: Story = {
-  args: {
-    disabled: true,
-    placeholder: 'Disabled input',
-    value: 'You cannot change this',
-  },
-};
-
-/**
- * A read-only input.
- */
-export const ReadOnly: Story = {
-  args: {
-    readOnly: true,
-    placeholder: 'Read-only input',
-    value: 'You cannot change this',
-  },
-};
-
-/**
- * An input with an error state.
- */
-export const WithError: Story = {
-  render: () => (
-    <div className="grid w-full max-w-sm items-center gap-1.5">
-      <Label htmlFor="email-error">Email</Label>
-      <Input
-        id="email-error"
-        type="email"
-        placeholder="Enter your email"
-        className="border-red-500 focus-visible:ring-red-500"
-      />
-      <p className="text-sm text-red-500">Please enter a valid email address.</p>
-    </div>
-  ),
-};
-
-/**
- * A password input with show/hide functionality.
- */
-export const Password: Story = {
-  render: () => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [showPassword, setShowPassword] = useState(false);
-    return (
-      <div className="relative w-full max-w-sm">
-        <Lock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-        <Input
-          className="pl-8 pr-10"
-          type={showPassword ? 'text' : 'password'}
-          placeholder="Enter your password"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-2.5 top-2.5 text-gray-500 hover:text-gray-700"
-        >
-          {showPassword ? (
-            <EyeOff className="h-4 w-4" />
-          ) : (
-            <Eye className="h-4 w-4" />
-          )}
-        </button>
-      </div>
-    );
-  },
 };
 
 /**
@@ -199,35 +154,20 @@ export const Password: Story = {
  */
 export const FormExample: Story = {
   render: () => (
-    <div className="grid w-full max-w-sm gap-4">
+    <div className="grid w-full max-w-sm items-center gap-4">
       <div className="grid gap-1.5">
-        <Label htmlFor="form-name">Name</Label>
-        <Input id="form-name" placeholder="Enter your name" />
+        <Label htmlFor="name">Name</Label>
+        <Input id="name" placeholder="Your name" />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="form-email">Email</Label>
-        <div className="relative">
-          <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            id="form-email"
-            type="email"
-            className="pl-8"
-            placeholder="Enter your email"
-          />
-        </div>
+        <Label htmlFor="email">Email</Label>
+        <Input type="email" id="email" placeholder="Your email" />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="form-password">Password</Label>
-        <div className="relative">
-          <Lock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            id="form-password"
-            type="password"
-            className="pl-8"
-            placeholder="Enter your password"
-          />
-        </div>
+        <Label htmlFor="password">Password</Label>
+        <Input type="password" id="password" placeholder="Your password" />
       </div>
+      <Button type="submit">Submit</Button>
     </div>
   ),
 };

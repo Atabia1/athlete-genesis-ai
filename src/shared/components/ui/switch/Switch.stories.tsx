@@ -1,3 +1,4 @@
+
 import type { Meta, StoryObj } from '@storybook/react';
 import { Switch } from '@/shared/components/ui/switch';
 import { Label } from '@/shared/components/ui/label';
@@ -66,7 +67,7 @@ const meta: Meta<typeof Switch> = {
       description: 'Whether the switch is disabled',
       table: {
         type: { summary: 'boolean' },
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     className: {

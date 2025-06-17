@@ -1,3 +1,4 @@
+
 /**
  * useKeyboard: Hook for keyboard navigation and shortcuts
  * 
@@ -107,10 +108,13 @@ export function useKeyboard(
   // Convert single key combo to array
   const keyCombos = Array.isArray(keyCombo) ? keyCombo : [keyCombo];
 
-  // Handle keyboard events
+  // Handle keyboard events with proper event type
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
+    (event: Event) => {
       if (!enabled) return;
+      
+      // Type guard to ensure this is a KeyboardEvent
+      if (!(event instanceof KeyboardEvent)) return;
 
       // Check if any key combo matches
       const matchedCombo = keyCombos.find(combo => matchesKeyCombo(event, combo));
@@ -177,10 +181,13 @@ export function useKeySequence(
     }, 1000);
   }, []);
 
-  // Handle keyboard events
+  // Handle keyboard events with proper event type
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
+    (event: Event) => {
       if (!enabled) return;
+      
+      // Type guard to ensure this is a KeyboardEvent
+      if (!(event instanceof KeyboardEvent)) return;
 
       // Add the key to the current sequence
       currentSequenceRef.current.push(event.key.toLowerCase());

@@ -1,15 +1,16 @@
+
 import type { Meta, StoryObj } from '@storybook/react';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 import { Label } from '@/shared/components/ui/label';
 import { useState } from 'react';
+import type { CheckedState } from '@radix-ui/react-checkbox';
 
 /**
- * The Checkbox component is used to select one or more items from a list of options.
+ * The Checkbox component is used for multiple selection from a set of options.
  * 
  * ## Features
  * 
- * - Toggle between checked and unchecked states
- * - Support for indeterminate state
+ * - Support for checked, unchecked, and indeterminate states
  * - Support for disabled state
  * - Customizable appearance through className
  * 
@@ -42,10 +43,11 @@ const meta: Meta<typeof Checkbox> = {
   tags: ['autodocs'],
   argTypes: {
     checked: {
-      control: 'boolean',
-      description: 'Whether the checkbox is checked',
+      control: 'select',
+      options: [true, false, 'indeterminate'],
+      description: 'The checked state of the checkbox',
       table: {
-        type: { summary: 'boolean' },
+        type: { summary: 'boolean | "indeterminate"' },
       },
     },
     defaultChecked: {
@@ -67,7 +69,7 @@ const meta: Meta<typeof Checkbox> = {
       description: 'Whether the checkbox is disabled',
       table: {
         type: { summary: 'boolean' },
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     className: {
@@ -93,11 +95,20 @@ export const Default: Story = {
 };
 
 /**
- * A checkbox in the checked state.
+ * A checked checkbox.
  */
 export const Checked: Story = {
   args: {
     defaultChecked: true,
+  },
+};
+
+/**
+ * An indeterminate checkbox.
+ */
+export const Indeterminate: Story = {
+  args: {
+    checked: 'indeterminate',
   },
 };
 
@@ -138,7 +149,7 @@ export const WithLabel: Story = {
 export const Controlled: Story = {
   render: () => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [checked, setChecked] = useState(false);
+    const [checked, setChecked] = useState<CheckedState>(false);
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center space-x-2">
@@ -148,11 +159,11 @@ export const Controlled: Story = {
             onCheckedChange={setChecked}
           />
           <Label htmlFor="controlled-checkbox">
-            {checked ? 'Checked' : 'Unchecked'}
+            {checked === true ? 'Checked' : checked === 'indeterminate' ? 'Indeterminate' : 'Unchecked'}
           </Label>
         </div>
         <p className="text-sm text-gray-500">
-          The checkbox is {checked ? 'checked' : 'unchecked'}
+          The checkbox is {checked === true ? 'checked' : checked === 'indeterminate' ? 'indeterminate' : 'unchecked'}
         </p>
       </div>
     );
@@ -160,100 +171,27 @@ export const Controlled: Story = {
 };
 
 /**
- * An example of a checkbox group.
+ * Examples of checkboxes used in different contexts.
  */
-export const CheckboxGroup: Story = {
+export const Examples: Story = {
   render: () => (
     <div className="flex flex-col gap-4">
-      <Label className="text-base">Select your interests:</Label>
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2">
-          <Checkbox id="programming" />
-          <Label htmlFor="programming">Programming</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="design" defaultChecked />
-          <Label htmlFor="design">Design</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="marketing" />
-          <Label htmlFor="marketing">Marketing</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="business" />
-          <Label htmlFor="business">Business</Label>
-        </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox id="marketing" />
+        <Label htmlFor="marketing">Send me marketing emails</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox id="notifications" defaultChecked />
+        <Label htmlFor="notifications">Send me notifications</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox id="updates" checked="indeterminate" />
+        <Label htmlFor="updates">Send me product updates</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox id="newsletter" disabled />
+        <Label htmlFor="newsletter">Subscribe to newsletter (disabled)</Label>
       </div>
     </div>
   ),
-};
-
-/**
- * An example of a checkbox with an indeterminate state.
- */
-export const Indeterminate: Story = {
-  render: () => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [checkedItems, setCheckedItems] = useState({
-      apple: false,
-      orange: false,
-      banana: false,
-    });
-
-    const allChecked = Object.values(checkedItems).every(Boolean);
-    const indeterminate = Object.values(checkedItems).some(Boolean) && !allChecked;
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="all"
-            checked={allChecked}
-            // @ts-ignore - indeterminate is not in the type definition
-            ref={(el) => el && (el.indeterminate = indeterminate)}
-            onCheckedChange={(checked) => {
-              setCheckedItems({
-                apple: !!checked,
-                orange: !!checked,
-                banana: !!checked,
-              });
-            }}
-          />
-          <Label htmlFor="all">Select all fruits</Label>
-        </div>
-        <div className="ml-6 space-y-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="apple"
-              checked={checkedItems.apple}
-              onCheckedChange={(checked) => {
-                setCheckedItems({ ...checkedItems, apple: !!checked });
-              }}
-            />
-            <Label htmlFor="apple">Apple</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="orange"
-              checked={checkedItems.orange}
-              onCheckedChange={(checked) => {
-                setCheckedItems({ ...checkedItems, orange: !!checked });
-              }}
-            />
-            <Label htmlFor="orange">Orange</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="banana"
-              checked={checkedItems.banana}
-              onCheckedChange={(checked) => {
-                setCheckedItems({ ...checkedItems, banana: !!checked });
-              }}
-            />
-            <Label htmlFor="banana">Banana</Label>
-          </div>
-        </div>
-      </div>
-    );
-  },
 };
