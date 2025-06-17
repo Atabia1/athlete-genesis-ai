@@ -19,7 +19,7 @@ import { loggingService } from './logging-service';
 interface ServiceConfig {
   name: string;
   instance: any;
-  dependencies?: string[];
+  dependencies: string[];
   initialized: boolean;
 }
 
@@ -83,15 +83,16 @@ class ServiceRegistry {
 
     try {
       // Initialize dependencies first
-      for (const dep of service.dependencies) {
+      const dependencies = service.dependencies || [];
+      for (const dep of dependencies) {
         await this.initializeService(dep);
       }
 
       // Initialize the service itself
       if (service.instance.initialize) {
         // Pass dependencies to the service if needed
-        const dependencies = service.dependencies.map(dep => this.get(dep));
-        await service.instance.initialize(...dependencies);
+        const dependencyInstances = dependencies.map(dep => this.get(dep));
+        await service.instance.initialize(...dependencyInstances);
       }
 
       service.initialized = true;
@@ -119,7 +120,8 @@ class ServiceRegistry {
       visiting.add(serviceName);
       const service = this.services.get(serviceName);
       if (service) {
-        for (const dep of service.dependencies) {
+        const dependencies = service.dependencies || [];
+        for (const dep of dependencies) {
           visit(dep);
         }
       }
