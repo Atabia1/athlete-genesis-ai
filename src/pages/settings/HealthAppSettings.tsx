@@ -1,3 +1,4 @@
+
 /**
  * Health App Settings Page
  *
@@ -6,18 +7,13 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Smartphone, Activity, RefreshCw, Trash2, Heart, Calendar, Clock, Info } from 'lucide-react';
-import HealthAppConnect from '@/components/features/HealthAppConnect';
+import { Activity, RefreshCw, Heart, Info } from 'lucide-react';
 import HealthAppQRConnect from '@/components/features/HealthAppQRConnect';
 import ConnectedHealthDevices from '@/components/features/ConnectedHealthDevices';
-import HealthDataVisualization from '@/components/dashboard/HealthDataVisualization';
 import { healthSyncService } from '@/services/health-sync-service';
 import { healthApi } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
@@ -29,11 +25,9 @@ import { useAuth } from '@/hooks/use-auth';
  */
 const HealthAppSettings = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [healthData, setHealthData] = useState<HealthData | null>(null);
-  const [connectedDevices, setConnectedDevices] = useState<any[]>([]);
   const [syncStatus, setSyncStatus] = useState<{
     lastSync: string | null;
     syncInProgress: boolean;
@@ -43,38 +37,28 @@ const HealthAppSettings = () => {
     syncInProgress: false,
     connectedDevices: 0,
   });
-  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch health data and connected devices
   const fetchData = async () => {
     try {
-      setIsLoading(true);
-
       // Fetch health data
       const data = await healthSyncService.getHealthData();
       setHealthData(data);
 
-      // Fetch connected devices
+      // Fetch connected devices count and sync status
       if (user) {
         try {
           const devices = await healthApi.getConnectedDevices();
-          setConnectedDevices(devices);
+          setSyncStatus(prev => ({
+            ...prev,
+            connectedDevices: devices.length
+          }));
         } catch (error) {
           console.error('Failed to fetch connected devices:', error);
-        }
-
-        // Fetch sync status
-        try {
-          const status = await healthApi.getSyncStatus();
-          setSyncStatus(status);
-        } catch (error) {
-          console.error('Failed to fetch sync status:', error);
         }
       }
     } catch (error) {
       console.error('Failed to fetch health data:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -82,35 +66,6 @@ const HealthAppSettings = () => {
   useEffect(() => {
     fetchData();
   }, [user]);
-
-  // Handle health data sync
-  const handleHealthDataSync = (data: HealthData) => {
-    setHealthData(data);
-    fetchData(); // Refresh connected devices and sync status
-  };
-
-  // Handle device disconnect
-  const handleDisconnectDevice = async (deviceId: string) => {
-    try {
-      await healthApi.disconnectDevice(deviceId);
-
-      toast({
-        title: "Device Disconnected",
-        description: "The device has been disconnected successfully.",
-      });
-
-      // Refresh connected devices
-      fetchData();
-    } catch (error) {
-      console.error('Failed to disconnect device:', error);
-
-      toast({
-        title: "Failed to Disconnect Device",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Format date for display
   const formatDate = (dateStr?: string | null) => {
@@ -204,17 +159,7 @@ const HealthAppSettings = () => {
                   </Alert>
                 )}
               </CardContent>
-              <CardFooter>
-                <Button variant="outline" onClick={fetchData} className="w-full">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh Status
-                </Button>
-              </CardFooter>
             </Card>
-
-            {healthData && (
-              <HealthDataVisualization healthData={healthData} />
-            )}
           </TabsContent>
 
           {/* Connected Devices Tab */}
