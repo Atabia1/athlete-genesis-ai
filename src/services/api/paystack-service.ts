@@ -1,624 +1,382 @@
-/**
- * Paystack Service
- *
- * This service provides methods for interacting with the Paystack payment gateway.
- * It handles payment initialization, verification, subscription management,
- * recurring payments, payment history, and discount codes.
- */
+import { ApiClient } from '../api-client';
+import { getConfig } from '@/lib/config';
 
-import { PaystackOptions } from '@paystack/inline-js';
-
-/**
- * Payment status enum
- */
-export enum PaymentStatus {
-  PENDING = 'pending',
-  SUCCESS = 'success',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled'
-}
-
-/**
- * Payment type enum
- */
-export enum PaymentType {
-  ONE_TIME = 'one_time',
-  SUBSCRIPTION = 'subscription'
-}
-
-/**
- * Payment currency enum
- */
-export enum PaymentCurrency {
-  NGN = 'NGN',
-  USD = 'USD',
-  GHS = 'GHS',
-  ZAR = 'ZAR',
-  KES = 'KES'
-}
-
-/**
- * Payment plan interface
- */
-export interface PaymentPlan {
+export interface PaystackPlan {
   id: string;
   name: string;
   amount: number;
-  interval: 'daily' | 'weekly' | 'monthly' | 'annually';
+  interval: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannually' | 'annually';
   description?: string;
+  currency?: string;
 }
 
-/**
- * Payment transaction interface
- */
-export interface PaymentTransaction {
+export interface PaystackSubscription {
   id: string;
+  customer: {
+    email: string;
+    customer_code: string;
+  };
+  plan: PaystackPlan;
+  status: 'active' | 'cancelled' | 'paused' | 'completed';
+  next_payment_date: string;
+  created_at: string;
+}
+
+export interface PaystackTransaction {
+  id: number;
+  status: string;
   reference: string;
   amount: number;
-  currency: PaymentCurrency;
-  status: PaymentStatus;
-  type: PaymentType;
-  planId?: string;
-  customerId: string;
-  customerEmail: string;
-  customerName?: string;
-  metadata?: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
-  discountCode?: string;
-  discountAmount?: number;
+  customer: {
+    email: string;
+  };
+  plan: string | null;
+  paid_at: string | null;
+  created_at: string;
+  authorization: {
+    authorization_code: string;
+    card_type: string;
+    last4: string;
+    exp_month: string;
+    exp_year: string;
+    bank: string;
+  };
 }
 
-/**
- * Subscription interface
- */
-export interface Subscription {
-  id: string;
-  code: string;
-  planId: string;
-  planName: string;
-  customerId: string;
-  customerEmail: string;
-  amount: number;
-  status: 'active' | 'cancelled' | 'paused' | 'expired';
-  nextPaymentDate: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Discount code interface
- */
-export interface DiscountCode {
-  id: string;
-  code: string;
-  type: 'percentage' | 'fixed';
-  value: number; // Percentage or fixed amount
-  maxUses: number;
-  usedCount: number;
-  expiryDate?: string;
-  planIds?: string[]; // Specific plans this code applies to (empty means all)
-  isActive: boolean;
-  createdAt: string;
-}
-
-/**
- * Payment initialization options
- */
-export interface PaymentInitOptions {
+export interface PaystackCustomer {
+  id: number;
   email: string;
-  amount: number; // Amount in smallest currency unit (e.g., kobo for NGN, cents for USD)
-  currency?: PaymentCurrency;
-  reference?: string;
-  planId?: string;
-  callbackUrl?: string;
-  metadata?: Record<string, any>;
-  discountCode?: string;
-  onSuccess?: (transaction: PaymentTransaction) => void;
-  onCancel?: () => void;
+  customer_code: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  metadata: any;
+  created_at: string;
 }
 
-/**
- * Paystack service interface
- */
-export interface PaystackService {
-  /**
-   * Initialize a payment
-   */
-  initializePayment(options: PaymentInitOptions): Promise<string>;
-
-  /**
-   * Verify a payment transaction
-   */
-  verifyTransaction(reference: string): Promise<PaymentTransaction>;
-
-  /**
-   * Create a subscription plan
-   */
-  createPlan(plan: Omit<PaymentPlan, 'id'>): Promise<PaymentPlan>;
-
-  /**
-   * Get a subscription plan
-   */
-  getPlan(planId: string): Promise<PaymentPlan>;
-
-  /**
-   * List all subscription plans
-   */
-  listPlans(): Promise<PaymentPlan[]>;
-
-  /**
-   * Create a subscription
-   */
-  createSubscription(email: string, planId: string, metadata?: Record<string, any>): Promise<Subscription>;
-
-  /**
-   * Get a subscription
-   */
-  getSubscription(subscriptionId: string): Promise<Subscription>;
-
-  /**
-   * List subscriptions for a customer
-   */
-  listCustomerSubscriptions(customerId: string): Promise<Subscription[]>;
-
-  /**
-   * Cancel a subscription
-   */
-  cancelSubscription(subscriptionCode: string): Promise<boolean>;
-
-  /**
-   * Pause a subscription
-   */
-  pauseSubscription(subscriptionCode: string): Promise<boolean>;
-
-  /**
-   * Resume a subscription
-   */
-  resumeSubscription(subscriptionCode: string): Promise<boolean>;
-
-  /**
-   * Get transaction history for a customer
-   */
-  getTransactionHistory(customerId: string, page?: number, perPage?: number): Promise<PaymentTransaction[]>;
-
-  /**
-   * Generate a receipt for a transaction
-   */
-  generateReceipt(transactionId: string): Promise<string>;
-
-  /**
-   * Create a discount code
-   */
-  createDiscountCode(code: Omit<DiscountCode, 'id' | 'usedCount' | 'createdAt'>): Promise<DiscountCode>;
-
-  /**
-   * Validate a discount code
-   */
-  validateDiscountCode(code: string, amount: number, planId?: string): Promise<{ valid: boolean; discountAmount: number }>;
-
-  /**
-   * Apply a discount code to a payment
-   */
-  applyDiscountCode(code: string, amount: number, planId?: string): Promise<{ amount: number; discountAmount: number }>;
-
-  /**
-   * List all discount codes
-   */
-  listDiscountCodes(active?: boolean): Promise<DiscountCode[]>;
-
-  /**
-   * Deactivate a discount code
-   */
-  deactivateDiscountCode(codeId: string): Promise<boolean>;
+export interface PaystackDiscount {
+  id: number;
+  code: string;
+  name: string;
+  percent_off: number;
+  duration: 'once' | 'forever' | 'repeating';
+  duration_in_months: number | null;
+  active: boolean;
+  created_at: string;
 }
 
-/**
- * Paystack service implementation
- */
-export class PaystackServiceImpl implements PaystackService {
-  private readonly publicKey: string;
-  private readonly secretKey: string;
-  private readonly apiUrl: string = 'https://api.paystack.co';
+export interface PaystackResponse<T> {
+  status: boolean;
+  message: string;
+  data: T;
+}
+
+export interface PaystackListResponse<T> {
+  status: boolean;
+  message: string;
+  data: T[];
+  meta: {
+    total: number;
+    skipped: number;
+    perPage: number;
+    page: number;
+    pageCount: number;
+  };
+}
+
+export interface PaystackCheckoutOptions {
+  key: string;
+  email: string;
+  amount: number;
+  currency?: string;
+  ref?: string;
+  plan?: string;
+  quantity?: number;
+  channels?: string[];
+  metadata?: {
+    custom_fields?: Array<{
+      display_name: string;
+      variable_name: string;
+      value: string;
+    }>;
+    [key: string]: any;
+  };
+  label?: string;
+  onClose?: () => void;
+  onSuccess?: (reference: string) => void;
+  callback?: (reference: string) => void;
+}
+
+export interface PaystackSubscriptionRequest {
+  customer: string;
+  plan: string;
+  authorization?: string;
+  start_date?: string;
+}
+
+export interface PaystackPlanRequest {
+  name: string;
+  amount: number;
+  interval: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'biannually' | 'annually';
+  description?: string;
+  send_invoices?: boolean;
+  send_sms?: boolean;
+  currency?: string;
+  invoice_limit?: number;
+}
+
+export interface PaystackCustomerRequest {
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  metadata?: any;
+}
+
+export interface PaystackDiscountRequest {
+  name: string;
+  code: string;
+  percent_off: number;
+  duration: 'once' | 'forever' | 'repeating';
+  duration_in_months?: number;
+  max_redemptions?: number;
+  applies_to?: {
+    plan_ids: string[];
+  };
+}
+
+export class PaystackApiService {
+  private apiClient: ApiClient;
+  private publicKey: string;
+  private secretKey: string;
+  private apiUrl: string;
 
   constructor() {
-    // Get Paystack keys from environment variables or config.js
-    this.publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 
-                     (typeof window !== 'undefined' && window.APP_CONFIG?.PAYSTACK_PUBLIC_KEY) || 
-                     'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; // Fallback test key
-    
-    // For secret key, we'd typically only have this in backend code, but since we're in a demo/development environment:
-    this.secretKey = import.meta.env.VITE_PAYSTACK_SECRET_KEY || 'sk_test_xxxx'; // Fallback placeholder
-    
-    // Only log a warning instead of throwing an error
-    if (!this.publicKey || this.publicKey === 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx') {
-      console.warn('Using placeholder Paystack public key. For production, please set VITE_PAYSTACK_PUBLIC_KEY or configure window.APP_CONFIG.PAYSTACK_PUBLIC_KEY.');
-    }
+    const config = getConfig();
+    this.publicKey = config.paystack.publicKey;
+    this.secretKey = config.paystack.secretKey;
+    this.apiUrl = 'https://api.paystack.co';
+
+    this.apiClient = new ApiClient({
+      baseURL: this.apiUrl,
+      timeout: 30000,
+      retries: 3,
+    });
   }
 
-  /**
-   * Initialize a payment
-   */
-  async initializePayment(options: PaymentInitOptions): Promise<string> {
+  private async makeRequest<T>(
+    endpoint: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    data?: any
+  ): Promise<T> {
     try {
-      // Generate a reference if not provided
-      const reference = options.reference || this.generateReference();
-
-      // For demo purposes, we'll return a mock authorization URL
-      // In a real implementation, you would make an API request to Paystack
-      console.log('Mock payment initialized with reference:', reference);
-      
-      return `https://checkout.paystack.com/demo-checkout/${reference}`;
-    } catch (error) {
-      console.error('Error initializing payment:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Verify a payment transaction
-   */
-  async verifyTransaction(reference: string): Promise<PaymentTransaction> {
-    console.log('Mock verifying transaction with reference:', reference);
-    return {
-      id: '123456',
-      reference,
-      amount: 1000,
-      currency: PaymentCurrency.NGN,
-      status: PaymentStatus.SUCCESS,
-      type: PaymentType.ONE_TIME,
-      customerId: 'customer_123',
-      customerEmail: 'user@example.com',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  }
-
-  /**
-   * Create a subscription plan
-   */
-  async createPlan(plan: Omit<PaymentPlan, 'id'>): Promise<PaymentPlan> {
-    return {
-      id: `plan_${Date.now()}`,
-      ...plan
-    };
-  }
-
-  /**
-   * Get a subscription plan
-   */
-  async getPlan(planId: string): Promise<PaymentPlan> {
-    return {
-      id: planId,
-      name: 'Demo Plan',
-      amount: 1000,
-      interval: 'monthly'
-    };
-  }
-
-  /**
-   * List all subscription plans
-   */
-  async listPlans(): Promise<PaymentPlan[]> {
-    return [
-      {
-        id: 'plan_1',
-        name: 'Pro Athlete',
-        amount: 999,
-        interval: 'monthly',
-        description: 'Pro athlete plan with premium features'
-      },
-      {
-        id: 'plan_2',
-        name: 'Coach Pro',
-        amount: 1999,
-        interval: 'monthly',
-        description: 'Coach plan with team management'
-      }
-    ];
-  }
-
-  /**
-   * Cancel a subscription
-   */
-  async cancelSubscription(): Promise<boolean> {
-    return true;
-  }
-
-  /**
-   * Create a subscription
-   */
-  async createSubscription(email: string, planId: string, metadata?: Record<string, any>): Promise<Subscription> {
-    return {
-      id: `sub_${Date.now()}`,
-      code: `sub_code_${Date.now()}`,
-      planId: 'plan_1',
-      planName: 'Pro Athlete',
-      customerId: 'customer_123',
-      customerEmail: 'user@example.com',
-      amount: 999,
-      status: 'active',
-      nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  }
-
-  /**
-   * Get a subscription
-   */
-  async getSubscription(subscriptionId: string): Promise<Subscription> {
-    return this.createSubscription();
-  }
-
-  /**
-   * List subscriptions for a customer
-   */
-  async listCustomerSubscriptions(customerId: string): Promise<Subscription[]> {
-    return [await this.createSubscription()];
-  }
-
-  /**
-   * Pause a subscription
-   */
-  async pauseSubscription(subscriptionCode: string): Promise<boolean> {
-    return true;
-  }
-
-  /**
-   * Resume a subscription
-   */
-  async resumeSubscription(subscriptionCode: string): Promise<boolean> {
-    return true;
-  }
-
-  /**
-   * Get transaction history for a customer
-   */
-  async getTransactionHistory(customerId: string, page: number = 1, perPage: number = 20): Promise<PaymentTransaction[]> {
-    return [await this.verifyTransaction('mock_ref')];
-  }
-
-  /**
-   * Generate a receipt for a transaction
-   */
-  async generateReceipt(transactionId: string): Promise<string> {
-    return '/receipts/mock';
-  }
-
-  /**
-   * Create a discount code
-   *
-   * Note: Paystack doesn't have built-in discount codes, so we'll implement this
-   * in our own database. This is a mock implementation.
-   */
-  async createDiscountCode(code: Omit<DiscountCode, 'id' | 'usedCount' | 'createdAt'>): Promise<DiscountCode> {
-    try {
-      // In a real implementation, you would save this to your database
-      // For this example, we'll mock the response
-      return {
-        id: this.generateReference(),
-        code: code.code,
-        type: code.type,
-        value: code.value,
-        maxUses: code.maxUses,
-        usedCount: 0,
-        expiryDate: code.expiryDate,
-        planIds: code.planIds,
-        isActive: code.isActive,
-        createdAt: new Date().toISOString()
-      };
-    } catch (error) {
-      console.error('Error creating discount code:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Validate a discount code
-   *
-   * Note: This is a mock implementation since Paystack doesn't have built-in discount codes.
-   */
-  async validateDiscountCode(code: string, amount: number, planId?: string): Promise<{ valid: boolean; discountAmount: number }> {
-    try {
-      // In a real implementation, you would check your database
-      // For this example, we'll mock some validation logic
-
-      // Mock discount codes
-      const discountCodes: Record<string, DiscountCode> = {
-        'WELCOME10': {
-          id: '1',
-          code: 'WELCOME10',
-          type: 'percentage',
-          value: 10,
-          maxUses: 100,
-          usedCount: 5,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        'FIXED20': {
-          id: '2',
-          code: 'FIXED20',
-          type: 'fixed',
-          value: 2000, // 20 in the smallest currency unit
-          maxUses: 50,
-          usedCount: 10,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        }
+      const headers = {
+        Authorization: `Bearer ${this.secretKey}`,
+        'Content-Type': 'application/json',
       };
 
-      const discountCode = discountCodes[code.toUpperCase()];
-
-      if (!discountCode) {
-        return { valid: false, discountAmount: 0 };
-      }
-
-      if (!discountCode.isActive) {
-        return { valid: false, discountAmount: 0 };
-      }
-
-      if (discountCode.usedCount >= discountCode.maxUses) {
-        return { valid: false, discountAmount: 0 };
-      }
-
-      if (discountCode.expiryDate && new Date(discountCode.expiryDate) < new Date()) {
-        return { valid: false, discountAmount: 0 };
-      }
-
-      if (discountCode.planIds && discountCode.planIds.length > 0 && planId && !discountCode.planIds.includes(planId)) {
-        return { valid: false, discountAmount: 0 };
-      }
-
-      let discountAmount = 0;
-
-      if (discountCode.type === 'percentage') {
-        discountAmount = Math.floor(amount * (discountCode.value / 100));
+      let response;
+      if (method === 'GET') {
+        response = await this.apiClient.get<PaystackResponse<T>>(endpoint, {
+          headers,
+          params: data,
+        });
       } else {
-        discountAmount = Math.min(discountCode.value, amount);
+        response = await this.apiClient.request<PaystackResponse<T>>({
+          url: endpoint,
+          method,
+          headers,
+          data,
+        });
       }
 
-      return { valid: true, discountAmount };
+      return response.data.data;
     } catch (error) {
-      console.error('Error validating discount code:', error);
+      console.error(`Paystack API error (${endpoint}):`, error);
       throw error;
     }
   }
 
-  /**
-   * Apply a discount code to a payment
-   */
-  async applyDiscountCode(code: string, amount: number, planId?: string): Promise<{ amount: number; discountAmount: number }> {
-    try {
-      const validation = await this.validateDiscountCode(code, amount, planId);
+  // Plans
+  async createPlan(plan: PaystackPlanRequest): Promise<PaystackPlan> {
+    return this.makeRequest<PaystackPlan>('/plan', 'POST', plan);
+  }
 
-      if (!validation.valid) {
-        throw new Error('Invalid discount code');
-      }
+  async updatePlan(planId: string, updates: Partial<PaystackPlanRequest>): Promise<PaystackPlan> {
+    return this.makeRequest<PaystackPlan>(`/plan/${planId}`, 'PUT', updates);
+  }
 
-      return {
-        amount: amount - validation.discountAmount,
-        discountAmount: validation.discountAmount
-      };
-    } catch (error) {
-      console.error('Error applying discount code:', error);
-      throw error;
+  async getPlan(planId: string): Promise<PaystackPlan> {
+    return this.makeRequest<PaystackPlan>(`/plan/${planId}`, 'GET');
+  }
+
+  async getPlans(page = 1, perPage = 50): Promise<PaystackListResponse<PaystackPlan>> {
+    return this.makeRequest<PaystackListResponse<PaystackPlan>>('/plan', 'GET', {
+      perPage,
+      page,
+    });
+  }
+
+  // Customers
+  async createCustomer(customer: PaystackCustomerRequest): Promise<PaystackCustomer> {
+    return this.makeRequest<PaystackCustomer>('/customer', 'POST', customer);
+  }
+
+  async updateCustomer(
+    customerId: string,
+    updates: Partial<PaystackCustomerRequest>
+  ): Promise<PaystackCustomer> {
+    return this.makeRequest<PaystackCustomer>(`/customer/${customerId}`, 'PUT', updates);
+  }
+
+  async getCustomer(customerId: string): Promise<PaystackCustomer> {
+    return this.makeRequest<PaystackCustomer>(`/customer/${customerId}`, 'GET');
+  }
+
+  async getCustomers(page = 1, perPage = 50): Promise<PaystackListResponse<PaystackCustomer>> {
+    return this.makeRequest<PaystackListResponse<PaystackCustomer>>('/customer', 'GET', {
+      perPage,
+      page,
+    });
+  }
+
+  // Subscriptions
+  async createSubscription(email: string, planId: string, metadata?: any): Promise<any> {
+    console.log('Creating subscription for:', email, 'plan:', planId, 'metadata:', metadata);
+    // Implementation will be added later
+    return { data: { subscription_code: 'mock_subscription_code' } };
+  }
+
+  async pauseSubscription(subscriptionId: string): Promise<any> {
+    console.log('Pausing subscription:', subscriptionId);
+    // Implementation will be added later
+    return { data: { status: 'paused' } };
+  }
+
+  async resumeSubscription(subscriptionId: string): Promise<any> {
+    console.log('Resuming subscription:', subscriptionId);
+    // Implementation will be added later
+    return { data: { status: 'active' } };
+  }
+
+  async getSubscriptions(customerId: string, page: number = 1, perPage: number = 50): Promise<any> {
+    console.log('Getting subscriptions for customer:', customerId, 'page:', page, 'perPage:', perPage);
+    // Implementation will be added later
+    return { data: [] };
+  }
+
+  async getTransaction(transactionId: string): Promise<any> {
+    console.log('Getting transaction:', transactionId);
+    // Implementation will be added later
+    return { data: {} };
+  }
+
+  async cancelSubscription(subscriptionId: string): Promise<any> {
+    console.log('Canceling subscription:', subscriptionId);
+    return this.makeRequest('/subscription/disable', 'POST', {
+      code: subscriptionId,
+      token: subscriptionId
+    });
+  }
+
+  async getCustomerSubscriptions(customerId: string): Promise<any> {
+    console.log('Getting customer subscriptions:', customerId);
+    return this.makeRequest('/customer', 'GET', {
+      customer: customerId
+    });
+  }
+
+  async getSubscription(subscriptionId: string): Promise<PaystackSubscription> {
+    return this.makeRequest<PaystackSubscription>(`/subscription/${subscriptionId}`, 'GET');
+  }
+
+  // Transactions
+  async verifyTransaction(reference: string): Promise<PaystackTransaction> {
+    return this.makeRequest<PaystackTransaction>(`/transaction/verify/${reference}`, 'GET');
+  }
+
+  async getTransactions(
+    page = 1,
+    perPage = 50,
+    from?: string,
+    to?: string,
+    status?: string,
+    customer?: string
+  ): Promise<PaystackListResponse<PaystackTransaction>> {
+    const params: Record<string, any> = { perPage, page };
+    if (from) params.from = from;
+    if (to) params.to = to;
+    if (status) params.status = status;
+    if (customer) params.customer = customer;
+
+    return this.makeRequest<PaystackListResponse<PaystackTransaction>>('/transaction', 'GET', params);
+  }
+
+  // Discounts
+  async createDiscount(discount: PaystackDiscountRequest): Promise<PaystackDiscount> {
+    return this.makeRequest<PaystackDiscount>('/discount', 'POST', discount);
+  }
+
+  async getDiscount(discountId: string): Promise<PaystackDiscount> {
+    return this.makeRequest<PaystackDiscount>(`/discount/${discountId}`, 'GET');
+  }
+
+  async getDiscounts(page = 1, perPage = 50): Promise<PaystackListResponse<PaystackDiscount>> {
+    return this.makeRequest<PaystackListResponse<PaystackDiscount>>('/discount', 'GET', {
+      perPage,
+      page,
+    });
+  }
+
+  async getDiscountCode(codeId: string): Promise<any> {
+    console.log('Getting discount code:', codeId);
+    // Implementation will be added later
+    return { data: {} };
+  }
+
+  // Checkout
+  getCheckoutUrl(options: PaystackCheckoutOptions): string {
+    const baseUrl = 'https://checkout.paystack.com/';
+    const params = new URLSearchParams();
+
+    // Required parameters
+    params.append('key', options.key);
+    params.append('email', options.email);
+    params.append('amount', (options.amount * 100).toString()); // Convert to kobo/cents
+
+    // Optional parameters
+    if (options.currency) params.append('currency', options.currency);
+    if (options.ref) params.append('ref', options.ref);
+    if (options.plan) params.append('plan', options.plan);
+    if (options.quantity) params.append('quantity', options.quantity.toString());
+    if (options.label) params.append('label', options.label);
+
+    // Metadata
+    if (options.metadata) {
+      params.append('metadata', JSON.stringify(options.metadata));
     }
-  }
 
-  /**
-   * List all discount codes
-   *
-   * Note: This is a mock implementation since Paystack doesn't have built-in discount codes.
-   */
-  async listDiscountCodes(active?: boolean): Promise<DiscountCode[]> {
-    try {
-      // In a real implementation, you would fetch from your database
-      // For this example, we'll mock some discount codes
-
-      const discountCodes: DiscountCode[] = [
-        {
-          id: '1',
-          code: 'WELCOME10',
-          type: 'percentage',
-          value: 10,
-          maxUses: 100,
-          usedCount: 5,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          code: 'FIXED20',
-          type: 'fixed',
-          value: 2000, // 20 in the smallest currency unit
-          maxUses: 50,
-          usedCount: 10,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '3',
-          code: 'EXPIRED50',
-          type: 'percentage',
-          value: 50,
-          maxUses: 10,
-          usedCount: 5,
-          expiryDate: '2023-01-01T00:00:00Z',
-          isActive: false,
-          createdAt: new Date().toISOString()
-        }
-      ];
-
-      if (active !== undefined) {
-        return discountCodes.filter(code => code.isActive === active);
-      }
-
-      return discountCodes;
-    } catch (error) {
-      console.error('Error listing discount codes:', error);
-      throw error;
+    // Channels
+    if (options.channels && options.channels.length > 0) {
+      params.append('channels', options.channels.join(','));
     }
+
+    return `${baseUrl}?${params.toString()}`;
   }
 
-  /**
-   * Deactivate a discount code
-   */
-  async deactivateDiscountCode(codeId: string): Promise<boolean> {
-    try {
-      // In a real implementation, you would update your database
-      // For this example, we'll mock the response
-      return true;
-    } catch (error) {
-      console.error('Error deactivating discount code:', error);
-      throw error;
-    }
+  // Helper methods
+  generateReference(): string {
+    const timestamp = Date.now().toString();
+    const random = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+    return `ref-${timestamp}-${random}`;
   }
 
-  /**
-   * Generate a unique reference
-   */
-  private generateReference(): string {
-    return `ATHLETE_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
-  }
-
-  /**
-   * Map Paystack status to our PaymentStatus enum
-   */
-  private mapPaystackStatus(status: string): PaymentStatus {
-    switch (status.toLowerCase()) {
-      case 'success':
-        return PaymentStatus.SUCCESS;
-      case 'failed':
-        return PaymentStatus.FAILED;
-      case 'abandoned':
-        return PaymentStatus.CANCELLED;
-      default:
-        return PaymentStatus.PENDING;
-    }
-  }
-
-  /**
-   * Map Paystack subscription to our Subscription interface
-   */
-  private mapPaystackSubscription(data: any): Subscription {
-    return {
-      id: data.id,
-      code: data.subscription_code,
-      planId: data.plan.id,
-      planName: data.plan.name,
-      customerId: data.customer.id,
-      customerEmail: data.customer.email,
-      amount: data.amount,
-      status: data.status,
-      nextPaymentDate: data.next_payment_date,
-      createdAt: data.createdAt || data.created_at,
-      updatedAt: data.updatedAt || data.updated_at
-    };
+  formatAmount(amount: number, currency = 'NGN'): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+    }).format(amount);
   }
 }
 
-// Create singleton instance
-export const paystackService = new PaystackServiceImpl();
-
-export default paystackService;
+export default new PaystackApiService();

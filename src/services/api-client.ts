@@ -89,6 +89,26 @@ export interface ApiClientConfig {
 }
 
 /**
+ * API client options
+ */
+export interface ApiClientOptions {
+  baseURL?: string;
+  timeout?: number;
+  retries?: number;
+  retryDelay?: number;
+}
+
+/**
+ * Request configuration
+ */
+export interface RequestConfig {
+  headers?: Record<string, string>;
+  params?: Record<string, any>;
+  timeout?: number;
+  retries?: number;
+}
+
+/**
  * API client
  */
 export class ApiClient {
@@ -322,6 +342,16 @@ export class ApiClient {
         );
       }
       
+      // Handle network errors
+      if (error instanceof Error && error.message.includes('Network')) {
+        this.handleNetworkError(error);
+      }
+      
+      // Handle request errors
+      if (error instanceof Error && error.message.includes('Request')) {
+        this.handleRequestError(error, options);
+      }
+      
       // Apply error interceptors
       let interceptedError = error instanceof Error ? error : new Error(String(error));
       
@@ -407,6 +437,39 @@ export class ApiClient {
   }
 
   /**
+   * Handle network errors
+   */
+  private handleNetworkError(error: any): never {
+    console.error('Network error:', error.message);
+    throw new ApiError(
+      'Network connection failed. Please check your internet connection.',
+      'NETWORK_ERROR',
+      '0' // Convert number to string
+    );
+  }
+
+  /**
+   * Handle request errors
+   */
+  private handleRequestError(error: any, config: RequestConfig): never {
+    if (error.name === 'AbortError') {
+      console.error('Request timeout:', error.message);
+      throw new ApiError(
+        'Request timed out. Please try again.',
+        'TIMEOUT_ERROR',
+        '408' // Convert number to string
+      );
+    }
+
+    console.error('Request error:', error.message);
+    throw new ApiError(
+      'Request failed. Please try again.',
+      'REQUEST_ERROR',
+      '400' // Convert number to string
+    );
+  }
+
+  /**
    * Send a request
    */
   public async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -451,3 +514,5 @@ export class ApiClient {
     return this.request<T>(path, { ...options, method: 'DELETE' });
   }
 }
+
+export default ApiClient;

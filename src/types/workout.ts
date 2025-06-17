@@ -29,12 +29,32 @@ export interface WorkoutDay {
   isRestDay?: boolean;
 }
 
+// Workout schedule type
+export interface WorkoutSchedule {
+  day: string;
+  workouts: Workout[];
+  nutrition?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    water: number;
+    meals: {
+      breakfast: string;
+      lunch: string;
+      dinner: string;
+      snacks: string[];
+    };
+  };
+}
+
 // Workout plan type
 export interface WorkoutPlan {
   id: string;
   name: string;
   description?: string;
-  days: WorkoutDay[];
+  days?: WorkoutDay[];
+  schedule: WorkoutSchedule[];
   author?: string;
   level?: 'beginner' | 'intermediate' | 'advanced';
   duration?: number;
@@ -45,6 +65,46 @@ export interface WorkoutPlan {
   updatedAt?: string | Date;
   category?: string;
   tags?: string[];
+  nutrition: {
+    dailyCalories: number;
+    macros: {
+      protein: number;
+      carbs: number;
+      fat: number;
+    };
+    meals: {
+      breakfast: string[];
+      lunch: string[];
+      dinner: string[];
+      snacks: string[];
+    };
+  };
+}
+
+// Meal plan types
+export interface Meal {
+  type: string;
+  title: string;
+  description: string;
+  nutrients: {
+    calories: number;
+    protein: string;
+    carbs: string;
+    fat: string;
+  };
+}
+
+export interface MealPlanDay {
+  dayNumber: number;
+  meals: Meal[];
+}
+
+export interface MealPlan {
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  days: MealPlanDay[];
 }
 
 // Workout goal enum
@@ -80,7 +140,7 @@ export interface Workout {
   duration?: number;
   caloriesBurned?: number;
   date: string | Date;
-  userId: string;
+  userId?: string;
   notes?: string;
   rating?: number; // User's rating of the workout (1-5)
   fromPlanId?: string; // Reference to workout plan if part of one

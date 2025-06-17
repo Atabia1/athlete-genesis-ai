@@ -8,6 +8,7 @@
 import { ApiClient, RequestInterceptor, ResponseInterceptor, ErrorInterceptor } from './api-client';
 import { logError } from '@/shared/utils/error-handling';
 import { getApiBaseUrl, getPaystackPublicKey, getSupabaseConfig } from '@/utils/env-config';
+import { getConfig } from '@/lib/config';
 
 // Authentication token storage key
 const AUTH_TOKEN_KEY = 'auth_token';
@@ -332,58 +333,84 @@ export const paymentApi = {
 /**
  * API service for health data
  */
-export const healthApi = {
+export class ApiService {
   /**
    * Verify a connection code
    */
-  verifyConnectionCode: async (code: string, deviceInfo: any) => {
+  async verifyConnectionCode(code: string, deviceInfo: any): Promise<{ success: boolean; userId: string; deviceId: string }> {
     return api.post<{ success: boolean; userId: string; deviceId: string }>('/health/connect', {
       code,
       deviceInfo,
     });
-  },
+  }
 
   /**
    * Disconnect a device
    */
-  disconnectDevice: async (deviceId: string) => {
+  async disconnectDevice(deviceId: string): Promise<{ success: boolean }> {
     return api.post<{ success: boolean }>('/health/disconnect', {
       deviceId,
     });
-  },
+  }
 
   /**
    * Sync health data
    */
-  syncHealthData: async (healthData: any) => {
+  async syncHealthData(healthData: any): Promise<{ success: boolean }> {
     return api.post<{ success: boolean }>('/health/sync', {
       healthData,
     });
-  },
+  }
 
   /**
    * Get health data
    */
-  getHealthData: async () => {
+  async getHealthData(): Promise<any> {
     return api.get<any>('/health/data');
-  },
+  }
 
   /**
    * Get connected devices
    */
-  getConnectedDevices: async () => {
+  async getConnectedDevices(): Promise<any[]> {
     return api.get<any[]>('/health/devices');
-  },
+  }
 
   /**
    * Sync a workout to health apps
    */
-  syncWorkout: async (workout: any) => {
+  async syncWorkout(workout: any): Promise<{ success: boolean }> {
     return api.post<{ success: boolean }>('/health/workout/sync', {
       workout,
     });
-  },
-};
+  }
+
+  /**
+   * Create a new health data entry
+   */
+  async createHealthDataEntry(userId: string, data: Partial<HealthData>): Promise<HealthData> {
+    console.log('Creating health data entry for user:', userId, data);
+    // Implementation will be added later
+    return data as HealthData;
+  }
+
+  /**
+   * Update health data for a user
+   */
+  async updateHealthData(userId: string, data: Partial<HealthData>): Promise<HealthData> {
+    console.log('Updating health data for user:', userId, data);
+    // Implementation will be added later
+    return data as HealthData;
+  }
+
+  /**
+   * Delete a health data entry
+   */
+  async deleteHealthData(userId: string, entryId: string): Promise<void> {
+    console.log('Deleting health data entry:', entryId, 'for user:', userId);
+    // Implementation will be added later
+  }
+}
 
 // Export the API client instance
 export default api;
