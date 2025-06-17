@@ -5,7 +5,18 @@
  * Provides a centralized service for IndexedDB operations
  */
 
-class IndexedDBService {
+export interface ObjectStoreConfig {
+  name: string;
+  keyPath: string;
+  autoIncrement?: boolean;
+}
+
+export enum TransactionModes {
+  READONLY = 'readonly',
+  READWRITE = 'readwrite'
+}
+
+export class IndexedDBService {
   private db: IDBDatabase | null = null;
   private dbName = 'AthleteAppDB';
   private version = 1;
@@ -49,6 +60,66 @@ class IndexedDBService {
 
   getDatabase(): IDBDatabase | null {
     return this.db;
+  }
+
+  async add<T>(storeName: string, item: T): Promise<void> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.add(item);
+      
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async update<T>(storeName: string, item: T): Promise<void> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.put(item);
+      
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getAll<T>(storeName: string): Promise<T[]> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([storeName], 'readonly');
+      const store = transaction.objectStore(storeName);
+      const request = store.getAll();
+      
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async clear(storeName: string): Promise<void> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.clear();
+      
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
   }
 }
 

@@ -92,8 +92,8 @@ class HealthSyncService {
         return null;
       }
 
-      // Get the most recent health data
-      const latestItem = healthDataItems.sort((a, b) => 
+      // Get the most recent health data with proper typing
+      const latestItem = healthDataItems.sort((a: HealthDataItem, b: HealthDataItem) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       )[0];
 
