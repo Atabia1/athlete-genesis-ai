@@ -1,14 +1,8 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Activity, Smile, Brain, Shield } from "lucide-react";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import OfflineContentBadge from "@/components/ui/offline-content-badge";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 const WellbeingDashboard = () => {
   const { isOnline } = useNetworkStatus();

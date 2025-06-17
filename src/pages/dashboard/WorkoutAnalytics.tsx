@@ -1,12 +1,7 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp } from "lucide-react";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import OfflineIndicator from "@/components/ui/offline-indicator";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 const WorkoutAnalytics = () => {
   const { isOnline } = useNetworkStatus();

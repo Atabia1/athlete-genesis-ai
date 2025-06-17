@@ -1,5 +1,6 @@
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+// Keep existing interfaces and context definition
 
 interface AccessibilitySettings {
   highContrast: boolean;
@@ -15,6 +16,8 @@ interface UserPreferencesContextType {
 }
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
+
+// Keep existing hooks
 
 export const useTheme = () => {
   const context = useContext(UserPreferencesContext);
@@ -38,9 +41,13 @@ export const useAccessibilitySettings = () => {
   return { accessibilitySettings: context.accessibilitySettings };
 };
 
+// Keep existing ProviderProps
+
 interface UserPreferencesProviderProps {
   children: ReactNode;
 }
+
+// Keep existing Provider with hook modifications
 
 export const UserPreferencesProvider: React.FC<UserPreferencesProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState('light');
