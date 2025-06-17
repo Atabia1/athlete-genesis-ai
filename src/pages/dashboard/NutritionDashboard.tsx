@@ -102,7 +102,6 @@ const mealPlan = [
  */
 const NutritionDashboard = () => {
   const { isOnline } = useNetworkStatus();
-  const [activeTab, setActiveTab] = useState("macros");
 
   // Calculate today's totals
   const todaysMacros = {
@@ -239,7 +238,7 @@ const NutritionDashboard = () => {
         {/* Left Column - Nutrition Charts */}
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
-            <Tabs defaultValue="macros" onValueChange={setActiveTab}>
+            <Tabs defaultValue="macros">
               <div className="flex justify-between items-center">
                 <CardTitle>Nutrition Tracking</CardTitle>
                 <TabsList>

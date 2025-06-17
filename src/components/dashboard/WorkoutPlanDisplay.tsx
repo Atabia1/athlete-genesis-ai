@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,7 +59,7 @@ const WorkoutPlanDisplay = () => {
 
   return (
     <Card className="border-athleteBlue-200 shadow-sm relative">
-      {!isOnline && <OfflineContentBadge isDownloaded={true} className="absolute top-2 right-2" />}
+      {!isOnline && <OfflineContentBadge className="absolute top-2 right-2" />}
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center">
@@ -76,6 +75,7 @@ const WorkoutPlanDisplay = () => {
         </div>
       </CardHeader>
       <CardContent>
+        {/* ... keep existing code (tabs and workout plan content) */}
         <Tabs defaultValue="weeklyPlan" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="weeklyPlan">Weekly Schedule</TabsTrigger>

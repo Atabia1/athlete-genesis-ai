@@ -29,9 +29,14 @@ export interface RetryOperation {
 class RetryQueueService {
   private operations: RetryOperation[] = [];
   private subscribers: ((operations: RetryOperation[]) => void)[] = [];
+  private handlers: Map<RetryOperationType, (payload: any) => Promise<any>> = new Map();
 
   initialize() {
     // Initialize the service
+  }
+
+  registerHandler(type: RetryOperationType, handler: (payload: any) => Promise<any>): void {
+    this.handlers.set(type, handler);
   }
 
   async addToQueue(
@@ -63,11 +68,21 @@ class RetryQueueService {
       op.status = RetryStatus.IN_PROGRESS;
       this.notifySubscribers();
       
-      // Simulate processing
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      op.status = RetryStatus.SUCCESS;
-      op.attempts++;
+      try {
+        const handler = this.handlers.get(op.type);
+        if (handler) {
+          await handler(op.payload);
+        } else {
+          // Simulate processing if no handler
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        op.status = RetryStatus.SUCCESS;
+        op.attempts++;
+      } catch (error) {
+        op.status = RetryStatus.FAILED;
+        op.attempts++;
+      }
     }
     this.notifySubscribers();
   }

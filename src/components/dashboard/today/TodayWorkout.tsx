@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { usePlan } from "@/context/PlanContext";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -98,7 +97,7 @@ const TodayWorkout = () => {
 
   return (
     <Card className="border-athleteBlue-200 shadow-sm relative">
-      {!isOnline && <OfflineContentBadge isDownloaded={true} className="absolute top-2 right-2" />}
+      {!isOnline && <OfflineContentBadge className="absolute top-2 right-2" />}
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center">
