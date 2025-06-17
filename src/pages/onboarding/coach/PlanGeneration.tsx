@@ -102,36 +102,59 @@ const CoachPlanGeneration = () => {
     return {
       id: 'wp-' + Date.now(),
       name: 'Team Training Program',
-      title: 'Team Training Program',
       description: 'Comprehensive training system based on your coaching philosophy',
-      level: 'intermediate',
       duration: 12,
-      createdAt: new Date().toISOString(),
-      schedule: {
-        frequency: 'weekly',
-        sessions: 3
-      },
-      nutrition: {
-        guidelines: 'Team nutrition recommendations',
-        calories: 2500
-      },
-      weeks: [
+      schedule: [
         {
-          weekNumber: 1,
-          theme: 'Foundation Phase',
-          days: [
+          day: 'Monday',
+          workouts: [
             {
-              dayNumber: 1,
-              focus: 'Strength & Movement Assessment',
+              id: 'w1',
+              name: 'Strength Training',
+              type: 'strength',
               exercises: [
-                { name: 'Movement Screening', duration: '20 min', intensity: 'Assessment' },
-                { name: 'Strength Baseline Testing', duration: '30 min', intensity: 'Assessment' },
-                { name: 'Team Building Activity', duration: '15 min', intensity: 'Light' }
-              ]
+                {
+                  id: 'e1',
+                  name: 'Squats',
+                  sets: 3,
+                  reps: 10,
+                  restPeriod: 90,
+                  description: 'Focus on proper form and depth'
+                }
+              ],
+              duration: 60,
+              caloriesBurned: 300
             }
-          ]
+          ],
+          nutrition: {
+            calories: 2500,
+            protein: 150,
+            carbs: 300,
+            fat: 80,
+            water: 3000,
+            meals: {
+              breakfast: 'High protein breakfast',
+              lunch: 'Balanced training meal',
+              dinner: 'Recovery meal',
+              snacks: ['Protein shake', 'Fruit']
+            }
+          }
         }
-      ]
+      ],
+      nutrition: {
+        dailyCalories: 2500,
+        macros: {
+          protein: 150,
+          carbs: 300,
+          fat: 80
+        },
+        meals: {
+          breakfast: ['Oatmeal with protein'],
+          lunch: ['Chicken and rice'],
+          dinner: ['Salmon and vegetables'],
+          snacks: ['Protein shake']
+        }
+      }
     };
   };
 

@@ -102,36 +102,60 @@ const IndividualPlanGeneration = () => {
     return {
       id: 'wp-' + Date.now(),
       name: 'Holistic Wellness Program',
-      title: 'Holistic Wellness Program',
       description: 'A balanced approach to fitness, mindfulness, and overall wellbeing',
-      level: 'beginner',
       duration: 12,
-      createdAt: new Date().toISOString(),
-      schedule: {
-        frequency: 'weekly',
-        sessions: 3
-      },
-      nutrition: {
-        guidelines: 'Balanced nutrition for wellness',
-        calories: 2000
-      },
-      weeks: [
+      schedule: [
         {
-          weekNumber: 1,
-          theme: 'Foundation Building',
-          days: [
+          day: 'Monday',
+          workouts: [
             {
-              dayNumber: 1,
-              focus: 'Cardio & Mindfulness',
+              id: 'w1',
+              name: 'Cardio & Mindfulness',
+              type: 'cardio',
               exercises: [
-                { name: 'Walking', duration: '20 min', intensity: 'Moderate' },
-                { name: 'Deep Breathing', duration: '5 min', intensity: 'Light' },
-                { name: 'Stretching', duration: '10 min', intensity: 'Light' }
-              ]
+                {
+                  id: 'e1',
+                  name: 'Walking',
+                  sets: 1,
+                  reps: 0,
+                  restPeriod: 0,
+                  description: '20 min moderate intensity walking',
+                  duration: 20
+                }
+              ],
+              duration: 35,
+              caloriesBurned: 200
             }
-          ]
+          ],
+          nutrition: {
+            calories: 2000,
+            protein: 120,
+            carbs: 250,
+            fat: 70,
+            water: 2500,
+            meals: {
+              breakfast: 'Energizing Morning Bowl',
+              lunch: 'Balanced lunch',
+              dinner: 'Light dinner',
+              snacks: ['Greek yogurt', 'Nuts']
+            }
+          }
         }
-      ]
+      ],
+      nutrition: {
+        dailyCalories: 2000,
+        macros: {
+          protein: 120,
+          carbs: 250,
+          fat: 70
+        },
+        meals: {
+          breakfast: ['Greek yogurt with berries'],
+          lunch: ['Quinoa salad'],
+          dinner: ['Grilled fish with vegetables'],
+          snacks: ['Mixed nuts']
+        }
+      }
     };
   };
 
