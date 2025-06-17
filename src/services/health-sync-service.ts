@@ -146,7 +146,7 @@ class HealthSyncService {
     }
 
     // Check for at least one valid field
-    const hasValidField = (
+    const hasValidField = Boolean(
       typeof data.steps === 'number' ||
       typeof data.calories === 'number' ||
       typeof data.distance === 'number' ||

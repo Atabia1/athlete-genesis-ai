@@ -5,7 +5,7 @@
  * Central registry for all application services with dependency injection
  */
 
-import { IndexedDBService } from './indexeddb/index';
+import { IndexedDBService, ObjectStoreConfig } from './indexeddb-service';
 import { healthSyncService } from './health-sync-service';
 import { retryQueueService } from './retry-queue-service';
 import { SupabaseService } from './api/supabase-service';
@@ -46,8 +46,8 @@ class ServiceRegistry implements IServiceRegistry {
     if (this.initialized) return;
 
     try {
-      // Initialize core services
-      const dbService = new IndexedDBService('AthleteGenesisDB', [
+      // Define object store configurations
+      const objectStores: ObjectStoreConfig[] = [
         {
           name: 'health_data',
           keyPath: 'id',
@@ -58,7 +58,10 @@ class ServiceRegistry implements IServiceRegistry {
           keyPath: 'id',
           autoIncrement: false,
         }
-      ]);
+      ];
+
+      // Initialize core services
+      const dbService = new IndexedDBService('AthleteGenesisDB', objectStores);
       await dbService.initDatabase();
       this.register('indexedDBService', dbService);
 

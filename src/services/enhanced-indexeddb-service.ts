@@ -17,7 +17,8 @@ import {
   TransactionModes
 } from './indexeddb/index';
 import type {
-  TransactionMode
+  TransactionMode,
+  ObjectStoreConfig
 } from './indexeddb/index';
 import { storageManager } from './storage-manager';
 import { toast } from '@/components/ui/use-toast';
@@ -36,9 +37,10 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   /**
    * Create a new EnhancedIndexedDBService
    * @param dbName The name of the database
+   * @param stores Object store configurations
    */
-  constructor(dbName: string) {
-    super(dbName, []);
+  constructor(dbName: string, stores: ObjectStoreConfig[]) {
+    super(dbName, stores);
   }
 
   /**
@@ -385,4 +387,4 @@ export class EnhancedIndexedDBService extends IndexedDBService {
 
 // Export the enhanced service
 // Use the same database name as the original service
-export const enhancedDbService = new EnhancedIndexedDBService('AthleteGenesisDB');
+export const enhancedDbService = new EnhancedIndexedDBService('AthleteGenesisDB', []);
