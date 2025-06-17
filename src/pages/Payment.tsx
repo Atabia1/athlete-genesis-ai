@@ -41,7 +41,6 @@ export default function Payment() {
   const [selectedPeriod, setSelectedBillingPeriod] = useState(billingPeriods[0].id);
 
   const handleSubmit = () => {
-    // Handle payment submission logic here
     console.log('Payment submitted');
     navigate('/dashboard');
   };
@@ -59,7 +58,7 @@ export default function Payment() {
           <div className="space-y-2">
             <Label>Selected Plan</Label>
             <Card className="bg-green-50 border-green-200">
-              <CardContent>
+              <CardContent className="p-3">
                 <p className="font-semibold">Pro Plan</p>
                 <p className="text-sm text-gray-500">You have selected the Pro Plan.</p>
               </CardContent>
