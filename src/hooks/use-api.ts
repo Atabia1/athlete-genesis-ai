@@ -1,9 +1,7 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
-// Simplified API hook without complex offline sync dependencies
-export interface UseApiQueryOptions<TData, TError = Error> {
+export interface UseApiQueryOptions<TData> {
   enabled?: boolean;
   staleTime?: number;
   gcTime?: number;
@@ -11,16 +9,16 @@ export interface UseApiQueryOptions<TData, TError = Error> {
   getOfflineData?: () => Promise<TData>;
 }
 
-export interface UseApiMutationOptions<TData, TVariables, TError = Error> {
+export interface UseApiMutationOptions<TData, TVariables> {
   onSuccess?: (data: TData, variables: TVariables) => void;
-  onError?: (error: TError, variables: TVariables) => void;
+  onError?: (error: Error, variables: TVariables) => void;
   offlineSupport?: boolean;
 }
 
-export function useApiQuery<TData, TError = Error>(
+export function useApiQuery<TData>(
   queryKey: unknown[],
   queryFn: () => Promise<TData>,
-  options?: UseApiQueryOptions<TData, TError>
+  options?: UseApiQueryOptions<TData>
 ) {
   return useQuery({
     queryKey,
@@ -31,9 +29,9 @@ export function useApiQuery<TData, TError = Error>(
   });
 }
 
-export function useApiMutation<TData, TVariables, TError = Error>(
+export function useApiMutation<TData, TVariables>(
   mutationFn: (variables: TVariables) => Promise<TData>,
-  options?: UseApiMutationOptions<TData, TVariables, TError>
+  options?: UseApiMutationOptions<TData, TVariables>
 ) {
   return useMutation({
     mutationFn,

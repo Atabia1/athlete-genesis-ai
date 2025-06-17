@@ -1,107 +1,91 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useState } from 'react';
 
-interface User {
+export interface AuthUser {
   id: string;
   email: string;
-  name?: string;
+  name: string;
+  role: string;
+  avatar_url?: string;
+  first_name?: string;
+  last_name?: string;
+  user_type: string;
+  displayName?: string;
+  subscriptionTier?: string;
+  refreshUser?: () => Promise<void>;
 }
 
-interface AuthContextType {
-  user: User | null;
+export interface UseAuthReturn {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
-  isLoading: boolean;
+  register: (email: string, password: string, userData?: any) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export function useAuth(): UseAuthReturn {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Check for existing session
-    const checkAuth = async () => {
-      try {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-        }
-      } catch (error) {
-        console.error('Failed to check auth:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  const login = async (email: string, password: string) => {
+  const login = async (email: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      const mockUser = { id: '1', email, name: email.split('@')[0] };
+      // Mock login implementation
+      const mockUser: AuthUser = {
+        id: '1',
+        email,
+        name: email.split('@')[0],
+        role: 'user',
+        user_type: 'individual',
+        displayName: email.split('@')[0],
+        subscriptionTier: 'free',
+      };
       setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
     } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
+      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signup = async (email: string, password: string) => {
+  const register = async (email: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      const mockUser = { id: '1', email, name: email.split('@')[0] };
+      // Mock register implementation
+      const mockUser: AuthUser = {
+        id: '1',
+        email,
+        name: email.split('@')[0],
+        role: 'user',
+        user_type: 'individual',
+        displayName: email.split('@')[0],
+        subscriptionTier: 'free',
+      };
       setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
     } catch (error) {
-      console.error('Signup failed:', error);
-      throw error;
+      console.error('Registration error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = async () => {
-    try {
-      setUser(null);
-      localStorage.removeItem('user');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      throw error;
-    }
+    setUser(null);
   };
 
-  const value = {
+  const refreshUser = async () => {
+    // Mock refresh implementation
+  };
+
+  return {
     user,
+    isLoading,
+    isAuthenticated: !!user,
     login,
     logout,
-    signup,
-    isLoading,
+    register,
+    refreshUser,
   };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
 }
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};

@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useApiQuery, useApiMutation } from '@/hooks/use-api';
 import { useOfflineSync } from '@/context/OfflineSyncContext';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { WorkoutPlan } from '@/types/workout';
 
 export interface UseWorkoutsResult {
@@ -61,14 +61,12 @@ export function useWorkouts(): UseWorkoutsResult {
         toast({
           title: 'Workout Created',
           description: 'Your workout has been created successfully',
-          variant: 'default',
         });
       },
       onError: (error) => {
         toast({
           title: 'Create Workout Failed',
           description: error instanceof Error ? error.message : 'An error occurred while creating the workout',
-          variant: 'destructive',
         });
       },
     }
@@ -76,9 +74,9 @@ export function useWorkouts(): UseWorkoutsResult {
   
   // Update workout mutation
   const updateWorkoutMutation = useApiMutation<WorkoutPlan, { id: string; workout: Partial<WorkoutPlan> }>(
-    async ({ id, workout }) => {
+    async ({ workout }) => {
       // Mock API call
-      const updatedWorkout = { ...workout, id } as WorkoutPlan;
+      const updatedWorkout = { ...workout } as WorkoutPlan;
       return updatedWorkout;
     },
     {
@@ -91,14 +89,12 @@ export function useWorkouts(): UseWorkoutsResult {
         toast({
           title: 'Workout Updated',
           description: 'Your workout has been updated successfully',
-          variant: 'default',
         });
       },
       onError: (error) => {
         toast({
           title: 'Update Workout Failed',
           description: error instanceof Error ? error.message : 'An error occurred while updating the workout',
-          variant: 'destructive',
         });
       },
     }
@@ -106,7 +102,7 @@ export function useWorkouts(): UseWorkoutsResult {
   
   // Delete workout mutation
   const deleteWorkoutMutation = useApiMutation<void, string>(
-    async (id) => {
+    async () => {
       // Mock API call
       return;
     },
@@ -122,14 +118,12 @@ export function useWorkouts(): UseWorkoutsResult {
         toast({
           title: 'Workout Deleted',
           description: 'Your workout has been deleted successfully',
-          variant: 'default',
         });
       },
       onError: (error) => {
         toast({
           title: 'Delete Workout Failed',
           description: error instanceof Error ? error.message : 'An error occurred while deleting the workout',
-          variant: 'destructive',
         });
       },
     }
@@ -163,13 +157,11 @@ export function useWorkouts(): UseWorkoutsResult {
       toast({
         title: 'Workout Saved Offline',
         description: 'Your workout has been saved for offline use',
-        variant: 'default',
       });
     } catch (error) {
       toast({
         title: 'Save Offline Failed',
         description: error instanceof Error ? error.message : 'An error occurred while saving the workout for offline use',
-        variant: 'destructive',
       });
       
       throw error;
