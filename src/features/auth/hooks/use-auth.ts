@@ -12,6 +12,7 @@ export interface AuthUser {
   user_type: string;
   displayName?: string;
   subscriptionTier?: string;
+  refreshUser?: () => Promise<void>;
 }
 
 export interface UseAuthReturn {
@@ -54,6 +55,21 @@ export function useAuth(): UseAuthReturn {
     return response.json();
   };
 
+  const getUserProfile = useCallback(async (user: any): Promise<AuthUser> => {
+    return {
+      id: user.id,
+      email: user.email,
+      name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
+      role: user.user_type || 'individual',
+      avatar_url: user.avatar_url,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      user_type: user.user_type || 'individual',
+      displayName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
+      subscriptionTier: user.subscription_tier || 'free',
+    };
+  }, []);
+
   const refreshUser = useCallback(async () => {
     const token = getAuthToken();
     if (token) {
@@ -67,7 +83,7 @@ export function useAuth(): UseAuthReturn {
         setUser(null);
       }
     }
-  }, []);
+  }, [getUserProfile]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -128,21 +144,6 @@ export function useAuth(): UseAuthReturn {
     setUser(null);
   };
 
-  const getUserProfile = useCallback(async (user: any): Promise<AuthUser> => {
-    return {
-      id: user.id,
-      email: user.email,
-      name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
-      role: user.user_type || 'individual',
-      avatar_url: user.avatar_url,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      user_type: user.user_type || 'individual',
-      displayName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
-      subscriptionTier: user.subscription_tier || 'free',
-    };
-  }, []);
-
   return {
     user,
     isLoading,
@@ -153,5 +154,3 @@ export function useAuth(): UseAuthReturn {
     refreshUser,
   };
 }
-
-export type { AuthUser, UseAuthReturn };

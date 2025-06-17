@@ -5,7 +5,7 @@ import { standardizeWorkoutPlan } from '@/utils/workout-normalizer';
 
 interface WorkoutPlan {
   id: string;
-  title: string;
+  name: string;
   description?: string;
   exercises?: any[];
   duration?: number;
@@ -130,7 +130,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
       validWorkouts.forEach(workout => {
         const standardized = standardizeWorkoutPlan(workout);
         if (standardized) {
-          console.log('Loaded workout:', standardized.title);
+          console.log('Loaded workout:', standardized.name);
         }
       });
     } catch (error) {
@@ -176,7 +176,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       await enhancedIndexedDBService.add('workouts', plan);
       dispatch({ type: 'ADD_WORKOUT', payload: plan });
-      console.log('Workout saved successfully:', plan.title);
+      console.log('Workout saved successfully:', plan.name);
     } catch (error) {
       console.error('Error saving workout:', error);
     }
@@ -191,7 +191,7 @@ export const OfflineSyncProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       await enhancedIndexedDBService.update('workouts', standardizedPlan);
       dispatch({ type: 'UPDATE_WORKOUT', payload: standardizedPlan });
-      console.log('Workout updated successfully:', standardizedPlan.title);
+      console.log('Workout updated successfully:', standardizedPlan.name);
     } catch (error) {
       console.error('Error updating workout:', error);
     }

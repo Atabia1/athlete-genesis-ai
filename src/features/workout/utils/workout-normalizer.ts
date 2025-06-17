@@ -1,33 +1,10 @@
-/**
- * Workout Normalizer: Utilities for normalizing workout data structures
- * 
- * This module provides functions to ensure that all workout data follows a consistent
- * structure, regardless of its source (AI-generated, pre-defined templates, or user-created).
- * It handles missing fields, type conversions, and structure validation.
- */
-
 import { 
   WorkoutPlan, 
   Exercise, 
   MealPlan,
   Meal,
 } from '@/shared/types/workout';
-import { ExperienceLevel, FitnessGoal, EquipmentOption } from '@/features/workout/context/PlanContext';
 
-/**
- * Default values for workout plan properties
- */
-const DEFAULT_VALUES = {
-  level: 'intermediate' as ExperienceLevel,
-  goals: [] as FitnessGoal[],
-  equipment: [] as EquipmentOption[],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
-
-/**
- * Normalize an exercise to ensure it has all required fields
- */
 export function normalizeExercise(exercise: Partial<Exercise>): Exercise {
   return {
     id: exercise.id || `exercise-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -46,11 +23,7 @@ export function normalizeExercise(exercise: Partial<Exercise>): Exercise {
   };
 }
 
-/**
- * Normalize a workout plan to ensure it has all required fields
- */
 export function normalizeWorkoutPlan(plan: Partial<WorkoutPlan>): WorkoutPlan {
-  // Generate a unique ID if none exists
   const id = plan.id || `plan-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   
   return {
@@ -58,8 +31,8 @@ export function normalizeWorkoutPlan(plan: Partial<WorkoutPlan>): WorkoutPlan {
     name: plan.name || 'Unnamed Workout Plan',
     description: plan.description || 'No description provided',
     userId: plan.userId || '',
-    createdAt: plan.createdAt || DEFAULT_VALUES.createdAt,
-    updatedAt: plan.updatedAt || DEFAULT_VALUES.updatedAt,
+    createdAt: plan.createdAt || new Date().toISOString(),
+    updatedAt: plan.updatedAt || new Date().toISOString(),
     type: plan.type || 'custom',
     difficulty: plan.difficulty || 'intermediate',
     duration: plan.duration || 60,
@@ -73,9 +46,6 @@ export function normalizeWorkoutPlan(plan: Partial<WorkoutPlan>): WorkoutPlan {
   };
 }
 
-/**
- * Normalize a meal to ensure it has all required fields
- */
 export function normalizeMeal(meal: Partial<Meal>): Meal {
   return {
     id: meal.id || `meal-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -93,9 +63,6 @@ export function normalizeMeal(meal: Partial<Meal>): Meal {
   };
 }
 
-/**
- * Normalize a meal plan to ensure it has all required fields
- */
 export function normalizeMealPlan(plan: Partial<MealPlan>): MealPlan {
   // Generate a unique ID if none exists
   const id = plan.id || `meal-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -105,8 +72,8 @@ export function normalizeMealPlan(plan: Partial<MealPlan>): MealPlan {
     name: plan.name || 'Unnamed Meal Plan',
     description: plan.description || 'No description provided',
     userId: plan.userId || '',
-    createdAt: plan.createdAt || DEFAULT_VALUES.createdAt,
-    updatedAt: plan.updatedAt || DEFAULT_VALUES.updatedAt,
+    createdAt: plan.createdAt || new Date().toISOString(),
+    updatedAt: plan.updatedAt || new Date().toISOString(),
     type: plan.type || 'custom',
     goal: plan.goal || 'general',
     meals: Array.isArray(plan.meals) 
@@ -118,53 +85,12 @@ export function normalizeMealPlan(plan: Partial<MealPlan>): MealPlan {
   };
 }
 
-/**
- * Validate a workout plan to ensure it meets minimum requirements
- * Returns true if valid, false otherwise
- */
-export function isValidWorkoutPlan(plan: Partial<WorkoutPlan>): boolean {
-  if (!plan) return false;
-  
-  // Check for required fields
-  if (!plan.id) return false;
-  if (!plan.name) return false;
-  
-  // Check for exercises array
-  if (!Array.isArray(plan.exercises)) return false;
-  
-  return true;
-}
-
-/**
- * Validate a meal plan to ensure it meets minimum requirements
- * Returns true if valid, false otherwise
- */
-export function isValidMealPlan(plan: Partial<MealPlan>): boolean {
-  if (!plan) return false;
-  
-  // Check for required fields
-  if (!plan.id) return false;
-  if (!plan.name) return false;
-  
-  // Check for meals array
-  if (!Array.isArray(plan.meals)) return false;
-  
-  return true;
-}
-
-/**
- * Convert any workout data to a standardized format
- * This is the main function to use when receiving workout data from any source
- */
 export function standardizeWorkoutPlan(data: any): WorkoutPlan | null {
   try {
-    // Handle null or undefined
     if (!data) return null;
     
-    // Create a normalized plan
     const normalizedPlan = normalizeWorkoutPlan(data);
     
-    // Validate the plan
     if (!isValidWorkoutPlan(normalizedPlan)) {
       console.error('Invalid workout plan structure:', data);
       return null;
@@ -177,27 +103,11 @@ export function standardizeWorkoutPlan(data: any): WorkoutPlan | null {
   }
 }
 
-/**
- * Convert any meal plan data to a standardized format
- * This is the main function to use when receiving meal plan data from any source
- */
-export function standardizeMealPlan(data: any): MealPlan | null {
-  try {
-    // Handle null or undefined
-    if (!data) return null;
-    
-    // Create a normalized plan
-    const normalizedPlan = normalizeMealPlan(data);
-    
-    // Validate the plan
-    if (!isValidMealPlan(normalizedPlan)) {
-      console.error('Invalid meal plan structure:', data);
-      return null;
-    }
-    
-    return normalizedPlan;
-  } catch (error) {
-    console.error('Error standardizing meal plan:', error);
-    return null;
-  }
+function isValidWorkoutPlan(plan: Partial<WorkoutPlan>): boolean {
+  if (!plan) return false;
+  if (!plan.id) return false;
+  if (!plan.name) return false;
+  if (!Array.isArray(plan.exercises)) return false;
+  
+  return true;
 }

@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 interface UserPreferences {
@@ -12,7 +12,6 @@ interface UserPreferences {
 interface UserPreferencesContextType {
   preferences: UserPreferences;
   updatePreferences: (updates: Partial<UserPreferences>) => void;
-  resetPreferences: () => void;
 }
 
 const defaultPreferences: UserPreferences = {
@@ -24,21 +23,16 @@ const defaultPreferences: UserPreferences = {
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
 
-export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [preferences, setPreferences] = useLocalStorage('user-preferences', { defaultValue: defaultPreferences });
+export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
+  const [preferences, setPreferences] = useLocalStorage('userPreferences', defaultPreferences);
 
-  const updatePreferences = useCallback((updates: Partial<UserPreferences>) => {
+  const updatePreferences = (updates: Partial<UserPreferences>) => {
     setPreferences((prev: UserPreferences) => ({ ...prev, ...updates }));
-  }, [setPreferences]);
-
-  const resetPreferences = useCallback(() => {
-    setPreferences(defaultPreferences);
-  }, [setPreferences]);
+  };
 
   const value: UserPreferencesContextType = {
-    preferences: preferences as UserPreferences,
+    preferences: preferences || defaultPreferences,
     updatePreferences,
-    resetPreferences,
   };
 
   return (
