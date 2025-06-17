@@ -1,3 +1,4 @@
+
 /**
  * Service Registry
  * 
@@ -6,13 +7,11 @@
 
 import { IndexedDBService } from './indexeddb/index';
 import { healthSyncService } from './health-sync-service';
-import { analyticsService } from './analytics-service';
 import { retryQueueService } from './retry-queue-service';
 import { SupabaseService } from './api/supabase-service';
 import { MealPlanService } from './api/meal-plan-service';
 import { UserService, mockUserService } from './api/user-service';
 import { PaystackApiService } from './api/paystack-service';
-import { openAIService } from './api/openai-service';
 
 /**
  * Service interface
@@ -57,13 +56,11 @@ class ServiceRegistry implements IServiceRegistry {
       this.register('healthSyncService', healthSyncService);
 
       // Register other services
-      this.register('analyticsService', analyticsService);
       this.register('retryQueueService', retryQueueService);
       this.register('supabaseService', new SupabaseService());
       this.register('mealPlanService', new MealPlanService());
       this.register('userService', mockUserService);
       this.register('paystackService', new PaystackApiService());
-      this.register('openAIService', openAIService);
 
       this.initialized = true;
       console.log('Service registry initialized successfully');
@@ -124,44 +121,6 @@ class ServiceRegistry implements IServiceRegistry {
     this.services.clear();
     this.initialized = false;
     console.log('Service registry shut down');
-  }
-
-  /**
-   * Handle service events
-   */
-  private handleServiceEvent(eventType: string, payload: any): void {
-    switch (eventType) {
-      case 'SAVE_WORKOUT':
-        this.handleSaveWorkout(payload);
-        break;
-      case 'SAVE_MEAL_PLAN':
-        this.handleSaveMealPlan(payload);
-        break;
-      case 'UPDATE_USER_PROFILE':
-        this.handleUpdateUserProfile(payload);
-        break;
-      case 'SYNC_HEALTH_DATA':
-        this.handleSyncHealthData(payload);
-        break;
-    }
-  }
-
-  private handleSaveWorkout(payload: any): void {
-    // Handle workout saving
-  }
-
-  private handleSaveMealPlan(payload: any): void {
-    const mealPlanService = this.get<MealPlanService>('mealPlanService');
-    // Handle meal plan saving - method name needs to match actual service
-  }
-
-  private handleUpdateUserProfile(payload: any): void {
-    const userService = this.get<UserService>('userService');
-    userService.updateUserProfile(payload.userId, payload.profile);
-  }
-
-  private handleSyncHealthData(payload: any): void {
-    // Handle health data syncing
   }
 }
 

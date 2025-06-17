@@ -1,3 +1,4 @@
+
 /**
  * IndexedDB Service
  *
@@ -165,20 +166,6 @@ export class IndexedDBService {
   }
 
   /**
-   * Commit a transaction
-   */
-  async commitTransaction(): Promise<void> {
-    // Empty, as commit is handled directly in startTransaction
-  }
-
-  /**
-   * Abort a transaction
-   */
-  async abortTransaction(): Promise<void> {
-    // Empty, as abort is handled directly in startTransaction
-  }
-
-  /**
    * Add an item to a store
    */
   async add<T>(storeName: string, item: T): Promise<void> {
@@ -190,17 +177,7 @@ export class IndexedDBService {
     const store = transaction.objectStore(storeName);
 
     return new Promise((resolve, reject) => {
-      let request: IDBRequest;
-
-      // Type-safe handling based on known types
-      if (storeName === 'workoutPlans') {
-        request = store.add(item as unknown as WorkoutPlan);
-      } else if (storeName === 'mealPlans') {
-        request = store.add(item as unknown as MealPlan);
-      } else {
-        request = store.add(item);
-      }
-
+      const request = store.add(item);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(new Error(`Failed to add item to ${storeName}`));
     });
@@ -266,17 +243,7 @@ export class IndexedDBService {
     const store = transaction.objectStore(storeName);
 
     return new Promise((resolve, reject) => {
-      let request: IDBRequest;
-
-      // Type-safe handling based on known types
-      if (storeName === 'workoutPlans') {
-        request = store.put(item as unknown as WorkoutPlan);
-      } else if (storeName === 'mealPlans') {
-        request = store.put(item as unknown as MealPlan);
-      } else {
-        request = store.put(item);
-      }
-
+      const request = store.put(item);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(new Error(`Failed to update item in ${storeName}`));
     });
@@ -312,11 +279,11 @@ export class IndexedDBService {
     const transaction = this.db.transaction([storeName], 'readwrite');
     const store = transaction.objectStore(storeName);
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const request = store.clear();
 
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(new Error(`Failed to clear store ${storeName}`));
+      request.onerror = () => resolve(); // Don't reject on clear errors
     });
   }
 
@@ -343,44 +310,6 @@ export class IndexedDBService {
         reject(new Error(`Failed to get all items from index ${indexName} in ${storeName}`));
       };
     });
-  }
-
-  /**
-   * Check if the database is available
-   */
-  private checkDatabaseAvailability(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (!('indexedDB' in window)) {
-        resolve(false);
-        return;
-      }
-
-      try {
-        const testDB = indexedDB.open('test-db');
-        testDB.onsuccess = () => {
-          testDB.result.close();
-          indexedDB.deleteDatabase('test-db');
-          resolve(true);
-        };
-        testDB.onerror = () => resolve(false);
-      } catch (error) {
-        resolve(false);
-      }
-    });
-  }
-
-  /**
-   * Handle database errors
-   */
-  private handleDatabaseError(error: Error): void {
-    console.error('Database error:', error.message);
-  }
-
-  /**
-   * Handle transaction errors
-   */
-  private handleTransactionError(error: Error): void {
-    console.error('Transaction error:', error.message);
   }
 }
 

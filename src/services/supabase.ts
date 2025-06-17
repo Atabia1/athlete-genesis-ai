@@ -1,3 +1,4 @@
+
 /**
  * Supabase Service
  * 
@@ -6,7 +7,6 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { config } from '@/lib/config';
 
 interface SupabaseQueryOptions {
   limit?: number;
@@ -20,10 +20,11 @@ export class SupabaseService {
   private client: SupabaseClient;
 
   constructor() {
-    this.client = createClient(
-      config.SUPABASE_URL,
-      config.SUPABASE_ANON_KEY
-    );
+    // Use environment variables directly since config import is causing issues
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+    
+    this.client = createClient(supabaseUrl, supabaseAnonKey);
   }
 
   getClient(): SupabaseClient {
@@ -238,12 +239,12 @@ export class SupabaseService {
     }
   }
 
-  async query<T>(table: string, query: (queryBuilder: any) => any): Promise<T[]> {
+  async query<T>(table: string, queryBuilder: (q: any) => any): Promise<T[]> {
     try {
-      let queryBuilder = this.client.from(table).select('*');
-      queryBuilder = query(queryBuilder);
+      let query = this.client.from(table).select('*');
+      query = queryBuilder(query);
 
-      const { data, error } = await queryBuilder;
+      const { data, error } = await query;
 
       if (error) {
         throw error;

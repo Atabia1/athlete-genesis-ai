@@ -46,7 +46,6 @@ interface StorageInfo {
 class StorageManager {
   private readonly STORAGE_QUOTA_THRESHOLD = 0.8; // 80% usage threshold
   private readonly CRITICAL_STORAGE_THRESHOLD = 0.95; // 95% usage threshold
-  private readonly OLD_DATA_THRESHOLD_DAYS = 30; // Clean data older than 30 days
 
   /**
    * Check storage status
@@ -141,21 +140,6 @@ class StorageManager {
    */
   async getStorageInfo(): Promise<StorageInfo | null> {
     return this.checkStorage(true);
-  }
-  
-  /**
-   * Format bytes to a human-readable string
-   * @param bytes Number of bytes
-   * @returns Formatted string
-   */
-  private formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }
 

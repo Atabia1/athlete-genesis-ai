@@ -16,8 +16,7 @@ import {
   TransactionModes
 } from './indexeddb/index';
 import type {
-  TransactionMode,
-  TransactionOperations
+  TransactionMode
 } from './indexeddb/index';
 import { storageManager } from './storage-manager';
 import { toast } from '@/components/ui/use-toast';
@@ -347,21 +346,8 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   async clearAll(storeName: string): Promise<void> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
-        // Use the startTransaction method to clear the store
-        const transaction = await super.startTransaction([storeName], TransactionModes.READWRITE);
-        const store = transaction.getStore(storeName);
-        
-        return new Promise<void>((resolve, reject) => {
-          const request = store.clear();
-          
-          request.onsuccess = () => {
-            resolve();
-          };
-          
-          request.onerror = () => {
-            reject(new Error(`Failed to clear store ${storeName}`));
-          };
-        });
+        // Use the clear method directly from the parent class
+        return super.clear(storeName);
       });
     });
   }
