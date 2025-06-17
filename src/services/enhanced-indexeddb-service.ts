@@ -1,4 +1,3 @@
-
 /**
  * Enhanced IndexedDB service with transaction queue and improved error handling
  *
@@ -347,10 +346,18 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   async clear(storeName: string): Promise<void> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
-        // Use the clear method directly from the parent class
         return super.clear(storeName);
       });
     });
+  }
+
+  /**
+   * Alias for clear method to maintain backward compatibility
+   * @param storeName The name of the object store
+   * @returns Promise that resolves when the store is cleared
+   */
+  async clearAll(storeName: string): Promise<void> {
+    return this.clear(storeName);
   }
 
   /**

@@ -1,4 +1,3 @@
-
 /**
  * Health Sync Service
  * 
@@ -106,7 +105,7 @@ class HealthSyncService {
 
       // Validate health data
       const isValid = this.validateHealthData(data);
-      if (!isValid) {
+      if (isValid !== true) {
         throw new Error('Invalid health data');
       }
 
