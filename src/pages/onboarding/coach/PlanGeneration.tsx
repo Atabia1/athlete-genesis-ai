@@ -1,24 +1,14 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Dumbbell, Utensils, Loader2, BrainCircuit, RefreshCw, AlertTriangle, AlertCircle, WifiOff, Users, ClipboardList, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Dumbbell, Loader2, BrainCircuit, RefreshCw, AlertCircle, WifiOff, Users, ClipboardList, Calendar } from 'lucide-react';
 import OnboardingLayout from '@/components/onboarding/OnboardingLayout';
 import { usePlan } from '@/context/PlanContext';
 import { toast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-
-/**
- * Plan Generation Step for Coaches
- *
- * This is the fifth step in the custom onboarding flow for coaches.
- * It generates a comprehensive coaching system including:
- * - Team management tools
- * - Training program templates
- * - Assessment protocols
- * - Athlete monitoring systems
- */
 
 const CoachPlanGeneration = () => {
   const navigate = useNavigate();
@@ -28,7 +18,6 @@ const CoachPlanGeneration = () => {
     setMealPlan,
   } = usePlan();
 
-  // Redirect if not a coach
   if (userType !== 'coach') {
     navigate('/onboarding');
     return null;
@@ -41,7 +30,6 @@ const CoachPlanGeneration = () => {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [currentlyGenerating, setCurrentlyGenerating] = useState<string>('');
 
-  // Simulate plan generation with progress updates
   const generatePlan = async () => {
     setIsLoading(true);
     setError(null);
@@ -49,58 +37,37 @@ const CoachPlanGeneration = () => {
     setGenerationProgress(0);
 
     try {
-      // Check for network connectivity
       if (!navigator.onLine) {
         setIsNetworkError(true);
         setError("You appear to be offline. Please check your internet connection and try again.");
         throw new Error('Network offline');
       }
 
-      // Get data from local storage
       const coachingPhilosophy = JSON.parse(localStorage.getItem('coachingPhilosophy') || '{}');
       const teamSetup = JSON.parse(localStorage.getItem('teamSetup') || '{}');
       const trainingApproach = JSON.parse(localStorage.getItem('trainingApproach') || '{}');
       const equipmentFacilities = JSON.parse(localStorage.getItem('equipmentFacilities') || '{}');
 
-      // Combine all data for the API call
-      const coachProfile = {
-        userType,
-        coachingPhilosophy,
-        teamSetup,
-        trainingApproach,
-        equipmentFacilities
-      };
+      console.log('Generating coaching system with profile:', { userType, coachingPhilosophy, teamSetup, trainingApproach, equipmentFacilities });
 
-      console.log('Generating coaching system with profile:', coachProfile);
-
-      // Simulate API call with progress updates
-      // In a real implementation, this would be an actual API call
-
-      // Step 1: Analyzing coaching profile
       setCurrentlyGenerating('Analyzing your coaching profile...');
       await simulateProgress(0, 15);
 
-      // Step 2: Creating team management system
       setCurrentlyGenerating('Creating your team management system...');
       await simulateProgress(15, 35);
 
-      // Step 3: Developing training templates
       setCurrentlyGenerating('Developing training program templates...');
       await simulateProgress(35, 55);
 
-      // Step 4: Building assessment protocols
       setCurrentlyGenerating('Building assessment and monitoring protocols...');
       await simulateProgress(55, 75);
 
-      // Step 5: Finalizing coaching system
       setCurrentlyGenerating('Finalizing your coaching system...');
       await simulateProgress(75, 100);
 
-      // Generate mock data for the plans
       const mockWorkoutPlan = generateMockWorkoutPlan();
       const mockMealPlan = generateMockMealPlan();
 
-      // Set the plans in context
       setWorkoutPlan(mockWorkoutPlan);
       setMealPlan(mockMealPlan);
 
@@ -119,11 +86,10 @@ const CoachPlanGeneration = () => {
     }
   };
 
-  // Simulate progress updates
   const simulateProgress = async (from: number, to: number) => {
     const steps = 10;
     const increment = (to - from) / steps;
-    const delay = 300; // milliseconds
+    const delay = 300;
 
     for (let i = 0; i <= steps; i++) {
       const progress = Math.min(from + (increment * i), to);
@@ -132,16 +98,14 @@ const CoachPlanGeneration = () => {
     }
   };
 
-  // Generate mock workout plan based on coach profile
   const generateMockWorkoutPlan = () => {
-    // This would be replaced with actual API response data
     return {
       id: 'wp-' + Date.now(),
       name: 'Team Training Program',
       title: 'Team Training Program',
       description: 'Comprehensive training system based on your coaching philosophy',
       level: 'intermediate',
-      duration: '12 weeks',
+      duration: 12,
       createdAt: new Date().toISOString(),
       schedule: {
         frequency: 'weekly',
@@ -171,9 +135,7 @@ const CoachPlanGeneration = () => {
     };
   };
 
-  // Generate mock meal plan based on coach profile
   const generateMockMealPlan = () => {
-    // This would be replaced with actual API response data
     return {
       id: 'mp-' + Date.now(),
       title: 'Team Nutrition Guidelines',
@@ -195,12 +157,10 @@ const CoachPlanGeneration = () => {
     };
   };
 
-  // Start generation on component mount
   useEffect(() => {
     generatePlan();
   }, []);
 
-  // Handle navigation
   const handleBack = () => {
     navigate('/onboarding/coach/equipment-facilities');
   };

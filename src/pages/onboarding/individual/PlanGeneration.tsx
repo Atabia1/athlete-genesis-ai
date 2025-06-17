@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Dumbbell, Loader2, BrainCircuit, RefreshCw, AlertCircle, WifiOff, Heart, Brain } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Dumbbell, Loader2, BrainCircuit, RefreshCw, AlertCircle, WifiOff, Heart, Brain, Utensils } from 'lucide-react';
 import OnboardingLayout from '@/components/onboarding/OnboardingLayout';
 import { usePlan } from '@/context/PlanContext';
 import { toast } from '@/components/ui/use-toast';
@@ -104,7 +105,7 @@ const IndividualPlanGeneration = () => {
       title: 'Holistic Wellness Program',
       description: 'A balanced approach to fitness, mindfulness, and overall wellbeing',
       level: 'beginner',
-      duration: '12 weeks',
+      duration: 12,
       createdAt: new Date().toISOString(),
       schedule: {
         frequency: 'weekly',
@@ -218,7 +219,7 @@ const IndividualPlanGeneration = () => {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center">
-                    <utensils className="h-4 w-4 mr-2 text-teal-600" />
+                    <Utensils className="h-4 w-4 mr-2 text-teal-600" />
                     Nutrition Guidance
                   </CardTitle>
                 </CardHeader>
@@ -319,7 +320,7 @@ const IndividualPlanGeneration = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <utensils className="h-5 w-5 mr-2 text-teal-600" />
+                    <Utensils className="h-5 w-5 mr-2 text-teal-600" />
                     Nutrition & Lifestyle
                   </CardTitle>
                   <CardDescription>
