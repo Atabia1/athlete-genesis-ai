@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { usePlan } from '@/context/PlanContext';
 
-type SubscriptionTier = 'free' | 'pro' | 'elite';
+type SubscriptionTier = 'free' | 'pro' | 'coach' | 'elite';
 
 interface PaymentMethod {
   id: string;
@@ -39,7 +39,7 @@ interface BillingHistoryItem {
 }
 
 export default function SubscriptionManagement() {
-  const { subscriptionTier, updateSubscriptionTier } = usePlan();
+  const { subscriptionTier, setSubscriptionTier } = usePlan();
   const [autoRenewal, setAutoRenewal] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
@@ -87,7 +87,7 @@ export default function SubscriptionManagement() {
     },
   ]);
 
-  const currentPlan = {
+  const currentPlan: Record<SubscriptionTier, { name: string; price: number; features: string[] }> = {
     free: {
       name: 'Free',
       price: 0,
@@ -98,6 +98,11 @@ export default function SubscriptionManagement() {
       price: 19.99,
       features: ['Unlimited workouts', 'Advanced analytics', 'AI coaching', 'Priority support'],
     },
+    coach: {
+      name: 'Coach',
+      price: 39.99,
+      features: ['Team management', 'Advanced analytics', 'Custom training plans', 'Priority support'],
+    },
     elite: {
       name: 'Elite',
       price: 49.99,
@@ -106,10 +111,12 @@ export default function SubscriptionManagement() {
   };
 
   const availableUpgrades = subscriptionTier === 'free' 
-    ? ['pro', 'elite'] 
+    ? ['pro', 'coach', 'elite'] 
     : subscriptionTier === 'pro' 
-      ? ['elite'] 
-      : [];
+      ? ['coach', 'elite'] 
+      : subscriptionTier === 'coach'
+        ? ['elite']
+        : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -121,13 +128,12 @@ export default function SubscriptionManagement() {
   };
 
   const handleCancelSubscription = () => {
-    // Handle subscription cancellation
     console.log('Cancelling subscription...');
   };
 
   const handleConfirmUpgrade = () => {
     if (subscriptionTier) {
-      updateSubscriptionTier(selectedUpgradeTier);
+      setSubscriptionTier(selectedUpgradeTier);
       setShowUpgradeDialog(false);
     }
   };
@@ -147,6 +153,9 @@ export default function SubscriptionManagement() {
       </Dialog>
     );
   };
+
+  const currentTier = subscriptionTier || 'free';
+  const currentPlanData = currentPlan[currentTier];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -168,12 +177,12 @@ export default function SubscriptionManagement() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-semibold">{currentPlan[subscriptionTier || 'free'].name} Plan</h3>
+                <h3 className="text-xl font-semibold">{currentPlanData.name} Plan</h3>
                 <p className="text-gray-600">
-                  ${currentPlan[subscriptionTier || 'free'].price}/month
+                  ${currentPlanData.price}/month
                 </p>
                 <ul className="mt-2 space-y-1">
-                  {currentPlan[subscriptionTier || 'free'].features.map((feature, index) => (
+                  {currentPlanData.features.map((feature: string, index: number) => (
                     <li key={index} className="text-sm text-gray-600">• {feature}</li>
                   ))}
                 </ul>

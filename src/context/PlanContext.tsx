@@ -183,7 +183,7 @@ interface PlanContextType {
   mealPlan: MealPlan | null;
   setMealPlan: (plan: MealPlan | null) => void;
 
-  // Add subscription tier
+  // Add subscription tier - keep the existing property name for consistency
   subscriptionTier: SubscriptionTier | null;
   setSubscriptionTier: (tier: SubscriptionTier | null) => void;
 }
