@@ -54,33 +54,12 @@ export default function SubscriptionManagement() {
       expiryDate: '12/25',
       isDefault: true,
     },
-    {
-      id: '2',
-      type: 'Mastercard',
-      last4: '8888',
-      expiryDate: '10/24',
-      isDefault: false,
-    },
   ]);
 
   const [billingHistory] = useState<BillingHistoryItem[]>([
     {
       id: '1',
       date: '2024-01-15',
-      amount: 19.99,
-      plan: 'Pro',
-      status: 'paid',
-    },
-    {
-      id: '2',
-      date: '2023-12-15',
-      amount: 19.99,
-      plan: 'Pro',
-      status: 'paid',
-    },
-    {
-      id: '3',
-      date: '2023-11-15',
       amount: 19.99,
       plan: 'Pro',
       status: 'paid',
@@ -110,11 +89,14 @@ export default function SubscriptionManagement() {
     },
   };
 
-  const availableUpgrades = subscriptionTier === 'free' 
+  const currentTier = subscriptionTier || 'free';
+  const currentPlanData = currentPlan[currentTier];
+
+  const availableUpgrades = currentTier === 'free' 
     ? ['pro', 'coach', 'elite'] 
-    : subscriptionTier === 'pro' 
+    : currentTier === 'pro' 
       ? ['coach', 'elite'] 
-      : subscriptionTier === 'coach'
+      : currentTier === 'coach'
         ? ['elite']
         : [];
 
@@ -127,35 +109,10 @@ export default function SubscriptionManagement() {
     }
   };
 
-  const handleCancelSubscription = () => {
-    console.log('Cancelling subscription...');
-  };
-
   const handleConfirmUpgrade = () => {
-    if (subscriptionTier) {
-      setSubscriptionTier(selectedUpgradeTier);
-      setShowUpgradeDialog(false);
-    }
+    setSubscriptionTier(selectedUpgradeTier);
+    setShowUpgradeDialog(false);
   };
-
-  const UpgradeDialog = ({ children, title }: { children: React.ReactNode; title: string }) => {
-    return (
-      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>
-              Choose your new subscription plan to unlock additional features.
-            </DialogDescription>
-          </DialogHeader>
-          {children}
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const currentTier = subscriptionTier || 'free';
-  const currentPlanData = currentPlan[currentTier];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -191,19 +148,16 @@ export default function SubscriptionManagement() {
                 <Badge className="mb-2">Active</Badge>
                 {availableUpgrades.length > 0 && (
                   <div className="space-y-2">
-                    {availableUpgrades.map(tier => (
-                      <Button
-                        key={tier}
-                        onClick={() => {
-                          setSelectedUpgradeTier(tier as SubscriptionTier);
-                          setShowUpgradeDialog(true);
-                        }}
-                        className="w-full"
-                      >
-                        <Zap className="mr-2 h-4 w-4" />
-                        Upgrade to {tier.charAt(0).toUpperCase() + tier.slice(1)}
-                      </Button>
-                    ))}
+                    <Button
+                      onClick={() => {
+                        setSelectedUpgradeTier('pro');
+                        setShowUpgradeDialog(true);
+                      }}
+                      className="w-full"
+                    >
+                      <Zap className="mr-2 h-4 w-4" />
+                      Upgrade Plan
+                    </Button>
                   </div>
                 )}
               </div>
@@ -281,63 +235,28 @@ export default function SubscriptionManagement() {
           </CardContent>
         </Card>
 
-        {/* Billing History */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing History</CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Upgrade Dialog */}
+        <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upgrade Subscription</DialogTitle>
+              <DialogDescription>
+                Choose your new subscription plan to unlock additional features.
+              </DialogDescription>
+            </DialogHeader>
             <div className="space-y-4">
-              {billingHistory.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{item.plan} Plan</p>
-                    <p className="text-sm text-gray-600">{item.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">${item.amount}</p>
-                    <Badge className={getStatusColor(item.status)}>
-                      {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+              <p>You're about to upgrade to the {selectedUpgradeTier.charAt(0).toUpperCase() + selectedUpgradeTier.slice(1)} plan.</p>
+              <div className="flex gap-2">
+                <Button onClick={handleConfirmUpgrade} className="flex-1">
+                  Confirm Upgrade
+                </Button>
+                <Button variant="outline" onClick={() => setShowUpgradeDialog(false)} className="flex-1">
+                  Cancel
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="text-red-600">Danger Zone</CardTitle>
-            <CardDescription>
-              Irreversible actions that will affect your subscription
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              variant="destructive" 
-              onClick={handleCancelSubscription}
-              className="w-full"
-            >
-              Cancel Subscription
-            </Button>
-          </CardContent>
-        </Card>
-
-        <UpgradeDialog title="Upgrade Subscription">
-          <div className="space-y-4">
-            <p>You're about to upgrade to the {selectedUpgradeTier.charAt(0).toUpperCase() + selectedUpgradeTier.slice(1)} plan.</p>
-            <div className="flex gap-2">
-              <Button onClick={handleConfirmUpgrade} className="flex-1">
-                Confirm Upgrade
-              </Button>
-              <Button variant="outline" onClick={() => setShowUpgradeDialog(false)} className="flex-1">
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </UpgradeDialog>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

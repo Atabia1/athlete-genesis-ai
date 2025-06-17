@@ -15,6 +15,13 @@ interface AppConfig {
   SUPABASE_ANON_KEY: string;
 }
 
+// Declare the global APP_CONFIG property
+declare global {
+  interface Window {
+    APP_CONFIG?: Partial<AppConfig>;
+  }
+}
+
 // Default configuration (used during development)
 const defaultConfig: AppConfig = {
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL || '',

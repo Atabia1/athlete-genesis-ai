@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast"
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
+  title?: string;
 }
 
 /**
@@ -27,7 +28,7 @@ interface DashboardLayoutProps {
  * This component provides the main layout for the dashboard, including
  * the top navigation, main sidebar, and mobile sidebar.
  */
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title }) => {
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { logout } = useAuth();
   const { toast } = useToast();
@@ -101,6 +102,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
         {/* Main Content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4">
+          {title && (
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+            </div>
+          )}
           {children || <Outlet />}
         </main>
       </div>
