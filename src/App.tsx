@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
+import Payment from './pages/Payment';
 import NotFound from './pages/NotFound';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -25,7 +26,8 @@ function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/dashboard/*" element={<Dashboard />} />
           <Route path="/onboarding/*" element={<Onboarding />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

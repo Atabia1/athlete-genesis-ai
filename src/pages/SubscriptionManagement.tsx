@@ -30,14 +30,6 @@ interface PaymentMethod {
   isDefault: boolean;
 }
 
-interface BillingHistoryItem {
-  id: string;
-  date: string;
-  amount: number;
-  plan: string;
-  status: 'paid' | 'pending' | 'failed';
-}
-
 export default function SubscriptionManagement() {
   const { subscriptionTier, setSubscriptionTier } = usePlan();
   const [autoRenewal, setAutoRenewal] = useState(true);
@@ -53,16 +45,6 @@ export default function SubscriptionManagement() {
       last4: '4242',
       expiryDate: '12/25',
       isDefault: true,
-    },
-  ]);
-
-  const [billingHistory] = useState<BillingHistoryItem[]>([
-    {
-      id: '1',
-      date: '2024-01-15',
-      amount: 19.99,
-      plan: 'Pro',
-      status: 'paid',
     },
   ]);
 
@@ -99,15 +81,6 @@ export default function SubscriptionManagement() {
       : currentTier === 'coach'
         ? ['elite']
         : [];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   const handleConfirmUpgrade = () => {
     setSubscriptionTier(selectedUpgradeTier);
