@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useReducer, useCallback } from 'react';
 import { EnhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
 
@@ -33,6 +32,14 @@ interface OfflineWorkoutsContextType {
   syncWorkouts: () => Promise<void>;
   loadWorkouts: () => Promise<void>;
 }
+
+const workoutObjectStores = [
+  {
+    name: 'workouts',
+    keyPath: 'id',
+    autoIncrement: false,
+  }
+];
 
 const initialState: OfflineWorkoutsState = {
   workouts: [],
@@ -91,7 +98,7 @@ const offlineWorkoutsReducer = (
   }
 };
 
-const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp');
+const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp', workoutObjectStores);
 
 const OfflineWorkoutsContext = createContext<OfflineWorkoutsContextType | undefined>(undefined);
 

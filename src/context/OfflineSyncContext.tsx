@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { EnhancedIndexedDBService } from '@/services/enhanced-indexeddb-service';
 import { standardizeWorkoutPlan } from '@/utils/workout-normalizer';
@@ -49,6 +48,14 @@ type OfflineSyncAction =
   | { type: 'SET_PENDING_CHANGES'; payload: number }
   | { type: 'CLEAR_OFFLINE_DATA' };
 
+const workoutObjectStores = [
+  {
+    name: 'workouts',
+    keyPath: 'id',
+    autoIncrement: false,
+  }
+];
+
 const initialState: OfflineSyncState = {
   offlineWorkouts: [],
   selectedWorkoutId: null,
@@ -92,7 +99,7 @@ const offlineSyncReducer = (state: OfflineSyncState, action: OfflineSyncAction):
   }
 };
 
-const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp');
+const enhancedIndexedDBService = new EnhancedIndexedDBService('WorkoutApp', workoutObjectStores);
 
 const OfflineSyncContext = createContext<OfflineSyncContextType | undefined>(undefined);
 

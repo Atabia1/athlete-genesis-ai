@@ -14,11 +14,11 @@ import {
   IndexedDBService,
   IndexedDBError,
   IndexedDBErrorType,
-  TransactionModes
-} from './indexeddb/index';
-import type {
-  TransactionMode,
+  TransactionModes,
   ObjectStoreConfig
+} from './indexeddb-service';
+import type {
+  TransactionMode
 } from './indexeddb/index';
 import { storageManager } from './storage-manager';
 import { toast } from '@/components/ui/use-toast';
@@ -349,7 +349,7 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   async clear(storeName: string): Promise<void> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
-        return super.clear(storeName);
+        return super.clearAll(storeName);
       });
     });
   }
