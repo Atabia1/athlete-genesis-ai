@@ -110,7 +110,7 @@ export class SupabaseService {
   /**
    * Delete a workout plan
    */
-  async deleteWorkoutPlan<T = any>(id: string): Promise<void> {
+  async deleteWorkoutPlan(id: string): Promise<void> {
     const { error } = await this.client
       .from('workout_plans')
       .delete()

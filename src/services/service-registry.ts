@@ -10,7 +10,7 @@ import { healthSyncService } from './health-sync-service';
 import { retryQueueService } from './retry-queue-service';
 import { SupabaseService } from './api/supabase-service';
 import { MealPlanService } from './api/meal-plan-service';
-import { UserService, mockUserService } from './api/user-service';
+import { mockUserService } from './api/user-service';
 import { PaystackApiService } from './api/paystack-service';
 
 /**

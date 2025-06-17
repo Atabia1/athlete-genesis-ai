@@ -1,3 +1,4 @@
+
 /**
  * Enhanced IndexedDB service with transaction queue and improved error handling
  *
@@ -13,7 +14,8 @@ import {
   IndexedDBService,
   IndexedDBError,
   IndexedDBErrorType,
-  TransactionModes
+  TransactionModes,
+  TransactionOperations
 } from './indexeddb/index';
 import type {
   TransactionMode

@@ -6,9 +6,6 @@
  * in the browser's local database.
  */
 
-import { WorkoutPlan } from '@/types/workout';
-import { MealPlan } from '@/components/dashboard/types/mealPlan';
-
 export interface ObjectStoreConfig {
   name: string;
   keyPath: string;
