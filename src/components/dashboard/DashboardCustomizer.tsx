@@ -7,46 +7,44 @@ import { Switch } from "@/components/ui/switch";
 import { Check, RotateCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// DashboardCustomizer Props
+export type DashboardLayout = 'default' | 'compact' | 'expanded';
+
+export interface WidgetVisibility {
+  performanceMetrics: boolean;
+  workoutDistribution: boolean;
+  weeklyGoals: boolean;
+  upcomingWorkouts: boolean;
+  achievements: boolean;
+  quickStats: boolean;
+}
+
 export interface DashboardCustomizerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  layout: string;
-  onLayoutChange: (layout: string) => void;
-  theme: string;
-  onThemeChange: (theme: string) => void;
-  widgets: string[];
-  onWidgetsChange: (widgets: string[]) => void;
+  layout: DashboardLayout;
+  onLayoutChange: (layout: DashboardLayout) => void;
+  widgetVisibility: WidgetVisibility;
+  onWidgetVisibilityChange: (widgets: WidgetVisibility) => void;
+  onReset: () => void;
 }
 
-/**
- * Dashboard Customizer Component
- * 
- * This component allows users to customize their dashboard experience.
- */
 const DashboardCustomizer: React.FC<DashboardCustomizerProps> = ({
   open,
   onOpenChange,
   layout,
   onLayoutChange,
-  theme,
-  onThemeChange,
-  widgets,
-  onWidgetsChange
+  widgetVisibility,
+  onWidgetVisibilityChange,
+  onReset
 }) => {
   const [activeTab, setActiveTab] = React.useState('layout');
   
-  // Handle saving customizations
   const handleSave = () => {
-    // Save customizations and close dialog
     onOpenChange(false);
   };
   
-  // Reset customizations to defaults
   const handleReset = () => {
-    onLayoutChange('default');
-    onThemeChange('light');
-    onWidgetsChange(['health', 'activity', 'goals', 'workouts']);
+    onReset();
   };
   
   return (
@@ -81,18 +79,19 @@ const DashboardCustomizer: React.FC<DashboardCustomizerProps> = ({
         
         <TabsContent value="widgets" className="space-y-4">
           <div className="space-y-2">
-            {['health', 'activity', 'goals', 'workouts', 'performance', 'nutrition'].map(widget => (
+            {Object.keys(widgetVisibility).map(widget => (
               <div key={widget} className="flex items-center justify-between">
-                <Label htmlFor={`widget-${widget}`} className="capitalize">{widget}</Label>
+                <Label htmlFor={`widget-${widget}`} className="capitalize">
+                  {widget.replace(/([A-Z])/g, ' $1').trim()}
+                </Label>
                 <Switch 
                   id={`widget-${widget}`}
-                  checked={widgets.includes(widget)}
+                  checked={widgetVisibility[widget as keyof WidgetVisibility]}
                   onCheckedChange={(checked) => {
-                    if (checked) {
-                      onWidgetsChange([...widgets, widget]);
-                    } else {
-                      onWidgetsChange(widgets.filter(w => w !== widget));
-                    }
+                    onWidgetVisibilityChange({
+                      ...widgetVisibility,
+                      [widget]: checked
+                    });
                   }}
                 />
               </div>
@@ -101,24 +100,7 @@ const DashboardCustomizer: React.FC<DashboardCustomizerProps> = ({
         </TabsContent>
         
         <TabsContent value="theme" className="space-y-4">
-          <RadioGroup
-            value={theme}
-            onValueChange={onThemeChange}
-            className="space-y-3"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="light" id="theme-light" />
-              <Label htmlFor="theme-light">Light</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="dark" id="theme-dark" />
-              <Label htmlFor="theme-dark">Dark</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="system" id="theme-system" />
-              <Label htmlFor="theme-system">System</Label>
-            </div>
-          </RadioGroup>
+          <p className="text-sm text-gray-600">Theme customization coming soon</p>
         </TabsContent>
       </Tabs>
       

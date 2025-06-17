@@ -23,14 +23,13 @@ import {
 } from "lucide-react";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import OfflineIndicator from "@/components/ui/offline-indicator";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/context/UserPreferencesContext";
 import { useAccessibilitySettings } from "@/context/UserPreferencesContext";
 import { DashboardCustomizer, DashboardLayout as LayoutType, WidgetVisibility } from "@/components/dashboard/DashboardCustomizer";
 import { useLocalStorageValue, useLocalStorageObject } from "@/hooks/use-local-storage";
 
-// Mock data for charts and metrics
 const performanceData = [
   { day: 'Mon', value: 65 },
   { day: 'Tue', value: 72 },
@@ -103,30 +102,14 @@ const recentAchievements = [
   },
 ];
 
-/**
- * AthleteDashboard: Enhanced dashboard for athletes
- *
- * This dashboard provides a comprehensive overview of an athlete's
- * training status, progress, and upcoming activities with interactive
- * elements and data visualizations.
- *
- * Features:
- * - Personalized data visualization
- * - Accessibility enhancements
- * - Responsive design for all screen sizes
- * - Dark mode support
- * - Offline capability
- */
 const AthleteDashboard = () => {
   const { isOnline } = useNetworkStatus();
   const { resolvedTheme } = useTheme();
   const { accessibilitySettings } = useAccessibilitySettings();
 
-  // State for personalization
   const [isLoading, setIsLoading] = useState(false);
   const [showLayoutCustomizer, setShowLayoutCustomizer] = useState(false);
 
-  // Dashboard customization settings with localStorage persistence
   const [dashboardLayout, setDashboardLayout] = useLocalStorageValue<LayoutType>(
     'dashboard-layout',
     'default'
@@ -146,13 +129,11 @@ const AthleteDashboard = () => {
     defaultWidgetVisibility
   );
 
-  // Reset dashboard customization to defaults
   const resetDashboardCustomization = useCallback(() => {
     setDashboardLayout('default');
     setWidgetVisibility(defaultWidgetVisibility);
   }, [setDashboardLayout, setWidgetVisibility]);
 
-  // Personalized color scheme based on theme
   const getChartColors = useCallback(() => {
     const isDark = resolvedTheme === 'dark';
     return {
@@ -177,7 +158,6 @@ const AthleteDashboard = () => {
     };
   }, [resolvedTheme]);
 
-  // Simulate loading user-specific data
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => {
@@ -187,7 +167,6 @@ const AthleteDashboard = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Add the customizer component
   const renderDashboardCustomizer = () => (
     <DashboardCustomizer
       open={showLayoutCustomizer}
@@ -202,7 +181,6 @@ const AthleteDashboard = () => {
 
   return (
     <DashboardLayout title="Athlete Dashboard">
-      {/* Dashboard Customizer */}
       {renderDashboardCustomizer()}
 
       <div className="mb-8">
@@ -228,9 +206,8 @@ const AthleteDashboard = () => {
             </Button>
             {!isOnline && (
               <OfflineIndicator
-                variant="badge"
-                featureSpecific={true}
-                featureName="Dashboard data"
+                showRetryButton={false}
+                className="ml-2"
               />
             )}
           </div>
@@ -683,7 +660,6 @@ const AthleteDashboard = () => {
                       value={(goal.completed / goal.total) * 100}
                       className={`${accessibilitySettings.highContrast ? 'h-3' : 'h-2'}`}
                       aria-label={`${goal.name} progress: ${Math.round((goal.completed / goal.total) * 100)}%`}
-                      // Fix for the indicatorClassName issue
                       style={{
                         "--progress-background": goal.color
                       } as React.CSSProperties}

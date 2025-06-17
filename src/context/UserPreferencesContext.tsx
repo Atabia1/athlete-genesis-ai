@@ -1,40 +1,60 @@
 
-import { createContext, useContext, ReactNode } from 'react';
-import { useLocalStorage } from '@/hooks/use-local-storage';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface UserPreferences {
-  theme: 'light' | 'dark' | 'system';
-  language: string;
-  notifications: boolean;
-  autoSync: boolean;
+interface AccessibilitySettings {
+  highContrast: boolean;
+  largeText: boolean;
+  reduceMotion: boolean;
 }
 
 interface UserPreferencesContextType {
-  preferences: UserPreferences;
-  updatePreferences: (updates: Partial<UserPreferences>) => void;
+  theme: string;
+  accessibilitySettings: AccessibilitySettings;
+  setTheme: (theme: string) => void;
+  setAccessibilitySettings: (settings: AccessibilitySettings) => void;
 }
-
-const defaultPreferences: UserPreferences = {
-  theme: 'system',
-  language: 'en',
-  notifications: true,
-  autoSync: true,
-};
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
 
-export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
-  const [preferences, setPreferences] = useLocalStorage('userPreferences', {
-    defaultValue: defaultPreferences
+export const useTheme = () => {
+  const context = useContext(UserPreferencesContext);
+  if (!context) {
+    return { resolvedTheme: 'light' };
+  }
+  return { resolvedTheme: context.theme };
+};
+
+export const useAccessibilitySettings = () => {
+  const context = useContext(UserPreferencesContext);
+  if (!context) {
+    return {
+      accessibilitySettings: {
+        highContrast: false,
+        largeText: false,
+        reduceMotion: false
+      }
+    };
+  }
+  return { accessibilitySettings: context.accessibilitySettings };
+};
+
+interface UserPreferencesProviderProps {
+  children: ReactNode;
+}
+
+export const UserPreferencesProvider: React.FC<UserPreferencesProviderProps> = ({ children }) => {
+  const [theme, setTheme] = useState('light');
+  const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>({
+    highContrast: false,
+    largeText: false,
+    reduceMotion: false
   });
 
-  const updatePreferences = (updates: Partial<UserPreferences>) => {
-    setPreferences((prev: UserPreferences) => ({ ...prev, ...updates }));
-  };
-
-  const value: UserPreferencesContextType = {
-    preferences: preferences || defaultPreferences,
-    updatePreferences,
+  const value = {
+    theme,
+    accessibilitySettings,
+    setTheme,
+    setAccessibilitySettings
   };
 
   return (
@@ -42,12 +62,4 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       {children}
     </UserPreferencesContext.Provider>
   );
-};
-
-export const useUserPreferences = () => {
-  const context = useContext(UserPreferencesContext);
-  if (context === undefined) {
-    throw new Error('useUserPreferences must be used within a UserPreferencesProvider');
-  }
-  return context;
 };
