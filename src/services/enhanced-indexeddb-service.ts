@@ -1,4 +1,3 @@
-
 /**
  * Enhanced IndexedDB service with transaction queue and improved error handling
  *
@@ -12,11 +11,11 @@
 
 import {
   IndexedDBService,
-  IndexedDBError,
   IndexedDBErrorType,
   TransactionModes,
   ObjectStoreConfig
 } from './indexeddb-service';
+import { IndexedDBError } from './indexeddb/errors';
 import type {
   TransactionMode
 } from './indexeddb/index';
@@ -349,7 +348,7 @@ export class EnhancedIndexedDBService extends IndexedDBService {
   async clear(storeName: string): Promise<void> {
     return this.enqueueTransaction(async () => {
       return this.retryWithBackoff(async () => {
-        return super.clearAll(storeName);
+        return super.clear(storeName);
       });
     });
   }

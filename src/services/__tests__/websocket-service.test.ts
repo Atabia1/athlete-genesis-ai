@@ -1,3 +1,4 @@
+
 /**
  * WebSocket Service Tests
  * 
@@ -10,8 +11,8 @@ import {
   WebSocketStatus 
 } from '../websocket-service';
 
-// Mock WebSocket
-class MockWebSocket {
+// Mock WebSocket with all required properties
+class MockWebSocket implements WebSocket {
   url: string;
   onopen: ((this: WebSocket, ev: Event) => any) | null = null;
   onmessage: ((this: WebSocket, ev: MessageEvent) => any) | null = null;
@@ -19,11 +20,17 @@ class MockWebSocket {
   onerror: ((this: WebSocket, ev: Event) => any) | null = null;
   readyState: number = 0; // CONNECTING
   
-  constructor(url: string) {
-    this.url = url;
+  // Required WebSocket properties
+  binaryType: BinaryType = 'blob';
+  bufferedAmount: number = 0;
+  extensions: string = '';
+  protocol: string = '';
+  
+  constructor(url: string | URL, protocols?: string | string[]) {
+    this.url = typeof url === 'string' ? url : url.toString();
   }
   
-  send(data: string): void {
+  send(): void {
     // Mock implementation
   }
   
@@ -36,6 +43,18 @@ class MockWebSocket {
     }
   }
   
+  addEventListener(): void {
+    // Mock implementation
+  }
+  
+  removeEventListener(): void {
+    // Mock implementation
+  }
+  
+  dispatchEvent(): boolean {
+    return true;
+  }
+  
   // Helper methods for testing
   simulateOpen(): void {
     this.readyState = 1; // OPEN
@@ -44,9 +63,9 @@ class MockWebSocket {
     }
   }
   
-  simulateMessage(data: any): void {
+  simulateMessage(messageData: any): void {
     if (this.onmessage) {
-      const messageEvent = { data: JSON.stringify(data) } as MessageEvent;
+      const messageEvent = { data: JSON.stringify(messageData) } as MessageEvent;
       this.onmessage.call(this, messageEvent);
     }
   }
@@ -64,6 +83,12 @@ class MockWebSocket {
       this.onclose.call(this, closeEvent);
     }
   }
+  
+  // WebSocket constants
+  static readonly CONNECTING = 0;
+  static readonly OPEN = 1;
+  static readonly CLOSING = 2;
+  static readonly CLOSED = 3;
 }
 
 // Mock global WebSocket
@@ -77,8 +102,8 @@ describe('WebSocket Service', () => {
     websocketService.disconnect();
     
     // Spy on WebSocket constructor
-    jest.spyOn(global, 'WebSocket').mockImplementation((url: string) => {
-      mockWebSocket = new MockWebSocket(url);
+    jest.spyOn(global, 'WebSocket').mockImplementation((url: string | URL, protocols?: string | string[]) => {
+      mockWebSocket = new MockWebSocket(url, protocols);
       return mockWebSocket as any;
     });
     
