@@ -6,4 +6,4 @@
  * backward compatibility with existing imports.
  */
 
-export { useAuth, type AuthUser, type UseAuthReturn } from '@/features/auth/hooks/use-auth';
+export { useAuth, type AuthUser, type UseAuthReturn, AuthProvider } from '@/features/auth/hooks/use-auth';

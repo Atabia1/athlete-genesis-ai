@@ -2,9 +2,18 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// Import translation files
-import enCommon from '/public/locales/en/common.json';
-import twCommon from '/public/locales/tw/common.json';
+// Default translations since JSON files are not available
+const enCommon = {
+  welcome: "Welcome",
+  login: "Login",
+  logout: "Logout"
+};
+
+const twCommon = {
+  welcome: "歡迎",
+  login: "登入", 
+  logout: "登出"
+};
 
 const resources = {
   en: {
