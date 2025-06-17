@@ -2,7 +2,7 @@
 import { WorkoutPlan, WorkoutGoal } from '@/types/workout';
 
 // Mock function to generate a workout plan
-const generateMockWorkoutPlan = async (userProfile: any): Promise<WorkoutPlan> => {
+const generateMockWorkoutPlan = async (): Promise<WorkoutPlan> => {
   // Simulate a delay to mimic an API call
   await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -95,13 +95,13 @@ const generateMockWorkoutPlan = async (userProfile: any): Promise<WorkoutPlan> =
   return mockWorkoutPlan;
 };
 
-export const generateFitnessPlan = async (userProfile: any): Promise<WorkoutPlan> => {
+export const generateFitnessPlan = async (): Promise<WorkoutPlan> => {
   try {
     // Simulate a call to the OpenAI API to generate a fitness plan
     // In a real application, you would replace this with an actual API call
-    console.log('Generating fitness plan with user profile:', userProfile);
+    console.log('Generating fitness plan with mock data');
 
-    const plan = await generateMockWorkoutPlan(userProfile);
+    const plan = await generateMockWorkoutPlan();
     
     // Ensure we always return a valid WorkoutPlan
     if (!plan) {

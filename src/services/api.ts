@@ -49,7 +49,7 @@ const authRequestInterceptor: RequestInterceptor = async (url, options) => {
         headers: {
           ...options.headers,
           'Authorization': `Bearer ${token}`,
-        },
+        } as Record<string, string>,
       },
     };
   }
@@ -105,9 +105,9 @@ const loggingRequestInterceptor: RequestInterceptor = async (url, options) => {
 /**
  * Logging response interceptor
  */
-const loggingResponseInterceptor: ResponseInterceptor = async (response, request) => {
+const loggingResponseInterceptor: ResponseInterceptor = async (response) => {
   if (import.meta.env.DEV) {
-    console.log(`API Response: ${request.options.method} ${request.url}`, {
+    console.log(`API Response: ${response.status}`, {
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries()),

@@ -1,3 +1,4 @@
+
 /**
  * Receipt Page
  * 
@@ -31,17 +32,6 @@ import {
 import { toast } from '@/components/ui/use-toast';
 
 /**
- * Format currency amount
- */
-const formatCurrency = (amount: number, currency: string = 'NGN') => {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2
-  }).format(amount / 100); // Convert from smallest currency unit
-};
-
-/**
  * Format date
  */
 const formatDate = (dateString: string) => {
@@ -61,6 +51,17 @@ const formatTime = (dateString: string) => {
     minute: '2-digit',
     second: '2-digit'
   });
+};
+
+/**
+ * Format amount
+ */
+const formatAmount = (amount: number): string => {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 2
+  }).format(amount / 100);
 };
 
 /**
@@ -328,13 +329,5 @@ const ReceiptPage = () => {
     </div>
   );
 };
-
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 2
-  }).format(amount / 100);
-}
 
 export default ReceiptPage;

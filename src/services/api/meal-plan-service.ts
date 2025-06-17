@@ -26,7 +26,7 @@ export class MealPlanService {
     this.supabaseService = options.supabaseService;
   }
 
-  async getAllMealPlans(filter: MealPlanFilter = {}): Promise<MealPlan[]> {
+  async getAllMealPlans(): Promise<MealPlan[]> {
     try {
       const result = await this.supabaseService.fetchData<MealPlan>('meal_plans');
       
@@ -49,9 +49,7 @@ export class MealPlanService {
 
   async getMealPlanById(id: string): Promise<MealPlan> {
     try {
-      const result = await this.supabaseService.fetchData<MealPlan>('meal_plans', {
-        // Apply filters here if needed
-      });
+      const result = await this.supabaseService.fetchData<MealPlan>('meal_plans');
       
       const mealPlan = result.find(plan => plan.id === id);
       if (!mealPlan) {

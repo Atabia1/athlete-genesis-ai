@@ -1,6 +1,5 @@
+
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
-import { Database } from '@/types/supabase';
-import { getConfig } from '@/lib/config';
 
 interface SupabaseQueryOptions {
   limit?: number;
@@ -10,17 +9,17 @@ interface SupabaseQueryOptions {
 }
 
 export class SupabaseService {
-  private client: SupabaseClient<Database>;
+  private client: SupabaseClient;
 
   constructor() {
-    const config = getConfig();
-    this.client = createClient<Database>(
-      config.supabaseUrl,
-      config.supabaseAnonKey
-    );
+    // Use direct URLs for now since config is not available
+    const supabaseUrl = 'https://ykgceurbedpusquqepdq.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZ2NldXJiZWRwdXNxdXFlcGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ5MDIzMDMsImV4cCI6MjA2MDQ3ODMwM30.JrTGuh-KI9GPBIYgFHvcnVUB4fP4GKhj-wqCrXedtNU';
+    
+    this.client = createClient(supabaseUrl, supabaseAnonKey);
   }
 
-  getClient(): SupabaseClient<Database> {
+  getClient(): SupabaseClient {
     return this.client;
   }
 
@@ -32,10 +31,6 @@ export class SupabaseService {
 
       if (options.limit) {
         query = query.limit(options.limit);
-      }
-
-      if (options.offset) {
-        query = query.offset(options.offset);
       }
 
       if (options.orderBy) {
@@ -51,7 +46,8 @@ export class SupabaseService {
       return (data || []) as T[];
     } catch (error) {
       console.error(`Error fetching data from ${table}:`, error);
-      throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
     }
   }
 
@@ -70,7 +66,8 @@ export class SupabaseService {
       return insertedData as T;
     } catch (error) {
       console.error(`Error inserting data into ${table}:`, error);
-      throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
     }
   }
 
@@ -90,7 +87,8 @@ export class SupabaseService {
       return updatedData as T;
     } catch (error) {
       console.error(`Error updating data in ${table}:`, error);
-      throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
     }
   }
 
@@ -106,7 +104,8 @@ export class SupabaseService {
       }
     } catch (error) {
       console.error(`Error deleting data from ${table}:`, error);
-      throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
     }
   }
 
@@ -124,7 +123,8 @@ export class SupabaseService {
       return (data || []) as T[];
     } catch (error) {
       console.error(`Error executing query on ${table}:`, error);
-      throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
     }
   }
 
@@ -140,7 +140,8 @@ export class SupabaseService {
       return data as T;
     } catch (error) {
       console.error(`Error executing function ${functionName}:`, error);
-      throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
     }
   }
 }

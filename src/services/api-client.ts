@@ -205,6 +205,13 @@ export class ApiClient {
     url: string,
     options: RequestInit & RequestConfig
   ): Promise<T> {
+    const defaultRetryConfig: RetryConfig = {
+      maxRetries: 3,
+      retryDelay: 1000,
+      retryStatusCodes: [408, 429, 500, 502, 503, 504],
+      exponentialBackoff: true,
+    };
+
     const mergedOptions = {
       ...this.defaultOptions,
       ...options,
@@ -212,11 +219,12 @@ export class ApiClient {
         'Content-Type': 'application/json',
         ...this.defaultOptions.headers,
         ...options.headers,
-      },
+      } as Record<string, string>,
       retry: {
+        ...defaultRetryConfig,
         ...this.defaultOptions.retry,
         ...options.retry,
-      },
+      } as RetryConfig,
     };
 
     // Apply request interceptors
@@ -398,12 +406,20 @@ export class ApiClient {
     retry?: Partial<RetryConfig>;
   }): Promise<T> {
     const url = this.buildUrl(config.url, config.params);
+    
+    const defaultRetryConfig: RetryConfig = {
+      maxRetries: 3,
+      retryDelay: 1000,
+      retryStatusCodes: [408, 429, 500, 502, 503, 504],
+      exponentialBackoff: true,
+    };
+
     return this.makeRequest<T>(url, {
       method: config.method,
       body: config.data ? JSON.stringify(config.data) : undefined,
       headers: config.headers,
       timeout: config.timeout,
-      retry: config.retry ? { ...this.defaultOptions.retry, ...config.retry } : undefined,
+      retry: config.retry ? { ...defaultRetryConfig, ...config.retry } : defaultRetryConfig,
     });
   }
 }
