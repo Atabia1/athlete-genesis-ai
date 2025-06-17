@@ -1,5 +1,14 @@
-import { SupabaseService, SupabaseQueryOptions } from './supabase-service';
+
+import { SupabaseService } from './supabase-service';
 import { UserProfile } from '@/types/user';
+
+export interface SupabaseQueryOptions {
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  ascending?: boolean;
+  filters?: Array<{ column: string; operator: string; value: any }>;
+}
 
 export interface UserServiceOptions {
   supabaseService: SupabaseService;
@@ -74,12 +83,11 @@ export class UserService {
     return this.supabaseService.insertData<UserProfile>('user_profiles', profile);
   }
 
-  async fetchUserProfileById(profileId: string, options: SupabaseQueryOptions = {}): Promise<UserProfile> {
-    const queryOptions: SupabaseQueryOptions = {
-      ...options,
+  async fetchUserProfileById(profileId: string): Promise<UserProfile> {
+    const profiles = await this.supabaseService.fetchData<UserProfile>('user_profiles', {
       filters: [{ column: 'id', operator: 'eq', value: profileId }],
-    };
-    const profiles = await this.supabaseService.fetchData<UserProfile>('user_profiles', queryOptions);
+    });
+    
     if (!profiles || profiles.length === 0) {
       throw new Error(`User profile with id ${profileId} not found`);
     }
@@ -99,56 +107,8 @@ export class UserService {
   }
 }
 
-class MockSupabaseService extends SupabaseService {
-  async fetchData<T>(tableName: string, queryOptions: SupabaseQueryOptions = {}): Promise<T[]> {
-    console.log('Mock fetch data:', tableName, queryOptions);
-    return [];
-  }
-
-  async insertData<T>(tableName: string, insertData: Partial<T>): Promise<T> {
-    console.log('Mock insert data:', tableName, insertData);
-    return insertData as T;
-  }
-
-  async updateData<T>(tableName: string, recordId: string, updateData: Partial<T>): Promise<T> {
-    console.log('Mock update data:', tableName, recordId, updateData);
-    return updateData as T;
-  }
-
-  async deleteData(tableName: string, recordId: string): Promise<void> {
-    console.log('Mock delete data:', tableName, recordId);
-  }
-
-  getClient(): any {
-    return {
-      from: (tableName: string) => ({
-        select: () => ({
-          eq: (_column: string, _value: any) => ({
-            single: () => Promise.resolve({ data: null, error: null }),
-            then: (callback: (result: any) => void) => callback({ data: null, error: null })
-          }),
-          then: (callback: (result: any) => void) => callback({ data: [], error: null })
-        }),
-        insert: (data: any) => ({
-          then: (callback: (result: any) => void) => callback({ data, error: null })
-        }),
-        update: (data: any) => ({
-          eq: (_column: string, _value: any) => ({
-            then: (callback: (result: any) => void) => callback({ data, error: null })
-          })
-        }),
-        delete: () => ({
-          eq: (_column: string, _value: any) => ({
-            then: (callback: (result: any) => void) => callback({ data: null, error: null })
-          })
-        })
-      })
-    };
-  }
-}
-
 export const mockUserService = new UserService({
-  supabaseService: new MockSupabaseService()
+  supabaseService: new SupabaseService()
 });
 
 export default UserService;

@@ -6,6 +6,7 @@ interface SupabaseQueryOptions {
   offset?: number;
   orderBy?: string;
   ascending?: boolean;
+  filters?: Array<{ column: string; operator: string; value: any }>;
 }
 
 export class SupabaseService {
@@ -28,6 +29,13 @@ export class SupabaseService {
       let query = this.client
         .from(table)
         .select('*');
+
+      // Apply filters
+      if (options.filters) {
+        options.filters.forEach(filter => {
+          query = query.filter(filter.column, filter.operator, filter.value);
+        });
+      }
 
       if (options.limit) {
         query = query.limit(options.limit);

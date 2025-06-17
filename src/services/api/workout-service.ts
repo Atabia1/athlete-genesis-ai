@@ -1,3 +1,4 @@
+
 /**
  * Workout Service
  * 
@@ -25,13 +26,14 @@ export class WorkoutService {
    */
   async getWorkouts(userId: string): Promise<WorkoutPlan[]> {
     try {
-      const workouts = await this.supabase.getData<WorkoutPlan>(this.TABLE_NAME, {
-        filters: { user_id: userId },
-        order: { column: 'created_at', ascending: false },
+      const workouts = await this.supabase.fetchData<WorkoutPlan>(this.TABLE_NAME, {
+        filters: [{ column: 'user_id', operator: 'eq', value: userId }],
+        orderBy: 'created_at',
+        ascending: false,
       });
       
       // Standardize workout plans
-      return workouts.map(workout => standardizeWorkoutPlan(workout));
+      return workouts.map((workout: any) => standardizeWorkoutPlan(workout));
     } catch (error) {
       console.error('Error getting workouts:', error);
       throw error;
@@ -43,8 +45,8 @@ export class WorkoutService {
    */
   async getWorkout(id: string): Promise<WorkoutPlan> {
     try {
-      const workouts = await this.supabase.getData<WorkoutPlan>(this.TABLE_NAME, {
-        filters: { id },
+      const workouts = await this.supabase.fetchData<WorkoutPlan>(this.TABLE_NAME, {
+        filters: [{ column: 'id', operator: 'eq', value: id }],
       });
       
       if (workouts.length === 0) {
@@ -71,6 +73,10 @@ export class WorkoutService {
       
       // Standardize workout plan before saving
       const standardizedWorkout = standardizeWorkoutPlan(workout);
+      
+      if (!standardizedWorkout) {
+        throw new Error('Failed to standardize workout plan');
+      }
       
       // Add timestamps if not present
       const now = new Date().toISOString();
@@ -104,6 +110,10 @@ export class WorkoutService {
       
       // Standardize workout plan before updating
       const standardizedWorkout = standardizeWorkoutPlan(workout);
+      
+      if (!standardizedWorkout) {
+        throw new Error('Failed to standardize workout plan');
+      }
       
       // Update timestamp
       standardizedWorkout.updatedAt = new Date().toISOString();
@@ -139,12 +149,13 @@ export class WorkoutService {
    */
   async getWorkoutTemplates(): Promise<WorkoutPlan[]> {
     try {
-      const templates = await this.supabase.getData<WorkoutPlan>('workout_templates', {
-        order: { column: 'name', ascending: true },
+      const templates = await this.supabase.fetchData<WorkoutPlan>('workout_templates', {
+        orderBy: 'name',
+        ascending: true,
       });
       
       // Standardize workout plans
-      return templates.map(template => standardizeWorkoutPlan(template));
+      return templates.map((template: any) => standardizeWorkoutPlan(template));
     } catch (error) {
       console.error('Error getting workout templates:', error);
       throw error;
