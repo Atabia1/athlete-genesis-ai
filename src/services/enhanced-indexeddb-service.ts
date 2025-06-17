@@ -38,7 +38,9 @@ export class EnhancedIndexedDBService extends IndexedDBService {
    * @param stores Object store configurations
    */
   constructor(dbName: string, stores: ObjectStoreConfig[]) {
-    super(dbName, stores);
+    // Convert ObjectStoreConfig array to string array for the parent constructor
+    const storeNames = stores.map(store => store.name);
+    super(dbName, storeNames);
   }
 
   /**
