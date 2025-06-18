@@ -7,7 +7,6 @@
  */
 
 import * as React from 'react';
-import { safeForwardRef } from './react-utils';
 
 /**
  * Generic component props type
@@ -58,18 +57,7 @@ function withErrorBoundary<P extends Record<string, any>>(
 function withMemo<P extends Record<string, any>>(
   Component: React.ComponentType<P>
 ): React.ComponentType<P> {
-  return React.memo(Component);
-}
-
-/**
- * Create a component with ref forwarding
- */
-function withRef<T, P extends Record<string, any>>(
-  Component: React.ComponentType<P>
-) {
-  return safeForwardRef<T, P>((props, ref) => (
-    <Component {...props} ref={ref} />
-  ));
+  return React.memo(Component) as React.ComponentType<P>;
 }
 
 /**
@@ -84,11 +72,6 @@ export function createComponent<P extends Record<string, any>>(
   // Set display name
   if (options.displayName) {
     Component.displayName = options.displayName;
-  }
-  
-  // Add default props
-  if (options.defaultProps && 'defaultProps' in Component) {
-    (Component as any).defaultProps = options.defaultProps;
   }
   
   // Add memoization
@@ -116,27 +99,6 @@ export function createFunctionalComponent<P extends Record<string, any>>(
   };
   
   return createComponent(Component, options);
-}
-
-/**
- * Create a compound component (component with sub-components)
- */
-export function createCompoundComponent<
-  P extends Record<string, any>,
-  SubComponents extends Record<string, React.ComponentType<any>>
->(
-  MainComponent: React.ComponentType<P>,
-  subComponents: SubComponents,
-  options: ComponentFactoryOptions<P> = {}
-): React.ComponentType<P> & SubComponents {
-  const Component = createComponent(MainComponent, options) as React.ComponentType<P> & SubComponents;
-  
-  // Attach sub-components
-  Object.keys(subComponents).forEach((key) => {
-    (Component as any)[key] = subComponents[key];
-  });
-  
-  return Component;
 }
 
 /**
@@ -179,28 +141,11 @@ export function createConsumer<T>(
   });
 }
 
-/**
- * Create a layout component with slots
- */
-export function createLayout<P extends Record<string, any>>(
-  Layout: React.ComponentType<P & { children: React.ReactNode }>,
-  slots: Record<string, React.ComponentType<any>>,
-  options: ComponentFactoryOptions<P> = {}
-): React.ComponentType<P> & { Slots: typeof slots } {
-  const LayoutComponent = createComponent(Layout as React.ComponentType<any>, options) as React.ComponentType<P> & { Slots: typeof slots };
-  LayoutComponent.Slots = slots;
-  
-  return LayoutComponent;
-}
-
 export default {
   createComponent,
   createFunctionalComponent,
-  createCompoundComponent,
   createProvider,
   createConsumer,
-  createLayout,
   withErrorBoundary,
   withMemo,
-  withRef,
 };

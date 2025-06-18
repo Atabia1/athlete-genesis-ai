@@ -1,3 +1,4 @@
+
 /**
  * Accessibility Components
  *
@@ -8,6 +9,6 @@ export * from './SkipToContent';
 export * from './AccessibilitySettingsButton';
 export * from './VisuallyHidden';
 export * from './LiveRegion';
-export { AccessibilitySettings, AccessibilitySettingsDialogButton } from './AccessibilitySettings';
+export { AccessibilitySettings } from './AccessibilitySettings';
 export * from './AccessibilityAuditor';
 export * from './AccessibilityDocumentation';

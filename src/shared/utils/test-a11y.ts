@@ -1,37 +1,50 @@
 
-import { axe } from 'jest-axe';
-import { render, RenderResult } from '@testing-library/react';
-import React, { ReactElement } from 'react';
-
 /**
- * Tests a component for accessibility violations
- * @param ui - The React element to test
- * @returns A promise that resolves when the test is complete
+ * Accessibility Testing Utilities
  */
-export async function testA11y(
-  ui: ReactElement,
-  options?: {
-    axeOptions?: jest.AxeOptions;
-  }
-): Promise<void> {
-  const { container } = render(ui);
-  const results = await axe(container, options?.axeOptions);
-  
-  expect(results).toHaveNoViolations();
+
+import { configureAxe } from 'jest-axe';
+
+interface AxeOptions {
+  rules?: Record<string, { enabled: boolean }>;
+  tags?: string[];
 }
 
 /**
- * Tests a rendered component for accessibility violations
- * @param renderResult - The result of calling render() on a component
- * @returns A promise that resolves when the test is complete
+ * Configure axe for accessibility testing
  */
-export async function testRenderedA11y(
-  renderResult: RenderResult,
-  options?: {
-    axeOptions?: jest.AxeOptions;
-  }
-): Promise<void> {
-  const results = await axe(renderResult.container, options?.axeOptions);
-  
-  expect(results).toHaveNoViolations();
-}
+export const configureA11yTesting = (options: AxeOptions = {}) => {
+  const defaultOptions = {
+    rules: {
+      // Disable specific rules that might be too strict for development
+      'color-contrast': { enabled: true },
+      'landmark-one-main': { enabled: true },
+    },
+    tags: ['wcag2a', 'wcag2aa'],
+    ...options,
+  };
+
+  return configureAxe(defaultOptions);
+};
+
+/**
+ * Common accessibility test options
+ */
+export const commonA11yTestOptions: AxeOptions = {
+  rules: {
+    'color-contrast': { enabled: true },
+    'landmark-one-main': { enabled: false }, // Often not needed in component tests
+  },
+  tags: ['wcag2a', 'wcag2aa'],
+};
+
+/**
+ * Strict accessibility test options
+ */
+export const strictA11yTestOptions: AxeOptions = {
+  rules: {
+    'color-contrast': { enabled: true },
+    'landmark-one-main': { enabled: true },
+  },
+  tags: ['wcag2a', 'wcag2aa', 'wcag21aa'],
+};

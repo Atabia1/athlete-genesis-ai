@@ -1,43 +1,54 @@
+
 /**
- * LanguagePreferenceContext
+ * Language Preference Context
  *
- * This context provides language preference functionality throughout the application.
- * It uses the useLanguagePreference hook to load and update the user's language preference.
+ * This context manages user language preferences for the application.
+ * It handles saving and loading language settings from localStorage.
  */
 
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useLanguagePreference } from '@/shared/hooks/use-language-preference';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-// Define the context type
+interface LanguagePreference {
+  language: string;
+}
+
 interface LanguagePreferenceContextType {
   updateLanguagePreference: (language: string) => Promise<void>;
 }
 
-// Create the context with a default value
 const LanguagePreferenceContext = createContext<LanguagePreferenceContextType | undefined>(undefined);
 
-// Provider component
 export function LanguagePreferenceProvider({ children }: { children: ReactNode }) {
-  // Use the language preference hook
-  const { updateLanguagePreference } = useLanguagePreference();
+  const [preference, setPreference] = useState<LanguagePreference>({ language: 'en' });
 
-  // Create the context value
-  const contextValue: LanguagePreferenceContextType = {
-    updateLanguagePreference,
+  // Load preferences from localStorage on mount
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage) {
+      setPreference({ language: savedLanguage });
+    }
+  }, []);
+
+  const updateLanguagePreference = async (language: string) => {
+    setPreference({ language });
+    localStorage.setItem('language', language);
   };
 
   return (
-    <LanguagePreferenceContext.Provider value={contextValue}>
+    <LanguagePreferenceContext.Provider
+      value={{
+        updateLanguagePreference,
+      }}
+    >
       {children}
     </LanguagePreferenceContext.Provider>
   );
 }
 
-// Hook to use the language preference context
-export function useLanguagePreferenceContext() {
+export function useLanguagePreference() {
   const context = useContext(LanguagePreferenceContext);
   if (context === undefined) {
-    throw new Error('useLanguagePreferenceContext must be used within a LanguagePreferenceProvider');
+    throw new Error('useLanguagePreference must be used within a LanguagePreferenceProvider');
   }
   return context;
 }

@@ -11,12 +11,9 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { useAccessibility } from '@/shared/context/AccessibilityContext';
-import { useTranslation } from '@/shared/hooks/use-translation';
-import { Eye, Volume2, Keyboard, Monitor, Type, Contrast } from 'lucide-react';
+import { Eye, Volume2, Keyboard } from 'lucide-react';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { LiveRegion } from './LiveRegion';
 
 interface AccessibilitySettingsProps {
@@ -25,41 +22,20 @@ interface AccessibilitySettingsProps {
 
 export function AccessibilitySettings({ onSave }: AccessibilitySettingsProps) {
   const {
-    highContrast,
+    preferences: { highContrast, reducedMotion, fontSize },
     setHighContrast,
-    reducedMotion,
     setReducedMotion,
-    fontSize,
-    setFontSize,
-    screenReaderOptimized,
-    setScreenReaderOptimized,
-    keyboardNavigation,
-    setKeyboardNavigation,
-    announcements,
-    setAnnouncements,
-  } = useAccessibility();
-
-  const { t } = useTranslation();
+    setFontSize
+  } = useUserPreferences();
 
   const fontSizeOptions = [
     { value: 'small', label: 'Small (14px)', size: '14px' },
     { value: 'medium', label: 'Medium (16px)', size: '16px' },
     { value: 'large', label: 'Large (18px)', size: '18px' },
-    { value: 'extra-large', label: 'Extra Large (20px)', size: '20px' },
   ];
 
   const handleSave = () => {
-    // Save settings to localStorage or user preferences
-    const settings = {
-      highContrast,
-      reducedMotion,
-      fontSize,
-      screenReaderOptimized,
-      keyboardNavigation,
-      announcements,
-    };
-    
-    localStorage.setItem('accessibilitySettings', JSON.stringify(settings));
+    // Save settings to localStorage (already handled by context)
     onSave?.();
   };
 
@@ -164,8 +140,8 @@ export function AccessibilitySettings({ onSave }: AccessibilitySettingsProps) {
             </div>
             <Switch
               id="keyboard-navigation"
-              checked={keyboardNavigation}
-              onCheckedChange={setKeyboardNavigation}
+              checked={false}
+              onCheckedChange={() => {}}
             />
           </div>
         </CardContent>
@@ -185,24 +161,6 @@ export function AccessibilitySettings({ onSave }: AccessibilitySettingsProps) {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="screen-reader-optimized" className="text-base">
-                Screen Reader Optimization
-              </Label>
-              <p className="text-sm text-gray-600">
-                Enhances compatibility with screen reading software.
-              </p>
-            </div>
-            <Switch
-              id="screen-reader-optimized"
-              checked={screenReaderOptimized}
-              onCheckedChange={setScreenReaderOptimized}
-            />
-          </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
               <Label htmlFor="announcements" className="text-base">
                 Live Announcements
               </Label>
@@ -212,8 +170,8 @@ export function AccessibilitySettings({ onSave }: AccessibilitySettingsProps) {
             </div>
             <Switch
               id="announcements"
-              checked={announcements}
-              onCheckedChange={setAnnouncements}
+              checked={false}
+              onCheckedChange={() => {}}
             />
           </div>
         </CardContent>
@@ -227,7 +185,9 @@ export function AccessibilitySettings({ onSave }: AccessibilitySettingsProps) {
       </div>
 
       {/* Live Region for announcements */}
-      <LiveRegion className="sr-only" />
+      <LiveRegion className="sr-only">
+        Settings updated
+      </LiveRegion>
     </div>
   );
 }

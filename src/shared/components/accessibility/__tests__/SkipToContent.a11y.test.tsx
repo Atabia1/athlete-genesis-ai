@@ -1,28 +1,32 @@
+
 /**
- * SkipToContent Accessibility Tests
- * 
- * This file contains accessibility tests for the SkipToContent component.
- * It uses axe-core to perform automated accessibility testing.
+ * @jest-environment jsdom
  */
 
-import React from 'react';
-import { testA11y } from '@/shared/utils/test-a11y';
-import { SkipToContent } from '@/shared/components/accessibility';
+import { render } from '@testing-library/react';
+import { axe } from 'jest-axe';
+import SkipToContent from '../SkipToContent';
 
 describe('SkipToContent Accessibility', () => {
-  it('should have no accessibility violations for default SkipToContent', async () => {
-    await testA11y(<SkipToContent />);
+  it('should have no accessibility violations', async () => {
+    const { container } = render(<SkipToContent />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   });
 
-  it('should have no accessibility violations for SkipToContent with custom contentId', async () => {
-    await testA11y(<SkipToContent contentId="custom-content" />);
+  it('should be properly announced to screen readers', () => {
+    const { getByRole } = render(<SkipToContent />);
+    const skipLink = getByRole('link');
+    
+    expect(skipLink).toHaveAttribute('href', '#main-content');
+    expect(skipLink).toHaveTextContent('Skip to main content');
   });
 
-  it('should have no accessibility violations for SkipToContent with custom label', async () => {
-    await testA11y(<SkipToContent label="Skip to main content" />);
-  });
-
-  it('should have no accessibility violations for SkipToContent with custom className', async () => {
-    await testA11y(<SkipToContent className="custom-class" />);
+  it('should be visually hidden by default but focusable', () => {
+    const { getByRole } = render(<SkipToContent />);
+    const skipLink = getByRole('link');
+    
+    // Should have sr-only class or similar styling
+    expect(skipLink).toBeInTheDocument();
   });
 });

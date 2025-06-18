@@ -1,3 +1,4 @@
+
 /**
  * React Utilities
  *
@@ -59,53 +60,26 @@ export type {
 
 /**
  * Safe forwardRef implementation that ensures the ref is properly handled
- * even if React.forwardRef is not available at runtime
  */
-export function safeForwardRef<T, P = Record<string, unknown>>(
+export function safeForwardRef<T, P extends Record<string, unknown>>(
   render: (props: P, ref: React.Ref<T>) => React.ReactElement | null
 ): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<T>> {
-  // First try to use the native forwardRef
-  if (typeof React.forwardRef === 'function') {
-    return React.forwardRef(render);
-  }
-
-  // Fallback implementation if forwardRef is not available
-  const FallbackForwardRef = function FallbackForwardRef(
-    props: P & { ref?: React.Ref<T> }
-  ) {
-    const { ref, ...rest } = props as any;
-    return render(rest as P, ref);
-  };
-
-  // Set display name
-  FallbackForwardRef.displayName = render.name
-    ? `SafeForwardRef(${render.name})`
-    : 'SafeForwardRef';
-
-  return FallbackForwardRef as any;
+  return React.forwardRef(render);
 }
 
 /**
  * Safe component factory that handles refs properly
  */
-export function createSafeComponent<P extends object, R = any>(
+export function createSafeComponent<P extends object>(
   Component: React.ComponentType<P>,
   options: {
     displayName: string;
-    withRef?: boolean;
   }
 ): React.ComponentType<P> {
-  const { displayName, withRef = false } = options;
+  const { displayName } = options;
 
   // Set display name
   Component.displayName = displayName;
-
-  // Add forward ref if requested
-  if (withRef) {
-    return safeForwardRef<R, P>((props, ref) => (
-      <Component {...props} ref={ref} />
-    ));
-  }
 
   return Component;
 }

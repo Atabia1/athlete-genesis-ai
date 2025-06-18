@@ -1,3 +1,4 @@
+
 /**
  * Accessibility Context
  * 
@@ -9,7 +10,7 @@
  * - Screen reader announcements
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useReducedMotion } from '@/shared/hooks/use-reduced-motion';
 import { useAnnounce } from '@/shared/hooks/use-announce';
 
@@ -129,37 +130,3 @@ export function useAccessibility(): AccessibilityContextType {
   }
   return context;
 }
-
-/**
- * Example usage:
- * 
- * function App() {
- *   return (
- *     <AccessibilityProvider>
- *       <AppContent />
- *     </AccessibilityProvider>
- *   );
- * }
- * 
- * function AppContent() {
- *   const { highContrast, toggleHighContrast, prefersReducedMotion } = useAccessibility();
- *   
- *   return (
- *     <div>
- *       <button onClick={toggleHighContrast}>
- *         {highContrast ? 'Disable' : 'Enable'} High Contrast
- *       </button>
- *       
- *       <div className={highContrast ? 'high-contrast' : ''}>
- *         Content with {highContrast ? 'high' : 'normal'} contrast
- *       </div>
- *       
- *       <div style={{ 
- *         transition: prefersReducedMotion ? 'none' : 'all 0.3s ease-in-out' 
- *       }}>
- *         Content with {prefersReducedMotion ? 'reduced' : 'normal'} motion
- *       </div>
- *     </div>
- *   );
- * }
- */

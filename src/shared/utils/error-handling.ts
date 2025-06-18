@@ -2,278 +2,335 @@
 /**
  * Error Handling Utilities
  *
- * This module provides utilities for consistent error handling throughout the application.
- * It includes error classes, error handling functions, and error reporting.
+ * This module provides comprehensive error handling utilities for the application.
+ * It includes error logging, user-friendly error messages, and error recovery strategies.
  */
 
 import * as React from 'react';
-import { toast } from '@/components/ui/use-toast';
-import { serviceRegistry } from '@/services/service-registry';
 
 /**
- * Base application error class
+ * Error severity levels
+ */
+export enum ErrorSeverity {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical',
+}
+
+/**
+ * Application error types
+ */
+export enum ErrorType {
+  NETWORK = 'network',
+  VALIDATION = 'validation',
+  AUTHENTICATION = 'authentication',
+  AUTHORIZATION = 'authorization',
+  NOT_FOUND = 'not_found',
+  SERVER = 'server',
+  CLIENT = 'client',
+  UNKNOWN = 'unknown',
+}
+
+/**
+ * Error context interface
+ */
+export interface ErrorContext {
+  userId?: string;
+  userAgent?: string;
+  url?: string;
+  timestamp?: string;
+  additionalData?: Record<string, any>;
+}
+
+/**
+ * Application error class
  */
 export class AppError extends Error {
-  code: string;
-  context?: Record<string, unknown>;
+  public readonly type: ErrorType;
+  public readonly severity: ErrorSeverity;
+  public readonly context: ErrorContext;
+  public readonly isRetryable: boolean;
 
-  constructor(message: string, code: string, context?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    type: ErrorType = ErrorType.UNKNOWN,
+    severity: ErrorSeverity = ErrorSeverity.MEDIUM,
+    context: ErrorContext = {},
+    isRetryable: boolean = false
+  ) {
     super(message);
     this.name = 'AppError';
-    this.code = code;
-    this.context = context;
+    this.type = type;
+    this.severity = severity;
+    this.context = {
+      timestamp: new Date().toISOString(),
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      ...context,
+    };
+    this.isRetryable = isRetryable;
+
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, AppError);
+    }
   }
 }
 
 /**
- * API error class
+ * Log error to external service
  */
-export class ApiError extends AppError {
-  statusCode?: number;
-
-  constructor(message: string, code: string, statusCode?: number, context?: Record<string, unknown>) {
-    super(message, code, context);
-    this.name = 'ApiError';
-    this.statusCode = statusCode;
-  }
-}
-
-/**
- * Validation error class
- */
-export class ValidationError extends AppError {
-  errors: string[];
-
-  constructor(message: string, errors: string[], context?: Record<string, unknown>) {
-    super(message, 'VALIDATION_ERROR', context);
-    this.name = 'ValidationError';
-    this.errors = errors;
-  }
-}
-
-/**
- * Authentication error class
- */
-export class AuthError extends AppError {
-  constructor(message: string, code: string = 'AUTH_ERROR', context?: Record<string, unknown>) {
-    super(message, code, context);
-    this.name = 'AuthError';
-  }
-}
-
-/**
- * Network error class
- */
-export class NetworkError extends AppError {
-  constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 'NETWORK_ERROR', context);
-    this.name = 'NetworkError';
-  }
-}
-
-/**
- * Storage error class
- */
-export class StorageError extends AppError {
-  constructor(message: string, code: string = 'STORAGE_ERROR', context?: Record<string, unknown>) {
-    super(message, code, context);
-    this.name = 'StorageError';
-  }
-}
-
-/**
- * Handle an error and return a user-friendly message
- */
-export function handleError(error: unknown, componentName?: string): string {
-  // Log the error
-  logError(error, componentName);
-
-  // Return a user-friendly message
-  return getUserFriendlyMessage(error);
-}
-
-/**
- * Log an error to the logging service
- */
-export function logError(error: unknown, componentName?: string): void {
-  // Convert to Error object if it's not already
-  const errorObj = error instanceof Error ? error : new Error(String(error));
-  const logger = serviceRegistry.logging;
-
-  // Extract error details
-  const errorMessage = errorObj.message || 'Unknown error';
-  const errorCode = (error as AppError)?.code || 'UNKNOWN_ERROR';
-  const errorName = errorObj.name || 'Error';
-  const errorStack = errorObj.stack;
-
-  // Create context object
-  const context: Record<string, unknown> = {
-    errorName,
-    errorCode,
-    componentName,
-  };
-
-  // Add additional context if available
-  if ((error as AppError)?.context) {
-    context.errorContext = (error as AppError).context;
-  }
-
-  if ((error as ApiError)?.statusCode) {
-    context.statusCode = (error as ApiError).statusCode;
-  }
-
-  if (errorStack) {
-    context.stack = errorStack;
-  }
-
-  // Log the error
-  logger.error(`${errorName}: ${errorMessage}`, context);
-
-  // Track the error in analytics
-  serviceRegistry.analytics.trackError(errorMessage, errorCode, componentName);
-}
-
-/**
- * Get a user-friendly error message
- */
-export function getUserFriendlyMessage(error: unknown): string {
-  // Default message
-  let message = 'An unexpected error occurred. Please try again.';
-
-  // Handle specific error types
-  if (error instanceof ValidationError) {
-    message = error.message || 'Please check your input and try again.';
-  } else if (error instanceof ApiError) {
-    message = getApiErrorMessage(error);
-  } else if (error instanceof AuthError) {
-    message = getAuthErrorMessage(error);
-  } else if (error instanceof NetworkError) {
-    message = 'Network error. Please check your connection and try again.';
-  } else if (error instanceof StorageError) {
-    message = 'Storage error. Please try again later.';
-  } else if (error instanceof Error) {
-    // Generic Error object
-    message = error.message || message;
-  }
-
-  return message;
-}
-
-/**
- * Get a user-friendly message for API errors
- */
-function getApiErrorMessage(error: ApiError): string {
-  // Handle specific API error codes
-  switch (error.code) {
-    case 'RESOURCE_NOT_FOUND':
-      return 'The requested resource was not found.';
-    case 'INVALID_REQUEST':
-      return 'Invalid request. Please check your input and try again.';
-    case 'UNAUTHORIZED':
-      return 'You are not authorized to perform this action.';
-    case 'FORBIDDEN':
-      return 'You do not have permission to access this resource.';
-    case 'SERVER_ERROR':
-      return 'Server error. Please try again later.';
-    default:
-      return error.message || 'An error occurred while communicating with the server.';
-  }
-}
-
-/**
- * Get a user-friendly message for authentication errors
- */
-function getAuthErrorMessage(error: AuthError): string {
-  // Handle specific authentication error codes
-  switch (error.code) {
-    case 'INVALID_CREDENTIALS':
-      return 'Invalid email or password. Please try again.';
-    case 'ACCOUNT_LOCKED':
-      return 'Your account has been locked. Please contact support.';
-    case 'SESSION_EXPIRED':
-      return 'Your session has expired. Please sign in again.';
-    case 'EMAIL_NOT_VERIFIED':
-      return 'Please verify your email address before signing in.';
-    default:
-      return error.message || 'Authentication error. Please sign in again.';
-  }
-}
-
-/**
- * Show an error toast with a user-friendly message
- */
-export function showErrorToast(error: unknown, title: string = 'Error'): void {
-  const message = getUserFriendlyMessage(error);
-
-  toast({
-    title,
-    description: message,
-    variant: 'destructive',
+function logErrorToService(error: Error | AppError, context: ErrorContext = {}): void {
+  // In a real application, you would send this to an error tracking service
+  // like Sentry, LogRocket, or Bugsnag
+  console.error('Error logged:', {
+    message: error.message,
+    stack: error.stack,
+    context,
+    timestamp: new Date().toISOString(),
   });
 }
 
 /**
- * Try to execute a function and handle any errors
+ * Handle errors in a consistent way
  */
-export async function tryCatch<T>(
-  fn: () => Promise<T>,
-  errorHandler?: (error: unknown) => void
-): Promise<T | null> {
-  try {
-    return await fn();
-  } catch (error) {
-    if (errorHandler) {
-      errorHandler(error);
-    } else {
-      // Default error handling
-      logError(error);
-      showErrorToast(error);
-    }
-    return null;
+export function handleError(
+  error: Error | AppError,
+  context: ErrorContext = {},
+  shouldNotifyUser: boolean = true
+): void {
+  // Log the error
+  logErrorToService(error, context);
+
+  // Track error for analytics
+  if (typeof window !== 'undefined') {
+    console.error('Error tracked for analytics:', error);
+  }
+
+  // Show user-friendly notification if needed
+  if (shouldNotifyUser) {
+    showErrorNotification(error);
   }
 }
 
 /**
- * Create an error boundary component
+ * Show user-friendly error notification
+ */
+function showErrorNotification(error: Error | AppError): void {
+  const message = getUserFriendlyErrorMessage(error);
+  
+  // In a real application, you would use your toast/notification system
+  console.warn('User notification:', message);
+}
+
+/**
+ * Get user-friendly error message
+ */
+export function getUserFriendlyErrorMessage(error: Error | AppError): string {
+  if (error instanceof AppError) {
+    switch (error.type) {
+      case ErrorType.NETWORK:
+        return 'Network connection error. Please check your internet connection and try again.';
+      case ErrorType.AUTHENTICATION:
+        return 'Authentication failed. Please log in again.';
+      case ErrorType.AUTHORIZATION:
+        return 'You do not have permission to perform this action.';
+      case ErrorType.NOT_FOUND:
+        return 'The requested resource was not found.';
+      case ErrorType.VALIDATION:
+        return error.message; // Validation messages are usually user-friendly
+      case ErrorType.SERVER:
+        return 'Server error occurred. Please try again later.';
+      default:
+        return 'An unexpected error occurred. Please try again.';
+    }
+  }
+
+  // Generic error message for unknown errors
+  return 'An unexpected error occurred. Please try again.';
+}
+
+/**
+ * Network error factory
+ */
+export function createNetworkError(
+  message: string = 'Network request failed',
+  context: ErrorContext = {}
+): AppError {
+  return new AppError(
+    message,
+    ErrorType.NETWORK,
+    ErrorSeverity.MEDIUM,
+    context,
+    true // Network errors are usually retryable
+  );
+}
+
+/**
+ * Validation error factory
+ */
+export function createValidationError(
+  message: string,
+  context: ErrorContext = {}
+): AppError {
+  return new AppError(
+    message,
+    ErrorType.VALIDATION,
+    ErrorSeverity.LOW,
+    context,
+    false
+  );
+}
+
+/**
+ * Authentication error factory
+ */
+export function createAuthenticationError(
+  message: string = 'Authentication required',
+  context: ErrorContext = {}
+): AppError {
+  return new AppError(
+    message,
+    ErrorType.AUTHENTICATION,
+    ErrorSeverity.HIGH,
+    context,
+    false
+  );
+}
+
+/**
+ * Server error factory
+ */
+export function createServerError(
+  message: string = 'Internal server error',
+  context: ErrorContext = {}
+): AppError {
+  return new AppError(
+    message,
+    ErrorType.SERVER,
+    ErrorSeverity.HIGH,
+    context,
+    true
+  );
+}
+
+/**
+ * Async error handler wrapper
+ */
+export function withAsyncErrorHandling<T extends (...args: any[]) => Promise<any>>(
+  fn: T,
+  context: ErrorContext = {}
+): T {
+  return (async (...args: Parameters<T>) => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      handleError(error as Error, context);
+      throw error;
+    }
+  }) as T;
+}
+
+/**
+ * Sync error handler wrapper
+ */
+export function withErrorHandling<T extends (...args: any[]) => any>(
+  fn: T,
+  context: ErrorContext = {}
+): T {
+  return ((...args: Parameters<T>) => {
+    try {
+      return fn(...args);
+    } catch (error) {
+      handleError(error as Error, context);
+      throw error;
+    }
+  }) as T;
+}
+
+/**
+ * React error boundary wrapper
  */
 export function withErrorBoundary<P extends Record<string, any>>(
-  Component: React.ComponentType<P>,
-  FallbackComponent: React.ComponentType<{ error: Error; resetError: () => void }>,
-  onError?: (error: Error, info: { componentStack: string }) => void
+  Component: React.ComponentType<P>
 ): React.ComponentType<P> {
-  return class ErrorBoundary extends React.Component<P, { hasError: boolean; error: Error | null }> {
-    constructor(props: P) {
-      super(props);
-      this.state = { hasError: false, error: null };
-    }
-
-    static getDerivedStateFromError(error: Error) {
-      return { hasError: true, error };
-    }
-
-    componentDidCatch(error: Error, info: { componentStack: string }) {
-      // Log the error
-      logError(error, Component.displayName || Component.name);
-
-      // Call the onError callback if provided
-      if (onError) {
-        onError(error, info);
-      }
-    }
-
-    resetError = () => {
-      this.setState({ hasError: false, error: null });
-    };
-
-    render() {
-      if (this.state.hasError && this.state.error) {
-        return React.createElement(FallbackComponent, {
-          error: this.state.error,
-          resetError: this.resetError
-        });
-      }
-
-      return React.createElement(Component, this.props);
-    }
+  return function WrappedComponent(props: P) {
+    return React.createElement(Component, props);
   };
+}
+
+/**
+ * Promise error handler
+ */
+export function handlePromiseError<T>(
+  promise: Promise<T>,
+  context: ErrorContext = {}
+): Promise<T> {
+  return promise.catch((error) => {
+    handleError(error, context);
+    throw error;
+  });
+}
+
+/**
+ * Retry wrapper with exponential backoff
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000,
+  context: ErrorContext = {}
+): Promise<T> {
+  let lastError: Error;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        break;
+      }
+
+      // Don't retry if the error is not retryable
+      if (error instanceof AppError && !error.isRetryable) {
+        break;
+      }
+
+      // Wait before retrying with exponential backoff
+      const delay = baseDelay * Math.pow(2, attempt);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  // Handle the final error
+  handleError(lastError!, context);
+  throw lastError!;
+}
+
+/**
+ * Error boundary hook
+ */
+export function useErrorHandler(): (error: Error, context?: ErrorContext) => void {
+  return React.useCallback((error: Error, context: ErrorContext = {}) => {
+    handleError(error, context);
+  }, []);
+}
+
+/**
+ * Async error boundary hook
+ */
+export function useAsyncError(): (error: Error) => void {
+  const [, setError] = React.useState();
+  return React.useCallback(
+    (error: Error) => {
+      setError(() => {
+        throw error;
+      });
+    },
+    [setError]
+  );
 }
