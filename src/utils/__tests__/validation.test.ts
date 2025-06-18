@@ -1,9 +1,9 @@
-
 /**
  * @jest-environment jsdom
  */
 
-import { validateEmail, validateRequired, validateMinLength, validateMaxLength, validatePassword } from '../validation';
+import { validateExercise, validateWorkoutDay, validateWorkoutPlan } from '../validation';
+import { validateEmail, validateRequired, validateMinLength, validateMaxLength, validatePassword } from '@/shared/utils/validation';
 
 // Mock workout types for testing
 interface Exercise {

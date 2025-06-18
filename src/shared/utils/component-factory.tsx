@@ -17,14 +17,6 @@ export type ComponentProps<T = Record<string, any>> = T & {
 };
 
 /**
- * Error boundary props
- */
-export interface ErrorBoundaryProps {
-  fallback?: React.ReactNode;
-  onError?: (error: Error) => void;
-}
-
-/**
  * Component factory options
  */
 export interface ComponentFactoryOptions<P = Record<string, any>> {
@@ -40,8 +32,8 @@ export interface ComponentFactoryOptions<P = Record<string, any>> {
 function withMemo<P extends Record<string, any>>(
   Component: React.ComponentType<P>
 ): React.ComponentType<P> {
-  const MemoizedComponent = React.memo(Component);
-  return MemoizedComponent as React.ComponentType<P>;
+  const MemoizedComponent = React.memo(Component) as React.ComponentType<P>;
+  return MemoizedComponent;
 }
 
 /**
@@ -95,10 +87,10 @@ export function createProvider<T, P extends Record<string, any>>(
     return React.createElement(context.Provider, { value }, children);
   };
   
-  return createComponent(Provider as React.ComponentType<any>, {
+  return createComponent(Provider, {
     displayName: `${context.displayName || 'Unknown'}Provider`,
     ...options,
-  }) as React.ComponentType<P & { children: React.ReactNode }>;
+  });
 }
 
 /**

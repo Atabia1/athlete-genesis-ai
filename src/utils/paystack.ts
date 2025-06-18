@@ -1,254 +1,215 @@
-
 /**
- * Paystack Integration Utilities
- * 
- * This module provides utilities for integrating with the Paystack payment gateway.
- * It includes functions for initializing payments, verifying transactions, and
- * managing subscriptions.
- * 
- * Paystack API documentation: https://paystack.com/docs/api/
+ * Paystack Payment Utilities
+ *
+ * This module provides utilities for integrating Paystack payments into the application.
  */
 
-import axios from 'axios';
-import { SubscriptionTier } from '@/context/PlanContext';
-import { getPaystackPublicKey } from '@/utils/env-config';
+// Constants
+const PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
+const API_BASE = 'https://api.paystack.co';
 
-// Get Paystack public key or use a fallback for development
-const PAYSTACK_PUBLIC_KEY = getPaystackPublicKey() || 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+// Types
+export interface PaystackConfig {
+  key: string;
+  email: string;
+  amount: number;
+  currency?: string;
+  reference: string;
+  plan?: string;
+  callback: (response: PaystackResponse) => void;
+  onClose: () => void;
+}
 
-// API endpoints
-const PAYSTACK_API_BASE = 'https://api.paystack.co';
-const INITIALIZE_ENDPOINT = '/transaction/initialize';
-const VERIFY_ENDPOINT = '/transaction/verify';
-
-// Subscription plan IDs (replace with your actual plan IDs from Paystack dashboard)
-export const SUBSCRIPTION_PLAN_IDS = {
-  pro: 'PLN_xxxxxxxxxx',
-  coach: 'PLN_xxxxxxxxxx',
-  elite: 'PLN_xxxxxxxxxx'
-};
-
-// Subscription prices (in cents)
-export const SUBSCRIPTION_PRICES = {
-  pro: {
-    monthly: 999, // $9.99
-    yearly: 9900  // $99.00
-  },
-  coach: {
-    monthly: 1999, // $19.99
-    yearly: 19900  // $199.00
-  },
-  elite: {
-    monthly: 4999, // $49.99
-    yearly: 49900  // $499.00
-  }
-};
-
-// Subscription periods
-export type SubscriptionPeriod = 'monthly' | 'yearly';
+export interface PaystackResponse {
+  status: boolean;
+  message: string;
+  transaction: any;
+}
 
 /**
  * Initialize a Paystack payment
- * 
- * @param email - Customer email address
- * @param amount - Amount to charge (in cents)
- * @param tier - Subscription tier
- * @param period - Subscription period (monthly or yearly)
- * @param metadata - Additional metadata for the transaction
- * @returns Promise with the authorization URL and reference
  */
-export const initializePayment = async (
-  email: string,
-  tier: SubscriptionTier,
-  period: SubscriptionPeriod,
-  metadata: Record<string, any> = {}
-): Promise<{ authorizationUrl: string; reference: string }> => {
-  if (tier === 'free' || !tier) {
-    throw new Error('Cannot process payment for free tier');
-  }
-  
-  const amount = period === 'yearly' 
-    ? SUBSCRIPTION_PRICES[tier].yearly 
-    : SUBSCRIPTION_PRICES[tier].monthly;
-  
+export async function initializePayment(config: PaystackConfig): Promise<PaystackResponse> {
+  const {
+    amount,
+    currency = 'NGN',
+    reference,
+    plan,
+  } = config;
+
+  const url = `${API_BASE}/transaction/initialize`;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${PUBLIC_KEY}`,
+  };
+  const body = JSON.stringify({
+    amount: amount * 100, // Amount in kobo/cents
+    currency,
+    reference,
+    plan,
+  });
+
   try {
-    // For demo purposes, return a mock response
-    const reference = `ref_${Math.floor(Math.random() * 1000000000)}_${Date.now()}`;
-    console.log(`Mock payment initialized for ${tier} (${period}) - ${amount}`);
-    
-    return {
-      authorizationUrl: `https://checkout.paystack.com/demo/${reference}`,
-      reference
-    };
-  } catch (error) {
-    console.error('Error initializing payment:', error);
-    throw new Error('Failed to initialize payment. Please try again.');
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('Paystack initialization error:', error);
+    throw new Error(`Paystack initialization failed: ${error.message}`);
   }
-};
+}
 
 /**
- * Verify a Paystack transaction
- * 
- * @param reference - Transaction reference
- * @returns Promise with the transaction details
+ * Verify a Paystack payment
  */
-export const verifyTransaction = async (reference: string): Promise<any> => {
+export async function verifyPayment(reference: string): Promise<PaystackResponse> {
+  const url = `${API_BASE}/transaction/verify/${reference}`;
+  const headers = {
+    'Authorization': `Bearer ${PUBLIC_KEY}`,
+  };
+
   try {
-    const response = await axios.get(
-      `${PAYSTACK_API_BASE}${VERIFY_ENDPOINT}/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_PUBLIC_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    
-    return response.data.data;
-  } catch (error) {
-    console.error('Error verifying transaction:', error);
-    throw new Error('Failed to verify transaction. Please contact support.');
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('Paystack verification error:', error);
+    throw new Error(`Paystack verification failed: ${error.message}`);
   }
-};
+}
 
 /**
- * Get the subscription details for a tier and period
- * 
- * @param tier - Subscription tier
- * @param period - Subscription period (monthly or yearly)
- * @returns Subscription details
+ * Get Paystack transaction details
  */
-export const getSubscriptionDetails = (
-  tier: SubscriptionTier,
-  period: SubscriptionPeriod
-): { name: string; price: number; interval: string } => {
-  if (tier === 'free' || !tier) {
-    return {
-      name: 'Free',
-      price: 0,
-      interval: 'N/A'
-    };
+export async function getTransactionDetails(transactionId: string): Promise<any> {
+  const url = `${API_BASE}/transaction/${transactionId}`;
+  const headers = {
+    'Authorization': `Bearer ${PUBLIC_KEY}`,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('Paystack transaction details error:', error);
+    throw new Error(`Failed to fetch transaction details: ${error.message}`);
   }
-  
-  const price = period === 'yearly' 
-    ? SUBSCRIPTION_PRICES[tier].yearly / 100 
-    : SUBSCRIPTION_PRICES[tier].monthly / 100;
-  
-  const tierNames = {
-    pro: 'Pro Athlete',
-    coach: 'Coach Pro',
-    elite: 'Elite AI'
-  };
-  
-  return {
-    name: tierNames[tier],
-    price,
-    interval: period === 'yearly' ? 'year' : 'month'
-  };
-};
+}
 
 /**
- * Format a price for display
- * 
- * @param price - Price in cents
- * @returns Formatted price string
+ * List Paystack transactions
  */
-export const formatPrice = (price: number): string => {
-  return `$${(price / 100).toFixed(2)}`;
-};
+export async function listTransactions(params?: Record<string, any>): Promise<any> {
+  const queryParams = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/transaction?${queryParams}`;
+  const headers = {
+    'Authorization': `Bearer ${PUBLIC_KEY}`,
+  };
 
-/**
- * Calculate savings between monthly and yearly plans
- * 
- * @param tier - Subscription tier
- * @returns Savings amount and percentage
- */
-export const calculateYearlySavings = (
-  tier: SubscriptionTier
-): { amount: number; percentage: number } => {
-  if (tier === 'free' || !tier) {
-    return { amount: 0, percentage: 0 };
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('Paystack list transactions error:', error);
+    throw new Error(`Failed to list transactions: ${error.message}`);
   }
-  
-  const monthlyAnnual = SUBSCRIPTION_PRICES[tier].monthly * 12;
-  const yearly = SUBSCRIPTION_PRICES[tier].yearly;
-  const savings = monthlyAnnual - yearly;
-  const percentage = Math.round((savings / monthlyAnnual) * 100);
-  
-  return {
-    amount: savings / 100, // Convert to dollars
-    percentage
-  };
-};
+}
 
 /**
- * Initialize the Paystack inline widget
- * 
- * @param email - Customer email address
- * @param amount - Amount to charge (in cents)
- * @param metadata - Additional metadata for the transaction
- * @param onSuccess - Callback function on successful payment
- * @param onCancel - Callback function on cancelled payment
+ * Charge authorization
  */
-export const initializePaystackInline = (
+export async function chargeAuthorization(
+  authorizationCode: string,
   email: string,
   amount: number,
-  metadata: Record<string, any> = {},
-  onSuccess: (reference: string) => void,
-  onCancel: () => void
-): void => {
-  // Check if Paystack is loaded
-  const paystack = typeof window !== 'undefined' ? window.PaystackPop : null;
-  if (!paystack) {
-    console.warn('Paystack not loaded, falling back to redirect method');
-    // Fall back to redirect method
-    initializePayment('user@example.com', 'pro', 'monthly')
-      .then(({ authorizationUrl }) => {
-        window.open(authorizationUrl, '_blank');
-      })
-      .catch(console.error);
-    return;
-  }
-  
-  // Set up Paystack handler
-  try {
-    const handler = paystack.setup({
-      key: PAYSTACK_PUBLIC_KEY,
-      email,
-      amount,
-      metadata,
-      callback: (response: { reference: string }) => {
-        onSuccess(response.reference);
-      },
-      onClose: () => {
-        onCancel();
-      }
-    });
-    
-    handler.openIframe();
-  } catch (error) {
-    console.error('Error setting up Paystack:', error);
-    alert('There was an error setting up the payment. Please try again later.');
-  }
-};
+  currency: string = 'NGN'
+): Promise<PaystackResponse> {
+  const url = `${API_BASE}/transaction/charge_authorization`;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${PUBLIC_KEY}`,
+  };
+  const body = JSON.stringify({
+    authorization_code: authorizationCode,
+    email,
+    amount: amount * 100, // Amount in kobo/cents
+    currency,
+  });
 
-export default {
-  initializePayment,
-  verifyTransaction: async (reference: string) => {
-    // Mock implementation
-    return {
-      status: true,
-      data: {
-        reference,
-        amount: 1000,
-        status: 'success'
-      }
-    };
-  },
-  getSubscriptionDetails,
-  formatPrice,
-  calculateYearlySavings,
-  initializePaystackInline,
-  SUBSCRIPTION_PRICES,
-  SUBSCRIPTION_PLAN_IDS
-};
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('Paystack charge authorization error:', error);
+    throw new Error(`Paystack charge authorization failed: ${error.message}`);
+  }
+}
+
+/**
+ * Open Paystack checkout popup
+ */
+export function openPaystackPopup(config: PaystackConfig): void {
+  const paystackConfig = {
+    key: config.key,
+    email: config.email,
+    amount: config.amount,
+    currency: config.currency,
+    ref: config.reference,
+    plan: config.plan,
+    callback: config.callback,
+    onClose: config.onClose,
+  };
+
+  const handler = (window as any).PaystackPop;
+  if (handler) {
+    handler.setup(paystackConfig);
+    handler.openIframe();
+  } else {
+    console.error('PaystackPop not found. Ensure the Paystack script is loaded.');
+  }
+}

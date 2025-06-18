@@ -1,277 +1,153 @@
 /**
  * Trend Prediction Utilities
- * 
- * This file contains utilities for predicting trends in health data.
- * It uses simple statistical methods to identify trends and make predictions.
+ *
+ * This module provides functions for analyzing data trends and making predictions
+ * based on historical data. It includes linear regression and seasonal pattern
+ * analysis techniques.
  */
 
-/**
- * Data point interface
- */
-export interface DataPoint {
-  /** Value of the data point */
-  value: number;
-  /** Timestamp of the data point */
-  timestamp: Date;
-}
-
-/**
- * Trend direction
- */
-export enum TrendDirection {
-  UP = 'up',
-  DOWN = 'down',
-  STABLE = 'stable',
-  FLUCTUATING = 'fluctuating',
-}
-
-/**
- * Trend prediction result
- */
-export interface TrendPrediction {
-  /** Direction of the trend */
-  direction: TrendDirection;
-  /** Slope of the trend line */
+// Define the result type for trend prediction
+export interface TrendPredictionResult {
+  trend: 'increasing' | 'decreasing' | 'stable';
   slope: number;
-  /** Confidence level (0-1) */
+  prediction: number;
   confidence: number;
-  /** Predicted next value */
-  nextValue: number;
-  /** Predicted values for future points */
-  predictions: number[];
-  /** R-squared value (goodness of fit) */
-  rSquared: number;
+}
+
+// Define the result type for seasonal pattern analysis
+export interface SeasonalPattern {
+  pattern: number[];
+  average: number;
 }
 
 /**
- * Calculate the mean of an array of numbers
- * @param values Array of numbers
- * @returns Mean value
+ * Calculate linear regression for trend prediction
  */
-export function calculateMean(values: number[]): number {
-  if (values.length === 0) return 0;
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-/**
- * Calculate the standard deviation of an array of numbers
- * @param values Array of numbers
- * @returns Standard deviation
- */
-export function calculateStandardDeviation(values: number[]): number {
-  if (values.length <= 1) return 0;
-  
-  const mean = calculateMean(values);
-  const squaredDifferences = values.map(value => Math.pow(value - mean, 2));
-  const variance = calculateMean(squaredDifferences);
-  
-  return Math.sqrt(variance);
-}
-
-/**
- * Perform simple linear regression on data points
- * @param dataPoints Array of data points
- * @returns Regression result with slope, intercept, and r-squared
- */
-export function linearRegression(dataPoints: DataPoint[]): {
-  slope: number;
-  intercept: number;
-  rSquared: number;
-} {
-  if (dataPoints.length <= 1) {
-    return { slope: 0, intercept: 0, rSquared: 0 };
-  }
-  
-  // Convert timestamps to numerical x values (days since first point)
-  const firstTimestamp = dataPoints[0].timestamp.getTime();
-  const xValues = dataPoints.map(point => 
-    (point.timestamp.getTime() - firstTimestamp) / (1000 * 60 * 60 * 24)
-  );
-  
-  const yValues = dataPoints.map(point => point.value);
-  
-  const n = dataPoints.length;
-  const sumX = xValues.reduce((sum, x) => sum + x, 0);
-  const sumY = yValues.reduce((sum, y) => sum + y, 0);
-  const sumXY = xValues.reduce((sum, x, i) => sum + x * yValues[i], 0);
-  const sumXX = xValues.reduce((sum, x) => sum + x * x, 0);
-  const sumYY = yValues.reduce((sum, y) => sum + y * y, 0);
-  
-  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-  const intercept = (sumY - slope * sumX) / n;
-  
-  // Calculate R-squared
-  const yMean = sumY / n;
-  const totalVariation = yValues.reduce((sum, y) => sum + Math.pow(y - yMean, 2), 0);
-  const predictedValues = xValues.map(x => slope * x + intercept);
-  const residualVariation = yValues.reduce((sum, y, i) => 
-    sum + Math.pow(y - predictedValues[i], 2), 0
-  );
-  const rSquared = 1 - (residualVariation / totalVariation);
-  
-  return { slope, intercept, rSquared };
-}
-
-/**
- * Predict the trend in health data
- * @param dataPoints Array of data points
- * @param daysToPredict Number of days to predict into the future
- * @returns Trend prediction result
- */
-export function predictTrend(
-  dataPoints: DataPoint[], 
-  daysToPredict: number = 7
-): TrendPrediction {
-  if (dataPoints.length <= 1) {
+export function calculateLinearRegression(data: number[]): TrendPredictionResult {
+  if (data.length < 2) {
     return {
-      direction: TrendDirection.STABLE,
+      trend: 'stable',
       slope: 0,
+      prediction: data[0] || 0,
       confidence: 0,
-      nextValue: dataPoints.length > 0 ? dataPoints[0].value : 0,
-      predictions: Array(daysToPredict).fill(dataPoints.length > 0 ? dataPoints[0].value : 0),
-      rSquared: 0,
     };
   }
-  
-  // Sort data points by timestamp
-  const sortedPoints = [...dataPoints].sort(
-    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
-  );
-  
-  // Perform linear regression
-  const { slope, intercept, rSquared } = linearRegression(sortedPoints);
-  
-  // Calculate confidence based on R-squared and number of data points
-  const confidence = Math.min(
-    rSquared * (1 - 1 / Math.sqrt(dataPoints.length)),
-    0.99
-  );
-  
-  // Determine trend direction
-  let direction: TrendDirection;
-  if (Math.abs(slope) < 0.01) {
-    direction = TrendDirection.STABLE;
-  } else if (rSquared < 0.3) {
-    direction = TrendDirection.FLUCTUATING;
-  } else if (slope > 0) {
-    direction = TrendDirection.UP;
-  } else {
-    direction = TrendDirection.DOWN;
+
+  const n = data.length;
+  const x = Array.from({ length: n }, (_, i) => i);
+  const y = data;
+
+  const sumX = x.reduce((sum, val) => sum + val, 0);
+  const sumY = y.reduce((sum, val) => sum + val, 0);
+  const sumXY = x.reduce((sum, val, i) => sum + val * y[i], 0);
+  const sumXX = x.reduce((sum, val) => sum + val * val, 0);
+
+  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+
+  const prediction = slope * n + intercept;
+
+  let trend: 'increasing' | 'decreasing' | 'stable' = 'stable';
+  if (slope > 0.1) {
+    trend = 'increasing';
+  } else if (slope < -0.1) {
+    trend = 'decreasing';
   }
-  
-  // Calculate predictions
-  const lastX = (sortedPoints[sortedPoints.length - 1].timestamp.getTime() - 
-    sortedPoints[0].timestamp.getTime()) / (1000 * 60 * 60 * 24);
-  
-  const predictions = Array.from({ length: daysToPredict }, (_, i) => {
-    const x = lastX + (i + 1);
-    return slope * x + intercept;
-  });
-  
+
+  // Calculate R-squared to determine the goodness of fit
+  const yMean = sumY / n;
+  const ssRes = y.reduce((sum, val, i) => sum + Math.pow(val - (slope * x[i] + intercept), 2), 0);
+  const ssTot = y.reduce((sum, val) => sum + Math.pow(val - yMean, 2), 0);
+  const rSquared = 1 - (ssRes / ssTot);
+
+  // Confidence is based on R-squared
+  const confidence = Math.max(0, Math.min(1, rSquared));
+
   return {
-    direction,
+    trend,
     slope,
+    prediction,
     confidence,
-    nextValue: predictions[0],
-    predictions,
-    rSquared,
   };
 }
 
 /**
- * Detect seasonality in data
- * @param dataPoints Array of data points
- * @param periodLength Expected period length in days
- * @returns Seasonality strength (0-1)
+ * Detect anomalies in the data using a simple moving average
  */
-export function detectSeasonality(
-  dataPoints: DataPoint[],
-  periodLength: number
-): number {
-  if (dataPoints.length < periodLength * 2) {
-    return 0; // Not enough data to detect seasonality
+export function detectAnomalies(data: number[], windowSize: number = 5, threshold: number = 2): number[] {
+  const anomalies: number[] = [];
+  if (data.length < windowSize) {
+    return anomalies; // Not enough data to compute moving average
   }
-  
-  // Sort data points by timestamp
-  const sortedPoints = [...dataPoints].sort(
-    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
-  );
-  
-  // Calculate autocorrelation at the period length
-  const values = sortedPoints.map(point => point.value);
-  const mean = calculateMean(values);
-  const normalizedValues = values.map(value => value - mean);
-  
-  let autocorrelation = 0;
-  let denominator = 0;
-  
-  for (let i = 0; i < normalizedValues.length - periodLength; i++) {
-    autocorrelation += normalizedValues[i] * normalizedValues[i + periodLength];
-    denominator += normalizedValues[i] * normalizedValues[i];
+
+  for (let i = windowSize; i < data.length; i++) {
+    let windowSum = 0;
+    for (let j = i - windowSize; j < i; j++) {
+      windowSum += data[j];
+    }
+    const windowAverage = windowSum / windowSize;
+    const stdDev = Math.sqrt(data.slice(i - windowSize, i).reduce((sum, val) => sum + Math.pow(val - windowAverage, 2), 0) / windowSize);
+
+    if (Math.abs(data[i] - windowAverage) > threshold * stdDev) {
+      anomalies.push(i);
+    }
   }
-  
-  if (denominator === 0) return 0;
-  
-  // Normalize to 0-1 range
-  const seasonalityStrength = Math.abs(autocorrelation / denominator);
-  return Math.min(seasonalityStrength, 1);
+
+  return anomalies;
 }
 
 /**
- * Generate a forecast that combines trend and seasonality
- * @param dataPoints Array of data points
- * @param daysToPredict Number of days to predict
- * @param periodLength Expected period length in days
- * @returns Predicted values
+ * Analyze seasonal patterns
  */
-export function generateForecast(
-  dataPoints: DataPoint[],
-  daysToPredict: number = 7,
-  periodLength: number = 7
+export function analyzeSeasonalPatterns(
+  data: number[],
+  period: number = 7
+): SeasonalPattern {
+  const n = data.length;
+  if (n < period) {
+    return {
+      pattern: [],
+      average: 0,
+    };
+  }
+
+  const pattern: number[] = new Array(period).fill(0);
+  const counts: number[] = new Array(period).fill(0);
+
+  for (let i = 0; i < n; i++) {
+    const index = i % period;
+    pattern[index] += data[i];
+    counts[index]++;
+  }
+
+  for (let i = 0; i < period; i++) {
+    pattern[i] /= counts[i];
+  }
+
+  const average = pattern.reduce((sum, val) => sum + val, 0) / period;
+
+  return {
+    pattern,
+    average,
+  };
+}
+
+/**
+ * Forecast future values based on historical data and seasonal patterns
+ */
+export function forecastFutureValues(
+  data: number[],
+  periods: number,
+  seasonalPattern: SeasonalPattern
 ): number[] {
-  // Get trend prediction
-  const { predictions: trendPredictions, confidence } = predictTrend(dataPoints, daysToPredict);
-  
-  // If we don't have enough data for seasonality, just return trend predictions
-  if (dataPoints.length < periodLength * 2) {
-    return trendPredictions;
+  const forecast: number[] = [];
+  const n = data.length;
+
+  for (let i = 0; i < periods; i++) {
+    const seasonalIndex = (n + i) % seasonalPattern.pattern.length;
+    const seasonalValue = seasonalPattern.pattern[seasonalIndex];
+    forecast.push(seasonalValue);
   }
-  
-  // Sort data points by timestamp
-  const sortedPoints = [...dataPoints].sort(
-    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
-  );
-  
-  // Calculate seasonal factors
-  const values = sortedPoints.map(point => point.value);
-  const seasonalFactors: number[] = Array(periodLength).fill(0);
-  const seasonalCounts: number[] = Array(periodLength).fill(0);
-  
-  // Calculate average value for each position in the cycle
-  for (let i = 0; i < values.length; i++) {
-    const position = i % periodLength;
-    seasonalFactors[position] += values[i];
-    seasonalCounts[position]++;
-  }
-  
-  // Calculate average seasonal factors
-  for (let i = 0; i < periodLength; i++) {
-    if (seasonalCounts[i] > 0) {
-      seasonalFactors[i] /= seasonalCounts[i];
-    }
-  }
-  
-  // Normalize seasonal factors
-  const avgFactor = calculateMean(seasonalFactors);
-  const normalizedFactors = seasonalFactors.map(factor => 
-    avgFactor === 0 ? 1 : factor / avgFactor
-  );
-  
-  // Apply seasonal factors to trend predictions
-  const lastPosition = (sortedPoints.length - 1) % periodLength;
-  
-  return trendPredictions.map((prediction, i) => {
-    const position = (lastPosition + i + 1) % periodLength;
-    return prediction * normalizedFactors[position];
-  });
+
+  return forecast;
 }

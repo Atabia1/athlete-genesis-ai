@@ -1,4 +1,3 @@
-
 /**
  * Error Handling Utilities
  *
@@ -40,6 +39,7 @@ export interface ErrorContext {
   userAgent?: string;
   url?: string;
   timestamp?: string;
+  componentName?: string;
   additionalData?: Record<string, any>;
 }
 
@@ -271,7 +271,7 @@ export function withErrorHandling<T extends (...args: any[]) => any>(
 }
 
 /**
- * React error boundary wrapper
+ * React error boundary wrapper (simplified)
  */
 export function withErrorBoundary<P extends Record<string, any>>(
   Component: React.ComponentType<P>

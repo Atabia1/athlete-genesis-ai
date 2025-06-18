@@ -5,6 +5,7 @@
  * It includes error classes, error handling functions, and error reporting.
  */
 
+import * as React from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { serviceRegistry } from '@/services/service-registry';
 
