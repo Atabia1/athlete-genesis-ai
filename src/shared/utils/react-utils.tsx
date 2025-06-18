@@ -64,13 +64,15 @@ export type {
 export function safeForwardRef<T, P extends Record<string, unknown>>(
   render: (props: P, ref: React.Ref<T>) => React.ReactElement | null
 ): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<T>> {
-  return React.forwardRef(render);
+  return React.forwardRef((props: React.PropsWithoutRef<P>, ref: React.Ref<T>) => {
+    return render(props as P, ref);
+  });
 }
 
 /**
  * Safe component factory that handles refs properly
  */
-export function createSafeComponent<P extends object>(
+export function createSafeComponent<P extends Record<string, unknown>>(
   Component: React.ComponentType<P>,
   options: {
     displayName: string;
@@ -87,13 +89,13 @@ export function createSafeComponent<P extends object>(
 /**
  * Safe version of React.createElement that handles errors
  */
-export function createSafeElement<P>(
+export function createSafeElement<P extends Record<string, unknown>>(
   type: React.ElementType<P>,
   props?: React.Attributes & P | null,
   ...children: React.ReactNode[]
 ): React.ReactElement | null {
   try {
-    return React.createElement(type, props, ...children);
+    return React.createElement(type as any, props, ...children);
   } catch (error) {
     console.error(`Error creating element of type ${String(type)}:`, error);
     return null;

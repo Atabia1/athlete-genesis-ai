@@ -19,7 +19,7 @@ interface LanguagePreferenceContextType {
 const LanguagePreferenceContext = createContext<LanguagePreferenceContextType | undefined>(undefined);
 
 export function LanguagePreferenceProvider({ children }: { children: ReactNode }) {
-  const [preference, setPreference] = useState<LanguagePreference>({ language: 'en' });
+  const [, setPreference] = useState<LanguagePreference>({ language: 'en' });
 
   // Load preferences from localStorage on mount
   useEffect(() => {

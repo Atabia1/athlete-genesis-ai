@@ -1,46 +1,44 @@
 
 /**
- * SkipToContent Component
- * 
- * This component provides a skip link that allows keyboard users to bypass
- * navigation and jump directly to the main content. It's a crucial accessibility
- * feature for keyboard users who would otherwise have to tab through all
- * navigation items on every page.
- * 
- * The link is visually hidden until it receives focus, at which point it
- * becomes visible so the user can see it.
+ * Skip to Content Component
+ *
+ * This component provides a "Skip to main content" link for keyboard navigation.
+ * It's typically the first focusable element on a page and helps users bypass
+ * navigation to get straight to the main content.
  */
 
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/lib/utils';
 
-export interface SkipToContentProps {
-  /** The ID of the main content element to skip to */
-  contentId?: string;
-  /** The text to display in the skip link */
-  label?: string;
-  /** Additional CSS classes */
+interface SkipToContentProps {
+  href?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
-export function SkipToContent({
-  contentId = 'main-content',
-  label = 'Skip to content',
+export function SkipToContent({ 
+  href = '#main-content',
   className,
+  children = 'Skip to main content'
 }: SkipToContentProps) {
   return (
     <a
-      href={`#${contentId}`}
+      href={href}
       className={cn(
-        // Base styles
-        'absolute left-0 top-0 z-50 flex items-center justify-center px-4 py-2 text-sm font-medium',
         // Visually hidden by default
-        '-translate-y-full opacity-0 focus:translate-y-0 focus:opacity-100',
-        // Visual styles when focused
-        'bg-primary text-primary-foreground transition-transform focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+        'sr-only focus:not-sr-only',
+        // When focused, show as a visible button
+        'focus:absolute focus:top-4 focus:left-4 focus:z-50',
+        'focus:bg-primary focus:text-primary-foreground',
+        'focus:px-4 focus:py-2 focus:rounded-md',
+        'focus:font-medium focus:text-sm',
+        'focus:outline-none focus:ring-2 focus:ring-offset-2',
+        'transition-all duration-200',
         className
       )}
     >
-      {label}
+      {children}
     </a>
   );
 }
+
+export default SkipToContent;

@@ -35,29 +35,13 @@ export interface ComponentFactoryOptions<P = Record<string, any>> {
 }
 
 /**
- * Create a component with error boundary support
- */
-function withErrorBoundary<P extends Record<string, any>>(
-  Component: React.ComponentType<P>
-): React.ComponentType<P & ErrorBoundaryProps> {
-  return function ErrorBoundaryWrapper(props: P & ErrorBoundaryProps) {
-    const { fallback, onError, ...componentProps } = props;
-    
-    return (
-      <React.Suspense fallback={fallback || <div>Loading...</div>}>
-        <Component {...(componentProps as P)} />
-      </React.Suspense>
-    );
-  };
-}
-
-/**
- * Create a memoized component
+ * Create a memoized component (simplified)
  */
 function withMemo<P extends Record<string, any>>(
   Component: React.ComponentType<P>
 ): React.ComponentType<P> {
-  return React.memo(Component) as React.ComponentType<P>;
+  const MemoizedComponent = React.memo(Component);
+  return MemoizedComponent as React.ComponentType<P>;
 }
 
 /**
@@ -77,11 +61,6 @@ export function createComponent<P extends Record<string, any>>(
   // Add memoization
   if (options.memo) {
     Component = withMemo(Component);
-  }
-  
-  // Add error boundary
-  if (options.errorBoundary) {
-    Component = withErrorBoundary(Component) as React.ComponentType<P>;
   }
   
   return Component;
@@ -146,6 +125,5 @@ export default {
   createFunctionalComponent,
   createProvider,
   createConsumer,
-  withErrorBoundary,
   withMemo,
 };

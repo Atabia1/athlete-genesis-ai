@@ -1,3 +1,4 @@
+
 /**
  * UI Component Utilities
  * 
@@ -18,7 +19,7 @@ export type ComponentPropsWithRef<T extends React.ElementType> =
 /**
  * Creates a UI component with proper ref forwarding
  */
-export function createUIComponent<E extends HTMLElement, P = {}>(
+export function createUIComponent<E extends HTMLElement, P extends Record<string, any> = Record<string, any>>(
   displayName: string,
   render: (props: P & React.HTMLAttributes<E>, ref: React.Ref<E>) => JSX.Element
 ) {
@@ -34,7 +35,7 @@ export function createPrimitiveComponent<E extends HTMLElement>(
   displayName: string,
   element: keyof JSX.IntrinsicElements
 ) {
-  return createUIComponent<E>(
+  return createUIComponent<E, Record<string, any>>(
     displayName,
     (props, ref) => React.createElement(element, { ...props, ref })
   );
@@ -83,7 +84,7 @@ export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]) {
 /**
  * Create a component that safely handles refs
  */
-export function withSafeRef<P extends object, E extends HTMLElement>(
+export function withSafeRef<P extends Record<string, any>, E extends HTMLElement>(
   Component: React.ComponentType<P & { ref?: React.Ref<E> }>
 ) {
   return safeForwardRef<E, P>((props, ref) => (

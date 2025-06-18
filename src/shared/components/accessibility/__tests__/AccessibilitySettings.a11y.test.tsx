@@ -1,3 +1,4 @@
+
 /**
  * AccessibilitySettings Accessibility Tests
  * 
@@ -5,7 +6,6 @@
  * It uses axe-core to perform automated accessibility testing.
  */
 
-import React from 'react';
 import { testA11y } from '@/shared/utils/test-a11y';
 import { AccessibilitySettings, AccessibilitySettingsButton } from '@/shared/components/accessibility';
 import { AccessibilityProvider } from '@/shared/context/AccessibilityContext';
@@ -27,7 +27,7 @@ describe('AccessibilitySettings Accessibility', () => {
   it('should have no accessibility violations for AccessibilitySettings', async () => {
     await testA11y(
       <AccessibilityProvider>
-        <AccessibilitySettings open={true} />
+        <AccessibilitySettings />
       </AccessibilityProvider>
     );
   });

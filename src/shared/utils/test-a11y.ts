@@ -3,7 +3,8 @@
  * Accessibility Testing Utilities
  */
 
-import { configureAxe } from 'jest-axe';
+import { render } from '@testing-library/react';
+import { axe, configureAxe } from 'jest-axe';
 
 interface AxeOptions {
   rules?: Record<string, { enabled: boolean }>;
@@ -26,6 +27,15 @@ export const configureA11yTesting = (options: AxeOptions = {}) => {
 
   return configureAxe(defaultOptions);
 };
+
+/**
+ * Test accessibility of a component
+ */
+export async function testA11y(component: React.ReactElement): Promise<void> {
+  const { container } = render(component);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+}
 
 /**
  * Common accessibility test options

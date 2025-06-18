@@ -93,6 +93,19 @@ function logErrorToService(error: Error | AppError, context: ErrorContext = {}):
 }
 
 /**
+ * Log error function (exported for use in other modules)
+ */
+export function logError(error: unknown, componentName?: string): void {
+  const errorObj = error instanceof Error ? error : new Error(String(error));
+  const context: ErrorContext = {
+    componentName,
+    timestamp: new Date().toISOString(),
+  };
+  
+  logErrorToService(errorObj, context);
+}
+
+/**
  * Handle errors in a consistent way
  */
 export function handleError(
@@ -122,6 +135,14 @@ function showErrorNotification(error: Error | AppError): void {
   
   // In a real application, you would use your toast/notification system
   console.warn('User notification:', message);
+}
+
+/**
+ * Show error toast function (exported for use in other modules)
+ */
+export function showErrorToast(error: unknown, title: string = 'Error'): void {
+  const message = getUserFriendlyErrorMessage(error as Error);
+  console.warn(`${title}: ${message}`);
 }
 
 /**
