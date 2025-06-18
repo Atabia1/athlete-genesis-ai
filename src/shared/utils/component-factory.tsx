@@ -81,12 +81,12 @@ export function createProvider<T, P extends Record<string, any>>(
 ): React.ComponentType<P & { children: React.ReactNode }> {
   const Provider: React.FC<P & { children: React.ReactNode }> = (props) => {
     const { children, ...providerProps } = props;
-    const value = useValue(providerProps as P);
+    const value = useValue(providerProps as unknown as P);
     
     return React.createElement(context.Provider, { value }, children);
   };
   
-  return Provider;
+  return Provider as React.ComponentType<P & { children: React.ReactNode }>;
 }
 
 /**

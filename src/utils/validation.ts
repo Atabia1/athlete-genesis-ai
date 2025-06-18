@@ -90,12 +90,19 @@ export function validateExercise(exercise: Partial<Exercise>): ValidationResult 
   const repsError = validateNumber(exercise?.reps, 'Reps');
   if (repsError) errors.push(repsError);
 
-  const restError = validateNumber(exercise?.rest, 'Rest');
-  if (restError) errors.push(restError);
-
   // Optional fields with type checking
+  if (exercise?.restTime !== undefined) {
+    const restTimeError = validateNumber(exercise.restTime, 'Rest time');
+    if (restTimeError) errors.push(restTimeError);
+  }
+
   if (exercise?.notes !== undefined && typeof exercise.notes !== 'string') {
     errors.push('Notes must be a string');
+  }
+
+  if (exercise?.duration !== undefined) {
+    const durationError = validateNumber(exercise.duration, 'Duration');
+    if (durationError) errors.push(durationError);
   }
 
   return {
@@ -111,17 +118,11 @@ export function validateWorkoutDay(day: Partial<WorkoutDay>): ValidationResult {
   const errors: string[] = [];
 
   // Required fields
-  const dayError = validateString(day?.day, 'Day');
-  if (dayError) errors.push(dayError);
+  const nameError = validateString(day?.name, 'Workout day name');
+  if (nameError) errors.push(nameError);
 
-  const focusError = validateString(day?.focus, 'Focus');
-  if (focusError) errors.push(focusError);
-
-  const durationError = validateString(day?.duration, 'Duration');
-  if (durationError) errors.push(durationError);
-
-  const warmupError = validateString(day?.warmup, 'Warmup');
-  if (warmupError) errors.push(warmupError);
+  const dayNumberError = validateNumber(day?.dayNumber, 'Day number');
+  if (dayNumberError) errors.push(dayNumberError);
 
   const exercisesError = validateArray(day?.exercises, 'Exercises');
   if (exercisesError) {
@@ -137,9 +138,6 @@ export function validateWorkoutDay(day: Partial<WorkoutDay>): ValidationResult {
       }
     });
   }
-
-  const cooldownError = validateString(day?.cooldown, 'Cooldown');
-  if (cooldownError) errors.push(cooldownError);
 
   return {
     valid: errors.length === 0,
@@ -160,34 +158,48 @@ export function validateWorkoutPlan(plan: Partial<WorkoutPlan>): ValidationResul
   const nameError = validateString(plan?.name, 'Name');
   if (nameError) errors.push(nameError);
 
-  const descriptionError = validateString(plan?.description, 'Description');
-  if (descriptionError) errors.push(descriptionError);
-
   // Level must be one of the allowed values
-  const validLevels = ['beginner', 'intermediate', 'advanced', 'elite'];
+  const validLevels = ['beginner', 'intermediate', 'advanced'];
   if (!plan?.level) {
     errors.push('Level is required');
   } else if (!validLevels.includes(plan.level)) {
     errors.push(`Level must be one of: ${validLevels.join(', ')}`);
   }
 
-  // Weekly plan must be an array
-  const weeklyPlanError = validateArray(plan?.weeklyPlan, 'Weekly plan');
-  if (weeklyPlanError) {
-    errors.push(weeklyPlanError);
-  } else if (Array.isArray(plan?.weeklyPlan)) {
-    if (plan.weeklyPlan.length === 0) {
-      errors.push('Weekly plan cannot be empty');
+  // Schedule must be an array
+  const scheduleError = validateArray(plan?.schedule, 'Schedule');
+  if (scheduleError) {
+    errors.push(scheduleError);
+  } else if (Array.isArray(plan?.schedule)) {
+    if (plan.schedule.length === 0) {
+      errors.push('Schedule cannot be empty');
+    }
+  }
+
+  // Validate nutrition object
+  if (!plan?.nutrition) {
+    errors.push('Nutrition plan is required');
+  } else {
+    const nutrition = plan.nutrition;
+    
+    const caloriesError = validateNumber(nutrition.dailyCalories, 'Daily calories');
+    if (caloriesError) errors.push(caloriesError);
+
+    if (!nutrition.macros) {
+      errors.push('Macros are required');
     } else {
-      // Validate each day
-      plan.weeklyPlan.forEach((day: Partial<WorkoutDay>, index: number) => {
-        const dayResult = validateWorkoutDay(day);
-        if (!dayResult.valid) {
-          dayResult.errors.forEach(error => {
-            errors.push(`Day ${index + 1}: ${error}`);
-          });
-        }
-      });
+      const proteinError = validateNumber(nutrition.macros.protein, 'Protein');
+      if (proteinError) errors.push(proteinError);
+
+      const carbsError = validateNumber(nutrition.macros.carbs, 'Carbs');
+      if (carbsError) errors.push(carbsError);
+
+      const fatError = validateNumber(nutrition.macros.fat, 'Fat');
+      if (fatError) errors.push(fatError);
+    }
+
+    if (!nutrition.meals) {
+      errors.push('Meals are required');
     }
   }
 

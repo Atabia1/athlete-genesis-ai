@@ -245,7 +245,7 @@ export function withErrorBoundary<P extends Record<string, any>>(
       return { hasError: true, error };
     }
 
-    componentDidCatch(error: Error, info: { componentStack: string }) {
+    componentDidCatch(error: Error) {
       // Log the error
       logError(error, Component.displayName || Component.name);
     }
