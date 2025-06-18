@@ -29,17 +29,17 @@ export interface ComponentFactoryOptions<P = Record<string, any>> {
 /**
  * Create a memoized component (simplified)
  */
-function withMemo<P extends Record<string, any>>(
+function withMemo<P>(
   Component: React.ComponentType<P>
 ): React.ComponentType<P> {
-  const MemoizedComponent = React.memo(Component) as React.ComponentType<P>;
+  const MemoizedComponent = React.memo(Component as React.FC<P>) as React.ComponentType<P>;
   return MemoizedComponent;
 }
 
 /**
  * Factory function to create components with various enhancements
  */
-export function createComponent<P extends Record<string, any>>(
+export function createComponent<P>(
   component: React.ComponentType<P>,
   options: ComponentFactoryOptions<P> = {}
 ): React.ComponentType<P> {
@@ -61,7 +61,7 @@ export function createComponent<P extends Record<string, any>>(
 /**
  * Create a simple functional component
  */
-export function createFunctionalComponent<P extends Record<string, any>>(
+export function createFunctionalComponent<P>(
   render: (props: P) => React.ReactElement | null,
   options: ComponentFactoryOptions<P> = {}
 ): React.ComponentType<P> {
@@ -87,7 +87,7 @@ export function createProvider<T, P extends Record<string, any>>(
     return React.createElement(context.Provider, { value }, children);
   };
   
-  return createComponent(Provider, {
+  return createComponent(Provider as React.ComponentType<P & { children: React.ReactNode }>, {
     displayName: `${context.displayName || 'Unknown'}Provider`,
     ...options,
   });
@@ -110,6 +110,20 @@ export function createConsumer<T>(
     displayName: `${context.displayName || 'Unknown'}Consumer`,
     ...options,
   });
+}
+
+/**
+ * Combine multiple providers into a single provider
+ */
+export function combineProviders(
+  providers: Array<React.FC<{ children: React.ReactNode }>>
+): React.FC<{ children: React.ReactNode }> {
+  return ({ children }) => {
+    return providers.reduceRight(
+      (acc, Provider) => <Provider>{acc}</Provider>,
+      children as React.ReactElement
+    );
+  };
 }
 
 export default {

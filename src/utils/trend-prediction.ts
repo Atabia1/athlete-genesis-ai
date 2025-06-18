@@ -1,3 +1,4 @@
+
 /**
  * Trend Prediction Utilities
  *
@@ -18,6 +19,24 @@ export interface TrendPredictionResult {
 export interface SeasonalPattern {
   pattern: number[];
   average: number;
+}
+
+/**
+ * Calculate mean of an array of numbers
+ */
+export function calculateMean(data: number[]): number {
+  if (data.length === 0) return 0;
+  return data.reduce((sum, val) => sum + val, 0) / data.length;
+}
+
+/**
+ * Calculate standard deviation of an array of numbers
+ */
+export function calculateStandardDeviation(data: number[]): number {
+  if (data.length === 0) return 0;
+  const mean = calculateMean(data);
+  const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
+  return Math.sqrt(variance);
 }
 
 /**

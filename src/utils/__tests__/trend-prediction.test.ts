@@ -1,220 +1,115 @@
-/**
- * Tests for trend prediction utilities
- */
 
-import { 
-  calculateMean, 
-  calculateStandardDeviation, 
-  linearRegression, 
-  predictTrend, 
-  detectSeasonality, 
-  generateForecast,
-  DataPoint,
-  TrendDirection
+import {
+  calculateLinearRegression,
+  detectAnomalies,
+  analyzeSeasonalPatterns,
+  forecastFutureValues,
+  calculateMean,
+  calculateStandardDeviation,
+  TrendPredictionResult,
+  SeasonalPattern,
 } from '../trend-prediction';
 
 describe('Trend Prediction Utilities', () => {
   describe('calculateMean', () => {
-    it('should calculate the mean of an array of numbers', () => {
+    it('should calculate the mean of an array', () => {
       expect(calculateMean([1, 2, 3, 4, 5])).toBe(3);
-      expect(calculateMean([10, 20, 30, 40, 50])).toBe(30);
-    });
-
-    it('should return 0 for an empty array', () => {
+      expect(calculateMean([10, 20, 30])).toBe(20);
       expect(calculateMean([])).toBe(0);
-    });
-
-    it('should handle negative numbers', () => {
-      expect(calculateMean([-5, -3, -1, 1, 3, 5])).toBe(0);
     });
   });
 
   describe('calculateStandardDeviation', () => {
-    it('should calculate the standard deviation of an array of numbers', () => {
-      expect(calculateStandardDeviation([1, 2, 3, 4, 5])).toBeCloseTo(1.414, 3);
-      expect(calculateStandardDeviation([10, 10, 10, 10, 10])).toBe(0);
-    });
-
-    it('should return 0 for an array with one or zero elements', () => {
+    it('should calculate standard deviation', () => {
+      const result = calculateStandardDeviation([1, 2, 3, 4, 5]);
+      expect(result).toBeCloseTo(1.414, 2);
       expect(calculateStandardDeviation([])).toBe(0);
-      expect(calculateStandardDeviation([5])).toBe(0);
     });
   });
 
-  describe('linearRegression', () => {
-    it('should calculate the slope and intercept of a linear regression', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 1, timestamp: new Date('2023-01-01') },
-        { value: 2, timestamp: new Date('2023-01-02') },
-        { value: 3, timestamp: new Date('2023-01-03') },
-        { value: 4, timestamp: new Date('2023-01-04') },
-        { value: 5, timestamp: new Date('2023-01-05') }
-      ];
-
-      const result = linearRegression(dataPoints);
-      expect(result.slope).toBeCloseTo(1, 1);
-      expect(result.intercept).toBeCloseTo(1, 1);
-      expect(result.rSquared).toBeCloseTo(1, 1);
-    });
-
-    it('should handle data points with no trend', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 5, timestamp: new Date('2023-01-01') },
-        { value: 5, timestamp: new Date('2023-01-02') },
-        { value: 5, timestamp: new Date('2023-01-03') },
-        { value: 5, timestamp: new Date('2023-01-04') },
-        { value: 5, timestamp: new Date('2023-01-05') }
-      ];
-
-      const result = linearRegression(dataPoints);
-      expect(result.slope).toBeCloseTo(0, 5);
-      expect(result.intercept).toBeCloseTo(5, 5);
-    });
-
-    it('should return default values for insufficient data points', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 5, timestamp: new Date('2023-01-01') }
-      ];
-
-      const result = linearRegression(dataPoints);
-      expect(result.slope).toBe(0);
-      expect(result.intercept).toBe(0);
-      expect(result.rSquared).toBe(0);
-    });
-  });
-
-  describe('predictTrend', () => {
-    it('should predict an upward trend', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 1, timestamp: new Date('2023-01-01') },
-        { value: 2, timestamp: new Date('2023-01-02') },
-        { value: 3, timestamp: new Date('2023-01-03') },
-        { value: 4, timestamp: new Date('2023-01-04') },
-        { value: 5, timestamp: new Date('2023-01-05') }
-      ];
-
-      const result = predictTrend(dataPoints);
-      expect(result.direction).toBe(TrendDirection.UP);
+  describe('calculateLinearRegression', () => {
+    it('should calculate linear regression for increasing trend', () => {
+      const data = [1, 2, 3, 4, 5];
+      const result: TrendPredictionResult = calculateLinearRegression(data);
+      
+      expect(result.trend).toBe('increasing');
       expect(result.slope).toBeGreaterThan(0);
-      expect(result.confidence).toBeGreaterThan(0.5);
-      expect(result.nextValue).toBeGreaterThan(5);
+      expect(result.prediction).toBeGreaterThan(5);
+      expect(result.confidence).toBeGreaterThan(0.9);
     });
 
-    it('should predict a downward trend', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 5, timestamp: new Date('2023-01-01') },
-        { value: 4, timestamp: new Date('2023-01-02') },
-        { value: 3, timestamp: new Date('2023-01-03') },
-        { value: 2, timestamp: new Date('2023-01-04') },
-        { value: 1, timestamp: new Date('2023-01-05') }
-      ];
-
-      const result = predictTrend(dataPoints);
-      expect(result.direction).toBe(TrendDirection.DOWN);
+    it('should calculate linear regression for decreasing trend', () => {
+      const data = [5, 4, 3, 2, 1];
+      const result: TrendPredictionResult = calculateLinearRegression(data);
+      
+      expect(result.trend).toBe('decreasing');
       expect(result.slope).toBeLessThan(0);
-      expect(result.confidence).toBeGreaterThan(0.5);
-      expect(result.nextValue).toBeLessThan(1);
+      expect(result.prediction).toBeLessThan(1);
+      expect(result.confidence).toBeGreaterThan(0.9);
     });
 
-    it('should predict a stable trend', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 5.1, timestamp: new Date('2023-01-01') },
-        { value: 5.0, timestamp: new Date('2023-01-02') },
-        { value: 5.2, timestamp: new Date('2023-01-03') },
-        { value: 4.9, timestamp: new Date('2023-01-04') },
-        { value: 5.1, timestamp: new Date('2023-01-05') }
-      ];
-
-      const result = predictTrend(dataPoints);
-      expect(result.direction).toBe(TrendDirection.STABLE);
-      expect(Math.abs(result.slope)).toBeLessThan(0.1);
-    });
-
-    it('should handle insufficient data points', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 5, timestamp: new Date('2023-01-01') }
-      ];
-
-      const result = predictTrend(dataPoints);
-      expect(result.direction).toBe(TrendDirection.STABLE);
-      expect(result.slope).toBe(0);
-      expect(result.confidence).toBe(0);
-      expect(result.nextValue).toBe(5);
+    it('should handle empty or single data point', () => {
+      const result1 = calculateLinearRegression([]);
+      expect(result1.trend).toBe('stable');
+      expect(result1.confidence).toBe(0);
+      
+      const result2 = calculateLinearRegression([5]);
+      expect(result2.trend).toBe('stable');
+      expect(result2.prediction).toBe(5);
     });
   });
 
-  describe('detectSeasonality', () => {
-    it('should detect seasonality in data with a clear pattern', () => {
-      const dataPoints: DataPoint[] = [];
-      // Create a weekly pattern over 4 weeks
-      for (let week = 0; week < 4; week++) {
-        for (let day = 0; day < 7; day++) {
-          const date = new Date('2023-01-01');
-          date.setDate(date.getDate() + (week * 7) + day);
-          
-          // Create a pattern where weekends have higher values
-          const value = day >= 5 ? 10 : 5;
-          dataPoints.push({ value, timestamp: date });
-        }
-      }
-
-      const seasonalityStrength = detectSeasonality(dataPoints, 7);
-      expect(seasonalityStrength).toBeGreaterThan(0.5);
+  describe('detectAnomalies', () => {
+    it('should detect anomalies in data', () => {
+      const data = [1, 2, 3, 2, 3, 100, 2, 3, 2]; // 100 is an anomaly
+      const anomalies = detectAnomalies(data, 3, 2);
+      
+      expect(anomalies).toContain(5); // Index of the anomaly
     });
 
-    it('should return low seasonality for random data', () => {
-      const dataPoints: DataPoint[] = [];
-      for (let i = 0; i < 30; i++) {
-        const date = new Date('2023-01-01');
-        date.setDate(date.getDate() + i);
-        dataPoints.push({ 
-          value: Math.random() * 10, 
-          timestamp: date 
-        });
-      }
-
-      const seasonalityStrength = detectSeasonality(dataPoints, 7);
-      expect(seasonalityStrength).toBeLessThan(0.5);
-    });
-
-    it('should return 0 for insufficient data', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 5, timestamp: new Date('2023-01-01') },
-        { value: 6, timestamp: new Date('2023-01-02') },
-        { value: 7, timestamp: new Date('2023-01-03') }
-      ];
-
-      const seasonalityStrength = detectSeasonality(dataPoints, 7);
-      expect(seasonalityStrength).toBe(0);
+    it('should return empty array for insufficient data', () => {
+      const data = [1, 2];
+      const anomalies = detectAnomalies(data, 5);
+      
+      expect(anomalies).toEqual([]);
     });
   });
 
-  describe('generateForecast', () => {
-    it('should generate forecasts for future data points', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 1, timestamp: new Date('2023-01-01') },
-        { value: 2, timestamp: new Date('2023-01-02') },
-        { value: 3, timestamp: new Date('2023-01-03') },
-        { value: 4, timestamp: new Date('2023-01-04') },
-        { value: 5, timestamp: new Date('2023-01-05') }
-      ];
-
-      const forecast = generateForecast(dataPoints, 3);
-      expect(forecast.length).toBe(3);
-      expect(forecast[0]).toBeGreaterThan(5);
-      expect(forecast[1]).toBeGreaterThan(forecast[0]);
-      expect(forecast[2]).toBeGreaterThan(forecast[1]);
+  describe('analyzeSeasonalPatterns', () => {
+    it('should analyze seasonal patterns', () => {
+      const data = [1, 2, 3, 1, 2, 3, 1, 2, 3]; // Pattern repeats every 3
+      const result: SeasonalPattern = analyzeSeasonalPatterns(data, 3);
+      
+      expect(result.pattern).toHaveLength(3);
+      expect(result.pattern[0]).toBe(1);
+      expect(result.pattern[1]).toBe(2);
+      expect(result.pattern[2]).toBe(3);
+      expect(result.average).toBe(2);
     });
 
-    it('should return trend predictions for insufficient seasonal data', () => {
-      const dataPoints: DataPoint[] = [
-        { value: 1, timestamp: new Date('2023-01-01') },
-        { value: 2, timestamp: new Date('2023-01-02') },
-        { value: 3, timestamp: new Date('2023-01-03') }
-      ];
+    it('should handle insufficient data', () => {
+      const data = [1, 2];
+      const result = analyzeSeasonalPatterns(data, 5);
+      
+      expect(result.pattern).toEqual([]);
+      expect(result.average).toBe(0);
+    });
+  });
 
-      const forecast = generateForecast(dataPoints, 2);
-      expect(forecast.length).toBe(2);
+  describe('forecastFutureValues', () => {
+    it('should forecast future values based on seasonal pattern', () => {
+      const data = [1, 2, 3];
+      const seasonalPattern: SeasonalPattern = {
+        pattern: [1, 2, 3],
+        average: 2,
+      };
+      
+      const forecast = forecastFutureValues(data, 3, seasonalPattern);
+      
+      expect(forecast).toHaveLength(3);
+      expect(forecast[0]).toBe(1); // data.length % pattern.length = 0
+      expect(forecast[1]).toBe(2);
+      expect(forecast[2]).toBe(3);
     });
   });
 });

@@ -1,3 +1,4 @@
+
 /**
  * Paystack Payment Utilities
  *
@@ -24,6 +25,24 @@ export interface PaystackResponse {
   status: boolean;
   message: string;
   transaction: any;
+}
+
+export type SubscriptionPeriod = 'monthly' | 'yearly';
+
+export interface SubscriptionDetails {
+  name: string;
+  price: number;
+  features: string[];
+}
+
+export interface TransactionData {
+  status: string;
+  reference: string;
+  amount: number;
+  customer: {
+    email: string;
+    name?: string;
+  };
 }
 
 /**
@@ -93,6 +112,59 @@ export async function verifyPayment(reference: string): Promise<PaystackResponse
     console.error('Paystack verification error:', error);
     throw new Error(`Paystack verification failed: ${error.message}`);
   }
+}
+
+/**
+ * Verify a transaction (alias for verifyPayment for compatibility)
+ */
+export async function verifyTransaction(reference: string): Promise<TransactionData> {
+  try {
+    const response = await verifyPayment(reference);
+    return {
+      status: response.status ? 'success' : 'failed',
+      reference,
+      amount: response.transaction?.amount || 0,
+      customer: {
+        email: response.transaction?.customer?.email || '',
+        name: response.transaction?.customer?.first_name || '',
+      },
+    };
+  } catch (error) {
+    console.error('Transaction verification failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get subscription details based on tier and period
+ */
+export function getSubscriptionDetails(tier: string, period: SubscriptionPeriod): SubscriptionDetails {
+  const plans = {
+    free: {
+      name: 'Free Plan',
+      monthly: { price: 0, features: ['Basic features'] },
+      yearly: { price: 0, features: ['Basic features'] },
+    },
+    premium: {
+      name: 'Premium Plan',
+      monthly: { price: 29.99, features: ['Premium features', 'Priority support'] },
+      yearly: { price: 299.99, features: ['Premium features', 'Priority support', 'Annual discount'] },
+    },
+    elite: {
+      name: 'Elite Plan',
+      monthly: { price: 99.99, features: ['All features', '24/7 support', 'Advanced analytics'] },
+      yearly: { price: 999.99, features: ['All features', '24/7 support', 'Advanced analytics', 'Annual discount'] },
+    },
+  };
+
+  const plan = plans[tier as keyof typeof plans] || plans.free;
+  const details = plan[period];
+
+  return {
+    name: plan.name,
+    price: details.price,
+    features: details.features,
+  };
 }
 
 /**
