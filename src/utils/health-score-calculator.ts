@@ -1,3 +1,4 @@
+
 /**
  * Health Score Calculator
  *
@@ -89,9 +90,9 @@ export function calculateActivityScore(healthData: HealthData): number {
 }
 
 /**
- * Calculate nutrition score
+ * Calculate nutrition score (placeholder implementation)
  */
-export function calculateNutritionScore(healthData: HealthData): number {
+export function calculateNutritionScore(_healthData: HealthData): number {
   // Placeholder implementation
   return 80;
 }

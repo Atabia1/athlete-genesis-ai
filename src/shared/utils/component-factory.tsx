@@ -32,8 +32,8 @@ export interface ComponentFactoryOptions<P = Record<string, any>> {
 function withMemo<P>(
   Component: React.ComponentType<P>
 ): React.ComponentType<P> {
-  const MemoizedComponent = React.memo(Component as React.FC<P>) as React.ComponentType<P>;
-  return MemoizedComponent;
+  const MemoizedComponent = React.memo(Component as React.FC<P>);
+  return MemoizedComponent as React.ComponentType<P>;
 }
 
 /**
@@ -73,24 +73,20 @@ export function createFunctionalComponent<P>(
 }
 
 /**
- * Create a provider component
+ * Create a provider component (simplified)
  */
 export function createProvider<T, P extends Record<string, any>>(
   context: React.Context<T>,
-  useValue: (props: P) => T,
-  options: ComponentFactoryOptions<P> = {}
+  useValue: (props: P) => T
 ): React.ComponentType<P & { children: React.ReactNode }> {
-  const Provider: React.FunctionComponent<P & { children: React.ReactNode }> = (props) => {
+  const Provider: React.FC<P & { children: React.ReactNode }> = (props) => {
     const { children, ...providerProps } = props;
     const value = useValue(providerProps as P);
     
     return React.createElement(context.Provider, { value }, children);
   };
   
-  return createComponent(Provider as React.ComponentType<P & { children: React.ReactNode }>, {
-    displayName: `${context.displayName || 'Unknown'}Provider`,
-    ...options,
-  });
+  return Provider;
 }
 
 /**

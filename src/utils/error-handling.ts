@@ -1,3 +1,4 @@
+
 /**
  * Error Handling Utilities
  *
@@ -7,7 +8,6 @@
 
 import * as React from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { serviceRegistry } from '@/services/service-registry';
 
 /**
  * Base application error class
@@ -92,12 +92,11 @@ export function handleError(error: unknown, componentName?: string): string {
 }
 
 /**
- * Log an error to the logging service
+ * Log an error to the console (simplified)
  */
 export function logError(error: unknown, componentName?: string): void {
   // Convert to Error object if it's not already
   const errorObj = error instanceof Error ? error : new Error(String(error));
-  const logger = serviceRegistry.logging;
 
   // Extract error details
   const errorMessage = errorObj.message || 'Unknown error';
@@ -125,11 +124,8 @@ export function logError(error: unknown, componentName?: string): void {
     context.stack = errorStack;
   }
 
-  // Log the error
-  logger.error(`${errorName}: ${errorMessage}`, context);
-
-  // Track the error in analytics
-  serviceRegistry.analytics.trackError(errorMessage, errorCode, componentName);
+  // Log the error to console
+  console.error(`${errorName}: ${errorMessage}`, context);
 }
 
 /**
@@ -233,12 +229,11 @@ export async function tryCatch<T>(
 }
 
 /**
- * Create an error boundary component
+ * Create an error boundary component (simplified)
  */
-export function withErrorBoundary<P>(
+export function withErrorBoundary<P extends Record<string, any>>(
   Component: React.ComponentType<P>,
-  FallbackComponent: React.ComponentType<{ error: Error; resetError: () => void }>,
-  onError?: (error: Error, info: { componentStack: string }) => void
+  FallbackComponent: React.ComponentType<{ error: Error; resetError: () => void }>
 ): React.ComponentType<P> {
   return class ErrorBoundary extends React.Component<P, { hasError: boolean; error: Error | null }> {
     constructor(props: P) {
@@ -253,11 +248,6 @@ export function withErrorBoundary<P>(
     componentDidCatch(error: Error, info: { componentStack: string }) {
       // Log the error
       logError(error, Component.displayName || Component.name);
-
-      // Call the onError callback if provided
-      if (onError) {
-        onError(error, info);
-      }
     }
 
     resetError = () => {

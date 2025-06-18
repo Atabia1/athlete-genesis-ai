@@ -41,6 +41,25 @@ function validateString(value: unknown, fieldName: string): string | null {
 }
 
 /**
+ * Validate a number field
+ */
+function validateNumber(value: unknown, fieldName: string): string | null {
+  if (value === undefined || value === null) {
+    return `${fieldName} is required`;
+  }
+
+  if (typeof value !== 'number') {
+    return `${fieldName} must be a number`;
+  }
+
+  if (isNaN(value)) {
+    return `${fieldName} must be a valid number`;
+  }
+
+  return null;
+}
+
+/**
  * Validate an array field
  */
 function validateArray(value: unknown, fieldName: string): string | null {
@@ -65,11 +84,14 @@ export function validateExercise(exercise: Partial<Exercise>): ValidationResult 
   const nameError = validateString(exercise?.name, 'Exercise name');
   if (nameError) errors.push(nameError);
 
-  const setsError = validateString(exercise?.sets, 'Sets');
+  const setsError = validateNumber(exercise?.sets, 'Sets');
   if (setsError) errors.push(setsError);
 
-  const repsError = validateString(exercise?.reps, 'Reps');
+  const repsError = validateNumber(exercise?.reps, 'Reps');
   if (repsError) errors.push(repsError);
+
+  const restError = validateNumber(exercise?.rest, 'Rest');
+  if (restError) errors.push(restError);
 
   // Optional fields with type checking
   if (exercise?.notes !== undefined && typeof exercise.notes !== 'string') {

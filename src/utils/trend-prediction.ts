@@ -21,6 +21,12 @@ export interface SeasonalPattern {
   average: number;
 }
 
+// Define data point interface
+export interface DataPoint {
+  value: number;
+  timestamp: Date;
+}
+
 /**
  * Calculate mean of an array of numbers
  */
